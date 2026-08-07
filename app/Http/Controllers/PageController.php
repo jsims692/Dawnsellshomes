@@ -16,6 +16,14 @@ class PageController extends Controller
             ? str_replace('<!--STYLE-->', $styleTag, $page->head_html)
             : $page->head_html.$styleTag;
 
+        // Progressive-rewrite hook: a Blade view at pages/{path} takes over rendering
+        // for that URL (it receives the same DB-backed SEO head); everything else
+        // falls back to the verbatim imported content.
+        $override = 'pages.'.($path === '' ? 'home' : str_replace('/', '.', $path));
+        if (view()->exists($override)) {
+            return view($override, ['page' => $page, 'head' => $head]);
+        }
+
         return view('page', ['page' => $page, 'head' => $head]);
     }
 }
