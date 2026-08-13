@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 class ImportStaticSite extends Command
 {
     protected $signature = 'import:static
-        {source=/home/jsims/dawnsellshomes : Path to the static site tree}
+        {source=/home/jsims/dawnsellshomes-old : Path to the static site tree}
         {--fresh : Truncate pages and page_styles before importing}';
 
     protected $description = 'Import the static HTML site into the pages table (pass 1: verbatim head/body slices, deduped CSS, parsed SEO fields)';
