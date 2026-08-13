@@ -8,7 +8,13 @@ class PageController extends Controller
 {
     public function show(string $path = '')
     {
-        $page = Page::where('path', rtrim($path, '/'))->firstOrFail();
+        // Match production behavior: trailing-slash URLs 301 to the canonical form
+        // (Netlify has always redirected /x/ -> /x; serving both would be duplicate content).
+        if ($path !== '' && str_ends_with($path, '/')) {
+            return redirect('/'.rtrim($path, '/'), 301);
+        }
+
+        $page = Page::where('path', $path)->firstOrFail();
 
         $css = $page->css_override ?? $page->style()?->css;
         $styleTag = $css !== null ? '<style>'.$css.'</style>' : '';
