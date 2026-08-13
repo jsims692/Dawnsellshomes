@@ -5,7 +5,7 @@ namespace App\Console\Commands;
 use App\Models\Page;
 use App\Models\PageStyle;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class ImportStaticSite extends Command
 {
@@ -20,10 +20,10 @@ class ImportStaticSite extends Command
         $source = rtrim($this->argument('source'), '/');
 
         if ($this->option('fresh')) {
-            DB::statement('PRAGMA foreign_keys = OFF');
+            Schema::disableForeignKeyConstraints();
             Page::truncate();
             PageStyle::truncate();
-            DB::statement('PRAGMA foreign_keys = ON');
+            Schema::enableForeignKeyConstraints();
         }
 
         $sitemapPaths = $this->sitemapPaths($source);
