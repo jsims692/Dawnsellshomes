@@ -39,4 +39,8 @@ return [
         'url' => env('LEAD_WEBHOOK_URL'),
     ],
 
+    'kvcore' => [
+        'token' => env('KVCORE_API_TOKEN'),
+    ],
+
 ];
