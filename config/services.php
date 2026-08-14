@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'lead_webhook' => [
+        'url' => env('LEAD_WEBHOOK_URL'),
+    ],
+
 ];

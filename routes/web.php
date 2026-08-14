@@ -1,8 +1,13 @@
 <?php
 
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\SitemapController;
 use Illuminate\Support\Facades\Route;
+
+// Sitewide contact form (posts to "/" with form-name=contact, matching the
+// contract the original Netlify form used).
+Route::post('/', [ContactController::class, 'store']);
 
 Route::get('/sitemap.xml', SitemapController::class);
 
