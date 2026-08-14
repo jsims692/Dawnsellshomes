@@ -43,4 +43,9 @@ return [
         'token' => env('KVCORE_API_TOKEN'),
     ],
 
+    'lead_notify' => [
+        // comma-separated override via env; defaults to Josh + Dawn
+        'recipients' => array_filter(array_map('trim', explode(',', env('LEAD_NOTIFY_EMAILS', 'jsims692@gmail.com,simsre2000@yahoo.com')))),
+    ],
+
 ];

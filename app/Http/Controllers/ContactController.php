@@ -37,6 +37,7 @@ class ContactController extends Controller
         if (! $lead->is_spam) {
             $this->forwardToKvCore($lead);
             $this->forwardToWebhook($lead);
+            $this->notifyByEmail($lead);
         }
 
         // The form's JS treats any response as success; non-JS fallback gets a redirect.
@@ -95,6 +96,24 @@ class ContactController extends Controller
         } catch (\Throwable $e) {
             // Lead is safe in the DB either way; forwarding can be retried.
             Log::warning('kvCORE forward failed', ['lead_id' => $lead->id, 'error' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Email the lead to the team (Josh + Dawn by default). Sent after the CRM
+     * forward so the email can report kvCORE delivery status.
+     */
+    private function notifyByEmail(Lead $lead): void
+    {
+        $recipients = config('services.lead_notify.recipients', []);
+        if (empty($recipients)) {
+            return;
+        }
+
+        try {
+            \Illuminate\Support\Facades\Mail::to($recipients)->send(new \App\Mail\LeadNotification($lead->refresh()));
+        } catch (\Throwable $e) {
+            Log::warning('Lead email notification failed', ['lead_id' => $lead->id, 'error' => $e->getMessage()]);
         }
     }
 
