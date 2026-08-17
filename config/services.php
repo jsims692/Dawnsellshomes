@@ -49,6 +49,10 @@ return [
     ],
 
 
+    'google' => [
+        'maps_key' => env('GOOGLE_MAPS_KEY'),
+    ],
+
     'indexnow' => [
         'key' => env('INDEXNOW_KEY'),
     ],
