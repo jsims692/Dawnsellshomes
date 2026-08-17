@@ -11,6 +11,14 @@ Route::post('/', [ContactController::class, 'store']);
 
 Route::get('/sitemap.xml', SitemapController::class);
 
+// IndexNow ownership verification: the key must be retrievable as {key}.txt
+// at the site root for search engines to trust our URL submissions.
+Route::get('/{key}.txt', function (string $key) {
+    abort_unless($key !== '' && $key === config('services.indexnow.key'), 404);
+
+    return response(config('services.indexnow.key'), 200, ['Content-Type' => 'text/plain']);
+})->where('key', '[A-Za-z0-9-]+');
+
 // Legacy .html URLs 301 to the canonical extensionless form
 // (the live site resolves both; canonicals/sitemap have been extensionless since July 2026).
 Route::get('/{path}.html', function (string $path) {

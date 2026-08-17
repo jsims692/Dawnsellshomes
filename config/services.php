@@ -48,4 +48,9 @@ return [
         'recipients' => array_filter(array_map('trim', explode(',', env('LEAD_NOTIFY_EMAILS', 'jsims692@gmail.com,simsre2000@yahoo.com')))),
     ],
 
+
+    'indexnow' => [
+        'key' => env('INDEXNOW_KEY'),
+    ],
+
 ];
