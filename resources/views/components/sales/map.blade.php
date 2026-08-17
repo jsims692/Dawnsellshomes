@@ -104,6 +104,7 @@ document.addEventListener('alpine:init', () => {
     Alpine.data('salesMap', ({ compact, key }) => ({
         map: null, loading: true, mode: 'cities', active: null,
         all: [], markers: [], HtmlMarker: null,
+        busy: false, autoHomes: false,
 
         fmt(n) { return '$' + Math.round(n).toLocaleString('en-US'); },
         get filters() { return Alpine.store('salesFilters'); },
@@ -156,14 +157,23 @@ document.addEventListener('alpine:init', () => {
             this.$watch('filters.year', () => this.refresh());
             this.$watch('filters.city', (city) => city ? this.showHomes(city) : this.showCities());
 
-            this.map.addListener('zoom_changed', () => {
+            // Auto-switch on zoom, evaluated once the map settles ('idle'), never
+            // mid-animation. Homes shown via a bubble click / city filter are
+            // "pinned" and only leave via Back or clearing the filter.
+            this.map.addListener('idle', () => {
+                if (this.busy) return;
                 const z = this.map.getZoom();
-                if (this.mode === 'cities' && z >= 13) this.showHomes(null, false);
-                if (this.mode === 'homes' && !this.filters.city && z <= 10) this.showCities(false);
+                if (this.mode === 'cities' && z >= 13) this.showHomes(null, false, true);
+                else if (this.mode === 'homes' && this.autoHomes && !this.filters.city && z <= 11) this.showCities(false);
             });
         },
 
-        clear() { this.markers.forEach(m => m.setMap(null)); this.markers = []; },
+        clear() {
+            // Detach + hard-remove the DOM immediately so a rebuild in the same
+            // tick can never be swept away by Google's deferred onRemove.
+            this.markers.forEach(m => { try { m.el.remove(); m.setMap(null); } catch (e) {} });
+            this.markers = [];
+        },
         refresh() { this.mode === 'cities' ? this.showCities(false) : this.showHomes(this.filters.city || null, false); },
 
         fitTo(points, maxZoom) {
@@ -175,7 +185,8 @@ document.addEventListener('alpine:init', () => {
         },
 
         showCities(fit = true) {
-            this.mode = 'cities'; this.active = null; this.clear();
+            this.busy = true;
+            this.mode = 'cities'; this.autoHomes = false; this.active = null; this.clear();
             const byCity = {};
             this.filtered.forEach(s => { const c = (byCity[s.city] ||= { city: s.city, count: 0, lat: 0, lng: 0 }); c.count++; c.lat += s.lat; c.lng += s.lng; });
             const list = Object.values(byCity).map(c => ({ ...c, lat: c.lat / c.count, lng: c.lng / c.count }));
@@ -189,10 +200,12 @@ document.addEventListener('alpine:init', () => {
                 this.markers.push(new this.HtmlMarker(this.map, { lat: c.lat, lng: c.lng }, el, () => { this.filters.city = c.city; }));
             });
             if (fit) this.fitTo(list.map(c => ({ lat: c.lat, lng: c.lng })), 11);
+            this.settle();
         },
 
-        showHomes(city = null, fit = true) {
-            this.mode = 'homes'; this.active = null; this.clear();
+        showHomes(city = null, fit = true, auto = false) {
+            this.busy = true;
+            this.mode = 'homes'; this.autoHomes = auto; this.active = null; this.clear();
             const rows = city ? this.filtered.filter(s => s.city === city) : this.filtered;
             rows.forEach(s => {
                 const el = document.createElement('div');
@@ -200,6 +213,13 @@ document.addEventListener('alpine:init', () => {
                 this.markers.push(new this.HtmlMarker(this.map, { lat: s.lat, lng: s.lng }, el, () => { this.active = s; }));
             });
             if (fit) this.fitTo(rows.map(s => ({ lat: s.lat, lng: s.lng })), 15);
+            this.settle();
+        },
+
+        // Release the transition guard once any programmatic pan/zoom finishes.
+        settle() {
+            google.maps.event.addListenerOnce(this.map, 'idle', () => { this.busy = false; });
+            setTimeout(() => { this.busy = false; }, 800); // safety net if no movement occurred
         },
     }));
 });
