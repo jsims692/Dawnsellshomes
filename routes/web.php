@@ -3,6 +3,7 @@
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\SitemapController;
+use App\Http\Controllers\SoldController;
 use Illuminate\Support\Facades\Route;
 
 // Sitewide contact form (posts to "/" with form-name=contact, matching the
@@ -10,6 +11,10 @@ use Illuminate\Support\Facades\Route;
 Route::post('/', [ContactController::class, 'store']);
 
 Route::get('/sitemap.xml', SitemapController::class);
+
+// Homes We've Sold: DB-driven page + JSON payload for the interactive map
+Route::get('/sold', [SoldController::class, 'show']);
+Route::get('/sold/map-data', [SoldController::class, 'data']);
 
 // IndexNow ownership verification: the key must be retrievable as {key}.txt
 // at the site root for search engines to trust our URL submissions.
