@@ -29,7 +29,7 @@
     <div style="position:absolute; left:12px; bottom:28px; z-index:5; background:rgba(255,255,255,.95); border-radius:8px; padding:10px 12px; font-family:Arial,sans-serif; font-size:12px; color:#333; box-shadow:0 2px 10px rgba(0,0,0,.15); line-height:1.7;">
         <div><span class="dsm-dot" style="background:#CC0000"></span> We listed &amp; sold it</div>
         <div><span class="dsm-dot" style="background:#C8A84B"></span> We represented the buyer</div>
-        <div x-show="mode === 'cities'" style="color:#666; margin-top:2px;">Click a city bubble to see every home</div>
+        <div x-show="mode === 'cities'" style="color:#666; margin-top:2px;">Click a city bubble to see every home · zoom out to return</div>
         <button x-show="mode === 'homes'" @click="showCities()" type="button" style="margin-top:6px; background:#1B3A6B; color:#fff; border:0; border-radius:6px; padding:6px 10px; font-weight:700; font-size:12px; cursor:pointer;">← Back to all cities</button>
     </div>
 
@@ -104,7 +104,7 @@ document.addEventListener('alpine:init', () => {
     Alpine.data('salesMap', ({ compact, key }) => ({
         map: null, loading: true, mode: 'cities', active: null,
         all: [], markers: [], HtmlMarker: null,
-        busy: false, autoHomes: false,
+        busy: false, autoHomes: false, drillCity: null,
 
         fmt(n) { return '$' + Math.round(n).toLocaleString('en-US'); },
         get filters() { return Alpine.store('salesFilters'); },
@@ -155,7 +155,7 @@ document.addEventListener('alpine:init', () => {
             this.$watch('filters.side', () => this.refresh());
             this.$watch('filters.type', () => this.refresh());
             this.$watch('filters.year', () => this.refresh());
-            this.$watch('filters.city', (city) => city ? this.showHomes(city) : this.showCities());
+            this.$watch('filters.city', (city) => city ? this.showHomes(city, true, false) : this.showCities());
 
             // Auto-switch on zoom, evaluated once the map settles ('idle'), never
             // mid-animation. Homes shown via a bubble click / city filter are
@@ -163,7 +163,7 @@ document.addEventListener('alpine:init', () => {
             this.map.addListener('idle', () => {
                 if (this.busy) return;
                 const z = this.map.getZoom();
-                if (this.mode === 'cities' && z >= 13) this.showHomes(null, false, true);
+                if (this.mode === 'cities' && z >= 13) this.showHomes(this.filters.city || null, false, true);
                 else if (this.mode === 'homes' && this.autoHomes && !this.filters.city && z <= 11) this.showCities(false);
             });
         },
@@ -174,7 +174,7 @@ document.addEventListener('alpine:init', () => {
             this.markers.forEach(m => { try { m.el.remove(); m.setMap(null); } catch (e) {} });
             this.markers = [];
         },
-        refresh() { this.mode === 'cities' ? this.showCities(false) : this.showHomes(this.filters.city || null, false); },
+        refresh() { this.mode === 'cities' ? this.showCities(false) : this.showHomes(this.filters.city || this.drillCity, false, this.autoHomes); },
 
         fitTo(points, maxZoom) {
             if (!points.length) return;
@@ -186,7 +186,7 @@ document.addEventListener('alpine:init', () => {
 
         showCities(fit = true) {
             this.busy = true;
-            this.mode = 'cities'; this.autoHomes = false; this.active = null; this.clear();
+            this.mode = 'cities'; this.autoHomes = false; this.drillCity = null; this.active = null; this.clear();
             const byCity = {};
             this.filtered.forEach(s => { const c = (byCity[s.city] ||= { city: s.city, count: 0, lat: 0, lng: 0 }); c.count++; c.lat += s.lat; c.lng += s.lng; });
             const list = Object.values(byCity).map(c => ({ ...c, lat: c.lat / c.count, lng: c.lng / c.count }));
@@ -197,7 +197,7 @@ document.addEventListener('alpine:init', () => {
                 el.className = 'dsm-bubble'; el.style.width = el.style.height = size + 'px'; el.title = `${c.city}: ${c.count} sold`;
                 el.innerHTML = `<div>${c.count}<small>${size > 52 ? c.city : ''}</small></div>`;
                 el.style.zIndex = String(1000 + c.count);
-                this.markers.push(new this.HtmlMarker(this.map, { lat: c.lat, lng: c.lng }, el, () => { this.filters.city = c.city; }));
+                this.markers.push(new this.HtmlMarker(this.map, { lat: c.lat, lng: c.lng }, el, () => { this.showHomes(c.city, true, true); }));
             });
             if (fit) this.fitTo(list.map(c => ({ lat: c.lat, lng: c.lng })), 11);
             this.settle();
@@ -205,7 +205,7 @@ document.addEventListener('alpine:init', () => {
 
         showHomes(city = null, fit = true, auto = false) {
             this.busy = true;
-            this.mode = 'homes'; this.autoHomes = auto; this.active = null; this.clear();
+            this.mode = 'homes'; this.autoHomes = auto; this.drillCity = city; this.active = null; this.clear();
             const rows = city ? this.filtered.filter(s => s.city === city) : this.filtered;
             rows.forEach(s => {
                 const el = document.createElement('div');
