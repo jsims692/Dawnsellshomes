@@ -46,6 +46,8 @@ class ImportSales extends Command
         foreach ($rows->chunk(200) as $chunk) {
             Sale::insert($chunk->all());
         }
+        // Bulk insert bypasses model events, so drop the map cache explicitly.
+        cache()->forget('sales-map-payload');
 
         $this->info(sprintf(
             'Imported %d sales: %d listing-side, %d buyer-side, %d cities, $%sM volume, %d–%d.',
