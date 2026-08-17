@@ -49,12 +49,12 @@
 
 <style>
     .dsm-dot { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:6px; border:2px solid #fff; box-shadow:0 0 0 1px rgba(0,0,0,.15); vertical-align:-1px; }
-    .dsm-bubble { position:relative; display:flex; align-items:center; justify-content:center; border-radius:50%; background:rgba(27,58,107,.80); color:#fff; font:700 12px/1 Arial,sans-serif; border:2px solid #fff; box-shadow:0 2px 10px rgba(13,35,73,.35); cursor:pointer; transition:transform .15s, background .15s; }
+    .dsm-bubble { box-sizing:border-box; position:relative; display:flex; align-items:center; justify-content:center; border-radius:50%; background:rgba(27,58,107,.80); color:#fff; font:700 12px/1 Arial,sans-serif; border:2px solid #fff; box-shadow:0 2px 10px rgba(13,35,73,.35); cursor:pointer; transition:transform .15s, background .15s; }
     .dsm-bubble:hover { transform:scale(1.08); background:rgba(204,0,0,.85); }
-    .dsm-bubble::after { content:""; position:absolute; inset:-6px; border-radius:50%; border:2px solid rgba(27,58,107,.45); animation:dsm-pulse 2.4s ease-out infinite; }
+    .dsm-bubble::after { content:""; position:absolute; inset:-6px; border-radius:50%; border:2px solid rgba(27,58,107,.45); animation:dsm-pulse 2.4s ease-out infinite; pointer-events:none; }
     .dsm-bubble small { display:block; font-size:9px; font-weight:400; opacity:.85; margin-top:1px; text-align:center; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     @keyframes dsm-pulse { 0% { transform:scale(.85); opacity:.9; } 100% { transform:scale(1.55); opacity:0; } }
-    .dsm-pin { width:12px; height:12px; border-radius:50%; border:2px solid #fff; box-shadow:0 1px 5px rgba(0,0,0,.45); cursor:pointer; transition:transform .12s; }
+    .dsm-pin { box-sizing:border-box; width:12px; height:12px; border-radius:50%; border:2px solid #fff; box-shadow:0 1px 5px rgba(0,0,0,.45); cursor:pointer; transition:transform .12s; }
     .dsm-pin:hover { transform:scale(1.5); }
     .dsm-pin.listing { background:#CC0000; }
     .dsm-pin.buyside { background:#C8A84B; }
@@ -76,26 +76,34 @@ document.addEventListener('alpine:init', () => {
 
     // Brand-styled basemap: soft greys, muted POIs, navy-tinted water.
     const STYLE = [
-        { elementType: 'geometry', stylers: [{ color: '#f4f6f9' }] },
-        { elementType: 'labels.text.fill', stylers: [{ color: '#4b5563' }] },
-        { elementType: 'labels.text.stroke', stylers: [{ color: '#f4f6f9' }] },
-        { featureType: 'administrative', elementType: 'geometry.stroke', stylers: [{ color: '#d1d5db' }] },
-        { featureType: 'administrative.locality', elementType: 'labels.text.fill', stylers: [{ color: '#1B3A6B' }] },
+        { elementType: 'geometry', stylers: [{ color: '#f4f6fb' }] },
+        { elementType: 'labels.text.fill', stylers: [{ color: '#4a5568' }] },
+        { elementType: 'labels.text.stroke', stylers: [{ color: '#f4f6fb' }] },
+        { elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
+        { featureType: 'administrative', elementType: 'geometry.stroke', stylers: [{ color: '#c9d1e0' }] },
+        { featureType: 'administrative.locality', elementType: 'labels.text.fill', stylers: [{ color: '#1B3A6B' }, { weight: 0.5 }] },
+        { featureType: 'administrative.neighborhood', stylers: [{ visibility: 'off' }] },
+        { featureType: 'landscape.man_made', elementType: 'geometry', stylers: [{ color: '#f8f6f2' }] },
+        { featureType: 'landscape.natural', elementType: 'geometry', stylers: [{ color: '#eef1f6' }] },
         { featureType: 'poi', stylers: [{ visibility: 'off' }] },
-        { featureType: 'poi.park', elementType: 'geometry', stylers: [{ color: '#e6efe3' }, { visibility: 'on' }] },
+        { featureType: 'poi.park', elementType: 'geometry', stylers: [{ color: '#e3ebe0' }, { visibility: 'on' }] },
+        { featureType: 'poi.park', elementType: 'labels.text.fill', stylers: [{ color: '#7a8f76' }] },
         { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#ffffff' }] },
-        { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#e5e7eb' }] },
-        { featureType: 'road', elementType: 'labels.text.fill', stylers: [{ color: '#6b7280' }] },
-        { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#f1e9d6' }] },
-        { featureType: 'road.highway', elementType: 'geometry.stroke', stylers: [{ color: '#e2d3ad' }] },
+        { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#e1e6ef' }] },
+        { featureType: 'road', elementType: 'labels.text.fill', stylers: [{ color: '#7b8494' }] },
+        { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#f3ead2' }] },
+        { featureType: 'road.highway', elementType: 'geometry.stroke', stylers: [{ color: '#e6d6ab' }] },
+        { featureType: 'road.highway', elementType: 'labels.text.fill', stylers: [{ color: '#8a7a4a' }] },
+        { featureType: 'road.arterial', elementType: 'geometry', stylers: [{ color: '#ffffff' }] },
+        { featureType: 'road.local', elementType: 'labels', stylers: [{ visibility: 'off' }] },
         { featureType: 'transit', stylers: [{ visibility: 'off' }] },
-        { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#c9d8ea' }] },
+        { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#c5d5ea' }] },
         { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#1B3A6B' }] },
     ];
 
     Alpine.data('salesMap', ({ compact, key }) => ({
         map: null, loading: true, mode: 'cities', active: null,
-        all: [], markers: [], AdvancedMarker: null,
+        all: [], markers: [], HtmlMarker: null,
 
         fmt(n) { return '$' + Math.round(n).toLocaleString('en-US'); },
         get filters() { return Alpine.store('salesFilters'); },
@@ -107,16 +115,31 @@ document.addEventListener('alpine:init', () => {
 
         async init() {
             await window.__gmapsReady;
-            const { Map } = await google.maps.importLibrary('maps');
-            const { AdvancedMarkerElement } = await google.maps.importLibrary('marker');
-            this.AdvancedMarker = AdvancedMarkerElement;
+            const { Map, OverlayView } = await google.maps.importLibrary('maps');
+
+            // Minimal HTML marker (OverlayView) so we keep full control of the
+            // bubble/pin DOM and JSON map styling (a mapId would disable it).
+            class HtmlMarker extends OverlayView {
+                constructor(map, position, el, onClick) {
+                    super(); this.position = position; this.el = el; this.el.style.position = 'absolute';
+                    if (onClick) { this.el.addEventListener('click', (e) => { e.stopPropagation(); onClick(); }); }
+                    this.setMap(map);
+                }
+                onAdd() { this.getPanes().overlayMouseTarget.appendChild(this.el); }
+                draw() {
+                    const p = this.getProjection()?.fromLatLngToDivPixel(new google.maps.LatLng(this.position));
+                    if (!p) return;
+                    const w = this.el.offsetWidth || 12, h = this.el.offsetHeight || 12;
+                    this.el.style.left = (p.x - w / 2) + 'px'; this.el.style.top = (p.y - h / 2) + 'px';
+                }
+                onRemove() { this.el.remove(); }
+            }
+            this.HtmlMarker = HtmlMarker;
 
             this.map = new Map(this.$refs.map, {
                 center: { lat: 42.10, lng: -87.98 }, zoom: 10,
-                // mapId is required for AdvancedMarkers; a plain DEMO_MAP_ID keeps
-                // JSON styles working without a cloud-configured map style.
-                mapId: 'DEMO_MAP_ID',
                 styles: STYLE,
+                backgroundColor: '#eef1f6',
                 mapTypeControl: false, streetViewControl: false, fullscreenControl: !compact,
                 zoomControl: true, gestureHandling: compact ? 'cooperative' : 'greedy',
                 minZoom: 8, maxZoom: 17, clickableIcons: false,
@@ -140,7 +163,7 @@ document.addEventListener('alpine:init', () => {
             });
         },
 
-        clear() { this.markers.forEach(m => m.map = null); this.markers = []; },
+        clear() { this.markers.forEach(m => m.setMap(null)); this.markers = []; },
         refresh() { this.mode === 'cities' ? this.showCities(false) : this.showHomes(this.filters.city || null, false); },
 
         fitTo(points, maxZoom) {
@@ -162,9 +185,8 @@ document.addEventListener('alpine:init', () => {
                 const el = document.createElement('div');
                 el.className = 'dsm-bubble'; el.style.width = el.style.height = size + 'px'; el.title = `${c.city}: ${c.count} sold`;
                 el.innerHTML = `<div>${c.count}<small>${size > 52 ? c.city : ''}</small></div>`;
-                const m = new this.AdvancedMarker({ map: this.map, position: { lat: c.lat, lng: c.lng }, content: el, zIndex: c.count });
-                m.addListener('click', () => { this.filters.city = c.city; });
-                this.markers.push(m);
+                el.style.zIndex = String(1000 + c.count);
+                this.markers.push(new this.HtmlMarker(this.map, { lat: c.lat, lng: c.lng }, el, () => { this.filters.city = c.city; }));
             });
             if (fit) this.fitTo(list.map(c => ({ lat: c.lat, lng: c.lng })), 11);
         },
@@ -175,9 +197,7 @@ document.addEventListener('alpine:init', () => {
             rows.forEach(s => {
                 const el = document.createElement('div');
                 el.className = 'dsm-pin ' + s.side; el.title = `${s.address}, ${s.city} — ${this.fmt(s.price)}`;
-                const m = new this.AdvancedMarker({ map: this.map, position: { lat: s.lat, lng: s.lng }, content: el });
-                m.addListener('click', () => { this.active = s; });
-                this.markers.push(m);
+                this.markers.push(new this.HtmlMarker(this.map, { lat: s.lat, lng: s.lng }, el, () => { this.active = s; }));
             });
             if (fit) this.fitTo(rows.map(s => ({ lat: s.lat, lng: s.lng })), 15);
         },
