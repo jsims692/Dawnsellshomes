@@ -3,6 +3,7 @@
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\SitemapController;
+use App\Http\Controllers\HomeValueController;
 use App\Http\Controllers\SoldController;
 use Illuminate\Support\Facades\Route;
 
@@ -15,6 +16,9 @@ Route::get('/sitemap.xml', SitemapController::class);
 // Homes We've Sold: DB-driven page + JSON payload for the interactive map
 Route::get('/sold', [SoldController::class, 'show']);
 Route::get('/sold/map-data', [SoldController::class, 'data']);
+
+// Homepage home-value widget: nearby closed sales for a lat/lng
+Route::get('/home-value/nearby', [HomeValueController::class, 'nearby'])->middleware('throttle:60,1');
 
 // IndexNow ownership verification: the key must be retrievable as {key}.txt
 // at the site root for search engines to trust our URL submissions.

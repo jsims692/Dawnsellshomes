@@ -20,6 +20,7 @@ class PageController extends Controller
         // interactive sales map component (same visual slot, live data).
         if ($path === '') {
             $page->body_html = $this->swapHomepageMap($page->body_html);
+            $page->body_html = $this->swapHomeValueWidget($page->body_html);
         }
 
         // Progressive-rewrite hook: a Blade view at pages/{path} takes over rendering
@@ -37,6 +38,32 @@ class PageController extends Controller
             // component was injected (currently: the homepage sales map).
             'needsAlpine' => str_contains($page->body_html, 'x-data='),
         ]);
+    }
+
+    /**
+     * Replace the static "What is your home worth?" box with the interactive
+     * widget (Places autocomplete + nearby-sales snapshot). The Google loader
+     * is defined once here so both this widget and the map below share it.
+     */
+    private function swapHomeValueWidget(string $body): string
+    {
+        $start = strpos($body, '<div class="value-widget">');
+        if ($start === false) {
+            return $body;
+        }
+        // The static widget closes right after its "search available homes" line.
+        $marker = 'search available homes →</a></p>';
+        $end = strpos($body, $marker, $start);
+        if ($end === false) {
+            return $body;
+        }
+        $end = strpos($body, '</div>', $end + strlen($marker)) + strlen('</div>');
+
+        $key = config('services.google.maps_key');
+        $loader = $key ? '<script>window.__gmapsReady ||= new Promise((resolve) => { if (window.google?.maps?.importLibrary) return resolve(); window.__gmapsInit = () => resolve(); const s = document.createElement("script"); s.src = "https://maps.googleapis.com/maps/api/js?key='.$key.'&v=weekly&loading=async&callback=__gmapsInit"; s.async = true; s.defer = true; document.head.appendChild(s); });</script>'."
+" : '';
+
+        return substr($body, 0, $start).$loader.view('components.home.value-widget')->render().substr($body, $end);
     }
 
     private function swapHomepageMap(string $body): string
