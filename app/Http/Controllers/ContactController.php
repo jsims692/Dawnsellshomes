@@ -16,16 +16,28 @@ class ContactController extends Controller
      */
     public function store(Request $request)
     {
-        if ($request->input('form-name') !== 'contact') {
+        $form = $request->input('form-name');
+        if (! in_array($form, ['contact', 'property-management'], true)) {
             abort(404);
+        }
+
+        // The property-management form carries extra fields; fold them into the
+        // message so every downstream consumer (DB, kvCORE, email) sees them.
+        $message = (string) $request->input('message');
+        if ($form === 'property-management') {
+            $extras = array_filter([
+                $request->input('property_address') ? 'Property: '.$request->input('property_address') : null,
+                $request->input('rental_type') ? 'Rental type: '.$request->input('rental_type') : null,
+            ]);
+            $message = trim(implode("\n", $extras)."\n\n".$message);
         }
 
         $lead = Lead::create([
             'name' => (string) $request->input('name'),
             'email' => (string) $request->input('email'),
             'phone' => (string) $request->input('phone'),
-            'interest' => (string) $request->input('interest'),
-            'message' => (string) $request->input('message'),
+            'interest' => $form === 'property-management' ? 'property-management' : (string) $request->input('interest'),
+            'message' => $message,
             // honeypot: real visitors never fill bot-field
             'is_spam' => filled($request->input('bot-field')),
             'source_page' => (string) $request->headers->get('referer'),
