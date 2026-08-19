@@ -28,7 +28,7 @@ class PageController extends Controller
         // falls back to the verbatim imported content.
         $override = 'pages.'.($path === '' ? 'home' : str_replace('/', '.', $path));
         if (view()->exists($override)) {
-            return view($override, ['page' => $page, 'head' => $head]);
+            return view($override, ['page' => $page, 'head' => $head] + $this->extraData($path));
         }
 
         return view('page', [
@@ -38,6 +38,15 @@ class PageController extends Controller
             // component was injected (currently: the homepage sales map).
             'needsAlpine' => str_contains($page->body_html, 'x-data='),
         ]);
+    }
+
+    /** Extra view data for specific Blade-rendered pages. */
+    private function extraData(string $path): array
+    {
+        return match ($path) {
+            'reviews' => ['reviews' => config('site.reviews', [])],
+            default => [],
+        };
     }
 
     /**
