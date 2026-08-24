@@ -53,6 +53,10 @@ return [
         'maps_key' => env('GOOGLE_MAPS_KEY'),
     ],
 
+    'mlsgrid' => [
+        'token' => env('MLSGRID_TOKEN'),
+    ],
+
     'indexnow' => [
         'key' => env('INDEXNOW_KEY'),
     ],
