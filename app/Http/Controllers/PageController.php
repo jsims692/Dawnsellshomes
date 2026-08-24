@@ -44,9 +44,42 @@ class PageController extends Controller
     private function extraData(string $path): array
     {
         return match ($path) {
-            'reviews' => ['reviews' => config('site.reviews', [])],
+            'reviews', 'sell', 'buy' => ['reviews' => config('site.reviews', [])],
+            'blog' => ['posts' => $this->blogPosts()],
             default => [],
         };
+    }
+
+    /**
+     * Cards for the blog index. The curated list (category, title, excerpt,
+     * order) lives in the imported blog page's body_html, so parse it from
+     * there; fall back to the blog/* rows if the markup ever changes.
+     */
+    private function blogPosts(): array
+    {
+        $body = (string) Page::where('path', 'blog')->value('body_html');
+        preg_match_all(
+            "/<a class='blog-card' href='([^']+)'>\s*<div class=\"blog-card-cat\">(.*?)<\/div>\s*<h3>(.*?)<\/h3>\s*<p>(.*?)<\/p>/s",
+            $body,
+            $matches,
+            PREG_SET_ORDER
+        );
+
+        if ($matches !== []) {
+            return array_map(fn ($m) => [
+                'href' => $m[1], 'cat' => trim($m[2]), 'title' => trim($m[3]), 'excerpt' => trim($m[4]),
+            ], $matches);
+        }
+
+        return Page::where('path', 'like', 'blog/%')
+            ->orderByDesc('path')
+            ->get(['path', 'title', 'meta_description'])
+            ->map(fn ($p) => [
+                'href' => '/'.$p->path,
+                'cat' => 'From the blog',
+                'title' => e(preg_replace('/\s*\|\s*Dawn Simmons Team\s*$/', '', (string) $p->title)),
+                'excerpt' => e((string) $p->meta_description),
+            ])->all();
     }
 
     /**

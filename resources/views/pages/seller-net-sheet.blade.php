@@ -1,13 +1,35 @@
 <x-site.layout :page="$page" :head="$head">
+<style>
+  /* Calculator styles, moved out of the imported navy stylesheet and re-themed to v2. */
+  .calc-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: start; margin-top: 8px; }
+  .calc-card { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 28px; box-shadow: var(--shadow-sm); }
+  .calc-card .field { margin-bottom: 16px; }
+  .group-lbl { font-size: 11px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: var(--red); margin: 22px 0 12px; }
+  .group-lbl:first-child { margin-top: 0; }
+  .field .hint { font-size: 12px; color: var(--faint); margin-top: 4px; line-height: 1.5; }
+  .field .hint a { color: var(--red); font-weight: 600; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .result-card { background: var(--ink); border-radius: var(--radius); padding: 32px 28px; color: #fff; position: sticky; top: 84px; box-shadow: var(--shadow); }
+  .result-lbl { font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,.7); margin-bottom: 8px; }
+  .result-total { font-family: 'Fraunces', serif; font-size: 44px; font-weight: 600; color: #fff; line-height: 1; }
+  .result-sub { font-size: 13px; color: rgba(255,255,255,.7); margin-top: 6px; }
+  .break-row { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,.15); }
+  .break-row:last-child { border-bottom: none; }
+  .break-row .amt { font-weight: 700; white-space: nowrap; }
+  .break-head { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--red-soft); margin: 16px 0 4px; }
+  @media (max-width: 760px) { .calc-wrap { grid-template-columns: 1fr; } .result-card { position: static; } }
+</style>
 
-<div class="hero">
-  <div class="breadcrumb"><a href="/">Home</a> &rsaquo; Seller Net Sheet</div>
-  <h1>What Will You <em>Actually</em> Walk Away With?</h1>
-  <p>The sale price is the headline &mdash; the wire to your bank is the real story. This Illinois-specific net sheet includes the costs most sellers don't see coming: tax prorations, transfer stamps, title, and the rest.</p>
-</div>
-
-<section x-data="netSheet">
-  <div class="inner">
+<section class="page-hero">
+  <div class="wrap">
+    <p class="crumb"><a href="/">Home</a> &rsaquo; Seller Net Sheet</p>
+    <p class="eyebrow">Seller tools</p>
+    <h1>What will you <em>actually</em> walk away with?</h1>
+    <p class="lead">The sale price is the headline &mdash; the wire to your bank is the real story. This Illinois-specific net sheet includes the costs most sellers don't see coming: tax prorations, transfer stamps, title, and the rest.</p>
+  </div>
+</section>
+<section class="section--tight" x-data="netSheet" style="padding-top:2.75rem">
+  <div class="wrap">
     <div class="calc-wrap">
       <div class="calc-card">
         <div class="group-lbl">The Big Numbers</div>
@@ -100,31 +122,31 @@
         <div class="break-row"><span>Title, Attorney &amp; Survey</span><span class="amt" x-text="neg(closing)">&ndash;$0</span></div>
         <div class="break-row"><span>Misc Fees</span><span class="amt" x-text="neg(num(misc))">&ndash;$0</span></div>
         <div class="break-row" x-show="num(credits) > 0"><span>Credits to Buyer</span><span class="amt" x-text="neg(num(credits))">&ndash;$0</span></div>
-        <div class="break-row" style="margin-top:8px;border-top:2px solid var(--gold);border-bottom:none;padding-top:12px;"><span style="font-weight:700;">Total Cost of Sale</span><span class="amt" x-text="neg(costs)">&ndash;$0</span></div>
+        <div class="break-row" style="margin-top:8px;border-top:2px solid var(--red-soft);border-bottom:none;padding-top:12px;"><span style="font-weight:700;">Total Cost of Sale</span><span class="amt" x-text="neg(costs)">&ndash;$0</span></div>
       </div>
     </div>
-    <p style="font-family:Arial,sans-serif;font-size:12px;color:#999;margin-top:18px;">Estimates for planning purposes only &mdash; not a closing statement, payoff quote, or legal or financial advice. Actual figures depend on your loan payoff, your town's transfer stamps, your contract terms, and your attorney's and title company's fees. Before you list, we prepare an exact net sheet for your specific home and town &mdash; free.</p>
+    <p style="font-size:12px;color:var(--faint);margin-top:18px;">Estimates for planning purposes only &mdash; not a closing statement, payoff quote, or legal or financial advice. Actual figures depend on your loan payoff, your town's transfer stamps, your contract terms, and your attorney's and title company's fees. Before you list, we prepare an exact net sheet for your specific home and town &mdash; free.</p>
   </div>
 </section>
 
-<section class="alt">
-  <div class="inner">
-    <h2>The Three Numbers That Surprise Illinois Sellers</h2>
-    <div class="fp-grid">
-      <div class="fp-card"><h3>The tax proration credit</h3><p>Illinois pays property taxes in arrears &mdash; this year you pay last year's bill. So at closing you credit the buyer for the months you owned but haven't been billed for yet, usually at 100&ndash;110% of the last bill. On a recent closing we were part of, the proration credit came to more than $13,000 &mdash; over thirteen months of taxes on a mid-year Cook County closing. It's not a fee &mdash; it's taxes you always owed &mdash; but nobody warns you it comes out at closing.</p></div>
-      <div class="fp-card"><h3>Transfer stamps depend on your town</h3><p>State and county transfer taxes are fixed ($1.50 per $1,000 combined). Municipal stamps are the wildcard &mdash; many of our towns charge nothing, others charge real money, and a few make the <em>buyer</em> pay. We know every town's rules; one question to us saves you the surprise.</p></div>
-      <div class="fp-card"><h3>The payoff is higher than the balance</h3><p>Your payoff includes interest through the closing date plus recording and wire fees &mdash; and if you have a HELOC, it must be paid and <em>closed</em>, not just zeroed. Order the payoff letter early; it's the number this whole sheet hangs on.</p></div>
+<section class="section section--mist">
+  <div class="wrap">
+    <div class="sec-head"><p class="eyebrow">Good to know</p><h2 class="h2">The three numbers that surprise Illinois sellers.</h2></div>
+    <div class="cards3">
+      <div class="c-card"><h3>The tax proration credit</h3><p>Illinois pays property taxes in arrears &mdash; this year you pay last year's bill. So at closing you credit the buyer for the months you owned but haven't been billed for yet, usually at 100&ndash;110% of the last bill. On a recent closing we were part of, the proration credit came to more than $13,000 &mdash; over thirteen months of taxes on a mid-year Cook County closing. It's not a fee &mdash; it's taxes you always owed &mdash; but nobody warns you it comes out at closing.</p></div>
+      <div class="c-card"><h3>Transfer stamps depend on your town</h3><p>State and county transfer taxes are fixed ($1.50 per $1,000 combined). Municipal stamps are the wildcard &mdash; many of our towns charge nothing, others charge real money, and a few make the <em>buyer</em> pay. We know every town's rules; one question to us saves you the surprise.</p></div>
+      <div class="c-card"><h3>The payoff is higher than the balance</h3><p>Your payoff includes interest through the closing date plus recording and wire fees &mdash; and if you have a HELOC, it must be paid and <em>closed</em>, not just zeroed. Order the payoff letter early; it's the number this whole sheet hangs on.</p></div>
     </div>
   </div>
 </section>
 
-<section>
-  <div class="inner" style="text-align:center;">
-    <h2>Want the Exact Number for Your Home?</h2>
-    <p style="max-width:620px;margin:0 auto 20px;">Before you list, we run a real net sheet: your actual payoff, your town's actual stamps, your tax bill's actual proration &mdash; and a pricing strategy to push the top line higher. Free, no commitment, and it's the single most useful 20 minutes of your sale.</p>
-    <a class="search-btn" href="/?val=#contact">Get My Free Valuation + Net Sheet</a>
-    <a class="outline-btn" href="sms:2246284013">Text Josh: (224) 628-4013</a>
-    <p style="margin-top:18px;font-size:14px;">Buying your next place too? Run the other side with our <a href="/mortgage-calculator">mortgage calculator</a>. And read why we think <a href="/off-market-homes">"quiet" off-market listings usually cost sellers money</a>.</p>
+<section class="section">
+  <div class="wrap pg-cta">
+    <h2 class="h2">Want the exact number for your home?</h2>
+    <p class="lead" style="max-width:52ch;margin:.9rem auto 1.4rem;">Before you list, we run a real net sheet: your actual payoff, your town's actual stamps, your tax bill's actual proration &mdash; and a pricing strategy to push the top line higher. Free, no commitment, and it's the single most useful 20 minutes of your sale.</p>
+    <div class="btns"><a class="btn btn--primary" href="/sell">Get My Free Valuation + Net Sheet</a>
+    <a class="btn btn--ghost" href="sms:2246284013">Text Josh: (224) 628-4013</a></div>
+    <p style="margin-top:1.2rem;font-size:.9rem;color:var(--slate)">Buying your next place too? Run the other side with our <a href="/mortgage-calculator">mortgage calculator</a>. And read why we think <a href="/off-market-homes">"quiet" off-market listings usually cost sellers money</a>.</p>
   </div>
 </section>
 

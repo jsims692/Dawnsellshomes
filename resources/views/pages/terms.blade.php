@@ -1,13 +1,13 @@
 <x-site.layout :page="$page" :head="$head">
-<div style="max-width:860px;margin:0 auto;padding:48px 24px;font-family:Arial,sans-serif;line-height:1.8;color:#333;">
-  <h1 style="font-family:Georgia,serif;color:#1B3A6B;margin-bottom:18px;">Terms of Use</h1>
+<div style="max-width:860px;margin:0 auto;padding:48px 24px;font-family:'Archivo',Arial,sans-serif;line-height:1.8;color:#333;">
+  <h1 style="font-family:'Fraunces',serif;font-weight:600;color:#0F1E2E;margin-bottom:18px;">Terms of Use</h1>
   <p style="margin-bottom:14px;">Welcome to dawnsellshomes.com, operated by The Dawn Simmons Team, RE/MAX Suburban. By using this website you agree to these terms.</p>
-  <h2 style="font-family:Georgia,serif;color:#1B3A6B;font-size:20px;margin:22px 0 8px;">Listing Data (IDX)</h2>
+  <h2 style="font-family:'Fraunces',serif;font-weight:600;color:#0F1E2E;font-size:20px;margin:22px 0 8px;">Listing Data (IDX)</h2>
   <p style="margin-bottom:14px;">Real estate listing information on this site is provided through the Internet Data Exchange (IDX) program, courtesy of Midwest Real Estate Data (MRED) as distributed by MLS GRID. IDX information is provided exclusively for consumers' personal, non-commercial use, and may not be used for any purpose other than to identify prospective properties consumers may be interested in purchasing. The data is deemed reliable but is not guaranteed by MLS GRID. Use of the MLS GRID data may be subject to an end-user license agreement prescribed by the applicable MLS from time to time.</p>
-  <h2 style="font-family:Georgia,serif;color:#1B3A6B;font-size:20px;margin:22px 0 8px;">Prohibited Uses</h2>
+  <h2 style="font-family:'Fraunces',serif;font-weight:600;color:#0F1E2E;font-size:20px;margin:22px 0 8px;">Prohibited Uses</h2>
   <p style="margin-bottom:14px;">Any use or search of the data on this website by anyone other than a consumer looking to purchase real estate is prohibited. Scraping, harvesting, copying, or redistributing listing data — by any means, manual or automated — is prohibited. Use of listing data by artificial-intelligence tools, including for training, embedding, indexing, or any retention of the data beyond an individual user query, is prohibited except as permitted under the MLS GRID license. Unauthorized access or use may result in legal action and will be reported to MLS GRID and MRED.</p>
-  <h2 style="font-family:Georgia,serif;color:#1B3A6B;font-size:20px;margin:22px 0 8px;">Accuracy</h2>
-  <p style="margin-bottom:14px;">Content on this site that supplements MLS-sourced data (neighborhood guides, market commentary, valuations context) is authored by The Dawn Simmons Team. If you believe any content is inaccurate, contact us at <a href="mailto:jsims692@gmail.com" style="color:#CC0000;">jsims692@gmail.com</a> or (847) 738-1884 and we will review and correct or remove content as appropriate. All information should be independently reviewed and verified for accuracy.</p>
-  <p style="color:#777;font-size:14px;">See also our <a href="/dmca" style="color:#CC0000;">DMCA notice</a>. &copy; {{ date('Y') }} The Dawn Simmons Team &middot; RE/MAX Suburban. Equal Housing Opportunity.</p>
+  <h2 style="font-family:'Fraunces',serif;font-weight:600;color:#0F1E2E;font-size:20px;margin:22px 0 8px;">Accuracy</h2>
+  <p style="margin-bottom:14px;">Content on this site that supplements MLS-sourced data (neighborhood guides, market commentary, valuations context) is authored by The Dawn Simmons Team. If you believe any content is inaccurate, contact us at <a href="mailto:jsims692@gmail.com" style="color:#C8102E;">jsims692@gmail.com</a> or (847) 738-1884 and we will review and correct or remove content as appropriate. All information should be independently reviewed and verified for accuracy.</p>
+  <p style="color:#777;font-size:14px;">See also our <a href="/dmca" style="color:#C8102E;">DMCA notice</a>. &copy; {{ date('Y') }} The Dawn Simmons Team &middot; RE/MAX Suburban. Equal Housing Opportunity.</p>
 </div>
 </x-site.layout>

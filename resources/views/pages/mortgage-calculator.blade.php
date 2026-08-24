@@ -1,13 +1,36 @@
 <x-site.layout :page="$page" :head="$head">
+<style>
+  /* Calculator styles, moved out of the imported navy stylesheet and re-themed to v2. */
+  .calc-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: start; margin-top: 8px; }
+  .calc-card { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 28px; box-shadow: var(--shadow-sm); }
+  .calc-card .field { margin-bottom: 16px; }
+  .field .hint { font-size: 12px; color: var(--faint); margin-top: 4px; line-height: 1.5; }
+  .field .hint a { color: var(--red); font-weight: 600; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .result-card { background: var(--ink); border-radius: var(--radius); padding: 32px 28px; color: #fff; position: sticky; top: 84px; box-shadow: var(--shadow); }
+  .result-lbl { font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,.7); margin-bottom: 8px; }
+  .result-total { font-family: 'Fraunces', serif; font-size: 44px; font-weight: 600; color: #fff; line-height: 1; }
+  .result-sub { font-size: 13px; color: rgba(255,255,255,.7); margin-top: 6px; }
+  .bar { height: 10px; border-radius: 5px; overflow: hidden; display: flex; margin: 18px 0 14px; background: rgba(255,255,255,.15); }
+  .bar div { height: 100%; }
+  .legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 11px; color: rgba(255,255,255,.8); margin-bottom: 6px; }
+  .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; }
+  .break-row { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,.15); }
+  .break-row:last-child { border-bottom: none; }
+  .break-row .amt { font-weight: 700; white-space: nowrap; }
+  @media (max-width: 760px) { .calc-wrap { grid-template-columns: 1fr; } .result-card { position: static; } }
+</style>
 
-<div class="hero">
-  <div class="breadcrumb"><a href="/">Home</a> &rsaquo; Mortgage Calculator</div>
-  <h1>What Will Your Payment <em>Really</em> Be?</h1>
-  <p>Most calculators show you principal and interest and call it a day. In the Northwest Suburbs, property taxes can be a third of your payment &mdash; so this one includes everything: taxes, insurance, PMI, and HOA.</p>
-</div>
-
-<section x-data="mortgageCalc">
-  <div class="inner">
+<section class="page-hero">
+  <div class="wrap">
+    <p class="crumb"><a href="/">Home</a> &rsaquo; Mortgage Calculator</p>
+    <p class="eyebrow">Buyer tools</p>
+    <h1>What will your payment <em>really</em> be?</h1>
+    <p class="lead">Most calculators show you principal and interest and call it a day. In the Northwest Suburbs, property taxes can be a third of your payment &mdash; so this one includes everything: taxes, insurance, PMI, and HOA.</p>
+  </div>
+</section>
+<section class="section--tight" x-data="mortgageCalc" style="padding-top:2.75rem">
+  <div class="wrap">
     <div class="calc-wrap">
       <div class="calc-card">
         <div class="field">
@@ -62,7 +85,7 @@
           </template>
         </div>
         <div class="legend">
-          <span><span class="dot" style="background:#C8A84B;"></span>P&amp;I</span>
+          <span><span class="dot" style="background:#E8B93B;"></span>P&amp;I</span>
           <span><span class="dot" style="background:#7FA3D8;"></span>Taxes</span>
           <span><span class="dot" style="background:#5BC49A;"></span>Insurance</span>
           <span><span class="dot" style="background:#E08A8A;"></span>PMI</span>
@@ -75,28 +98,28 @@
         <div class="break-row" x-show="num(hoa) > 0"><span>HOA / Assessments</span><span class="amt" x-text="fmt(num(hoa))">$0</span></div>
       </div>
     </div>
-    <p style="font-family:Arial,sans-serif;font-size:12px;color:#999;margin-top:18px;">Estimates only, for planning purposes &mdash; not a loan offer or quote. Your actual rate, taxes, insurance and PMI depend on your credit, the specific property, and your lender. We're Realtors, not lenders &mdash; but we'll happily connect you with lenders our clients have had good experiences with.</p>
+    <p style="font-size:12px;color:var(--faint);margin-top:18px;">Estimates only, for planning purposes &mdash; not a loan offer or quote. Your actual rate, taxes, insurance and PMI depend on your credit, the specific property, and your lender. We're Realtors, not lenders &mdash; but we'll happily connect you with lenders our clients have had good experiences with.</p>
   </div>
 </section>
 
-<section class="alt">
-  <div class="inner">
-    <h2>Three Things Buyers Get Wrong About Payments Here</h2>
-    <div class="fp-grid">
-      <div class="fp-card"><h3>The tax bill is the plot twist</h3><p>Two identical $400K houses in the same town can carry tax bills thousands of dollars apart. We pull the actual bill on every home before you offer &mdash; never trust a listing's estimate.</p></div>
-      <div class="fp-card"><h3>PMI isn't forever &mdash; or scary</h3><p>Under 20% down, you'll usually pay PMI, but it drops off once you hit enough equity. Waiting years to save 20% often costs more than just buying with PMI now. Run both versions above.</p></div>
-      <div class="fp-card"><h3>Condo math is different math</h3><p>A cheaper condo with a $450 assessment can cost more per month than a pricier townhome with none. Always add the HOA line &mdash; and read what it covers, because sometimes it includes heat and water and is actually a bargain.</p></div>
+<section class="section section--mist">
+  <div class="wrap">
+    <div class="sec-head"><p class="eyebrow">Good to know</p><h2 class="h2">Three things buyers get wrong about payments here.</h2></div>
+    <div class="cards3">
+      <div class="c-card"><h3>The tax bill is the plot twist</h3><p>Two identical $400K houses in the same town can carry tax bills thousands of dollars apart. We pull the actual bill on every home before you offer &mdash; never trust a listing's estimate.</p></div>
+      <div class="c-card"><h3>PMI isn't forever &mdash; or scary</h3><p>Under 20% down, you'll usually pay PMI, but it drops off once you hit enough equity. Waiting years to save 20% often costs more than just buying with PMI now. Run both versions above.</p></div>
+      <div class="c-card"><h3>Condo math is different math</h3><p>A cheaper condo with a $450 assessment can cost more per month than a pricier townhome with none. Always add the HOA line &mdash; and read what it covers, because sometimes it includes heat and water and is actually a bargain.</p></div>
     </div>
   </div>
 </section>
 
-<section>
-  <div class="inner" style="text-align:center;">
-    <h2>Want a Real Number, Not an Estimate?</h2>
-    <p style="max-width:600px;margin:0 auto 20px;">Tell us what you're hoping to spend per month and we'll work backwards to the towns, neighborhoods, and homes that actually fit &mdash; taxes and all. That's the part a calculator can't do.</p>
-    <a class="search-btn" href="/#contact">Contact Dawn &amp; Josh</a>
-    <a class="outline-btn" href="sms:2246284013">Text Josh: (224) 628-4013</a>
-    <p style="margin-top:18px;font-size:14px;">First-time buyer? Start with our guide: <a href="/blog/best-northwest-suburbs-first-time-buyers">The Best Northwest Suburbs for First-Time Buyers</a>. Selling too? See what you&rsquo;ll walk away with on our <a href="/seller-net-sheet">seller net sheet</a>.</p>
+<section class="section">
+  <div class="wrap pg-cta">
+    <h2 class="h2">Want a real number, not an estimate?</h2>
+    <p class="lead" style="max-width:52ch;margin:.9rem auto 1.4rem;">Tell us what you're hoping to spend per month and we'll work backwards to the towns, neighborhoods, and homes that actually fit &mdash; taxes and all. That's the part a calculator can't do.</p>
+    <div class="btns"><a class="btn btn--primary" href="/contact">Contact Dawn &amp; Josh</a>
+    <a class="btn btn--ghost" href="sms:2246284013">Text Josh: (224) 628-4013</a></div>
+    <p style="margin-top:1.2rem;font-size:.9rem;color:var(--slate)">First-time buyer? Start with our guide: <a href="/blog/best-northwest-suburbs-first-time-buyers">The Best Northwest Suburbs for First-Time Buyers</a>. Selling too? See what you&rsquo;ll walk away with on our <a href="/seller-net-sheet">seller net sheet</a>.</p>
   </div>
 </section>
 
@@ -127,7 +150,7 @@ document.addEventListener('alpine:init', () => {
     get total() { return this.pi + this.tax + this.num(this.ins) + this.pmi + this.num(this.hoa) },
     get parts() {
       return [
-        { amt: this.pi, color: '#C8A84B' },
+        { amt: this.pi, color: '#E8B93B' },
         { amt: this.tax, color: '#7FA3D8' },
         { amt: this.num(this.ins), color: '#5BC49A' },
         { amt: this.pmi, color: '#E08A8A' },

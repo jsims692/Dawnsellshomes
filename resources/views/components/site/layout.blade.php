@@ -6,25 +6,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png">
 <meta property="og:image" content="https://dawnsellshomes.com/images/og-image-2.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image">
-<style>
-  :root { --navy:#1B3A6B; --navy-dark:#0D2349; --red:#CC0000; --gold:#C8A84B; }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body { font-family:Georgia,serif; color:#222; background:#fff; }
-  a { color: var(--red); }
-  .nav { background: var(--navy); padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 64px; position: sticky; top: 0; z-index: 100; }
-  .nav-brand { color: #fff; font-size: 18px; font-weight: 800; text-decoration: none; font-family: Arial, sans-serif; }
-  .nav-brand span { color: var(--gold); }
-  .nav-links { display: flex; gap: 24px; }
-  .nav-links a { color: rgba(255,255,255,.8); text-decoration: none; font-family: Arial, sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .5px; text-transform: uppercase; }
-  .nav-links a:hover { color: #fff; }
-  footer { background: var(--navy-dark); color: rgba(255,255,255,.6); text-align: center; padding: 32px 24px; font-family: Arial, sans-serif; font-size: 13px; line-height: 1.8; margin-top: 40px; }
-  footer a { color: rgba(255,255,255,.7); }
-  @media(max-width:760px){ .nav-links { gap: 14px; } }
-</style>
-@endisset @livewireStyles</head>
+@endisset
+{{-- Design v2 ("ink & red"): fonts + stylesheet load after the DB head so v2 wins ties against any imported page CSS. --}}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Fraunces:ital,wght@0,600;1,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/site-v2.css">
+<style>[x-cloak]{display:none!important}</style>
+@livewireStyles</head>
 <body>
+<x-site.plat-bg />
 <x-site.nav />
-{{ $slot }}
+<main>{{ $slot }}</main>
 <x-site.footer />
 <x-site.text-josh />
 @livewireScripts

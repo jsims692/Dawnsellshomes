@@ -1,10 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>{!! $head !!}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Fraunces:ital,wght@0,600;1,600&display=swap" rel="stylesheet">
 <style>
-    :root { --navy:#1B3A6B; --navy-dark:#0D2349; --red:#CC0000; --gold:#C8A84B; }
+    /* Design v2 re-theme: same shell, ink/red tokens (--gold doubles as the
+       plat-map buyer-side yellow). Alpine logic + sales map untouched. */
+    :root { --navy:#0F1E2E; --navy-dark:#0B1622; --red:#C8102E; --gold:#E8B93B; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: Arial, sans-serif; background: #f4f6fb; color: #222; }
+    body { font-family: 'Archivo', Arial, sans-serif; background: #F2F5F9; color: #0F1E2E; }
 
     nav { background: var(--navy); padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; }
     .nav-brand { color: #fff; font-size: 20px; font-weight: 800; text-decoration: none; }
@@ -13,11 +18,11 @@
     .nav-links a:hover { color: #fff; }
 
     .hero { background: linear-gradient(135deg, var(--navy) 0%, var(--navy-dark) 100%); color: #fff; padding: 60px 40px; text-align: center; }
-    .hero h1 { font-size: clamp(28px,4vw,48px); margin-bottom: 12px; }
+    .hero h1 { font-family: 'Fraunces', Georgia, serif; font-weight: 600; letter-spacing: -.01em; font-size: clamp(28px,4vw,48px); margin-bottom: 12px; }
     .hero p { font-size: 18px; opacity: .85; max-width: 600px; margin: 0 auto; }
     .stats-bar { display: flex; justify-content: center; gap: 48px; margin-top: 36px; flex-wrap: wrap; }
     .stat { text-align: center; }
-    .stat-num { font-size: 36px; font-weight: 800; color: var(--gold); }
+    .stat-num { font-family: 'Fraunces', Georgia, serif; font-size: 36px; font-weight: 600; color: #fff; }
     .stat-label { font-size: 13px; opacity: .75; margin-top: 4px; }
 
     .filters { background: #fff; padding: 20px 40px; border-bottom: 1px solid #e0e4ed; display: flex; gap: 16px; flex-wrap: wrap; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
