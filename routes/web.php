@@ -25,6 +25,13 @@ if (config('site.listings_enabled')) {
     Route::get('/listings/{listingId}', [ListingController::class, 'show']);
 }
 
+// Homepage redesign preview (Pat's design, wired): unlinked + noindexed until approved
+Route::get('/preview/home', function () {
+    $page = App\Models\Page::where('path', '')->firstOrFail();
+    $head = str_replace('<!--STYLE-->', '', $page->head_html);
+    return view('preview.home', ['page' => $page, 'head' => $head]);
+});
+
 // Homepage home-value widget: nearby closed sales for a lat/lng
 Route::get('/home-value/nearby', [HomeValueController::class, 'nearby'])->middleware('throttle:60,1');
 
