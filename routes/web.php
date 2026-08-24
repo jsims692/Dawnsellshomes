@@ -32,6 +32,10 @@ Route::get('/preview/home', function () {
     return view('preview.home', ['page' => $page, 'head' => $head]);
 });
 
+// The old one-page homepage, parked here while design v2 is the live "/":
+// unlinked + noindexed, kept fully functional (injected widget + sales map).
+Route::get('/old-home', [PageController::class, 'legacyHome']);
+
 // Homepage home-value widget: nearby closed sales for a lat/lng
 Route::get('/home-value/nearby', [HomeValueController::class, 'nearby'])->middleware('throttle:60,1');
 

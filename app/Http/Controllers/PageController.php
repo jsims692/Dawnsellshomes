@@ -10,34 +10,59 @@ class PageController extends Controller
     {
         $page = Page::where('path', $path)->firstOrFail();
 
-        $css = $page->css_override ?? $page->style()?->css;
-        $styleTag = $css !== null ? '<style>'.$css.'</style>' : '';
-        $head = str_contains($page->head_html, '<!--STYLE-->')
-            ? str_replace('<!--STYLE-->', $styleTag, $page->head_html)
-            : $page->head_html.$styleTag;
+        // Progressive-rewrite hook: a Blade view at pages/{path} takes over rendering
+        // for that URL. It gets the DB-backed SEO head but styles itself (design v2),
+        // so the imported stylesheet slot is dropped rather than filled.
+        $override = 'pages.'.($path === '' ? 'home' : str_replace('/', '.', $path));
+        if (view()->exists($override)) {
+            $head = str_replace('<!--STYLE-->', '', $page->head_html);
 
-        // Homepage: replace the static 555-record Leaflet block with the DB-driven
-        // interactive sales map component (same visual slot, live data).
+            return view($override, ['page' => $page, 'head' => $head] + $this->extraData($path));
+        }
+
+        // Homepage (legacy fallback): replace the static 555-record Leaflet block with
+        // the DB-driven interactive sales map component (same visual slot, live data).
         if ($path === '') {
             $page->body_html = $this->swapHomepageMap($page->body_html);
             $page->body_html = $this->swapHomeValueWidget($page->body_html);
         }
 
-        // Progressive-rewrite hook: a Blade view at pages/{path} takes over rendering
-        // for that URL (it receives the same DB-backed SEO head); everything else
-        // falls back to the verbatim imported content.
-        $override = 'pages.'.($path === '' ? 'home' : str_replace('/', '.', $path));
-        if (view()->exists($override)) {
-            return view($override, ['page' => $page, 'head' => $head] + $this->extraData($path));
-        }
-
         return view('page', [
             'page' => $page,
-            'head' => $head,
+            'head' => $this->legacyHead($page),
             // Imported pages are plain HTML; only load Alpine/Livewire when a
             // component was injected (currently: the homepage sales map).
             'needsAlpine' => str_contains($page->body_html, 'x-data='),
         ]);
+    }
+
+    /**
+     * The old one-page homepage, parked at /old-home while design v2 beds in:
+     * same imported markup, injected widget + map, noindexed.
+     */
+    public function legacyHome()
+    {
+        $page = Page::where('path', '')->firstOrFail();
+
+        $page->body_html = $this->swapHomepageMap($page->body_html);
+        $page->body_html = $this->swapHomeValueWidget($page->body_html);
+
+        return view('page', [
+            'page' => $page,
+            'head' => '<meta name="robots" content="noindex,nofollow">'.$this->legacyHead($page),
+            'needsAlpine' => str_contains($page->body_html, 'x-data='),
+        ]);
+    }
+
+    /** Imported-page head: fill the stylesheet slot with the page's own CSS. */
+    private function legacyHead(Page $page): string
+    {
+        $css = $page->css_override ?? $page->style()?->css;
+        $styleTag = $css !== null ? '<style>'.$css.'</style>' : '';
+
+        return str_contains($page->head_html, '<!--STYLE-->')
+            ? str_replace('<!--STYLE-->', $styleTag, $page->head_html)
+            : $page->head_html.$styleTag;
     }
 
     /** Extra view data for specific Blade-rendered pages. */

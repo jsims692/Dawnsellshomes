@@ -22,25 +22,25 @@
 >
     <div x-ref="map" style="position:absolute; inset:0;"></div>
 
-    <div x-show="loading" x-transition.opacity style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(244,246,251,.85); font-family:Arial,sans-serif; color:#1B3A6B; font-weight:700; letter-spacing:.5px; z-index:5;">
+    <div x-show="loading" x-transition.opacity style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(244,246,251,.85); font-family:Arial,sans-serif; color:#0F1E2E; font-weight:700; letter-spacing:.5px; z-index:5;">
         Loading {{ $compact ? '' : '550+ ' }}sales…
     </div>
 
     <div style="position:absolute; left:12px; bottom:28px; z-index:5; background:rgba(255,255,255,.95); border-radius:8px; padding:10px 12px; font-family:Arial,sans-serif; font-size:12px; color:#333; box-shadow:0 2px 10px rgba(0,0,0,.15); line-height:1.7;">
-        <div><span class="dsm-dot" style="background:#CC0000"></span> We listed &amp; sold it</div>
-        <div><span class="dsm-dot" style="background:#C8A84B"></span> We represented the buyer</div>
+        <div><span class="dsm-dot" style="background:#C8102E"></span> We listed &amp; sold it</div>
+        <div><span class="dsm-dot" style="background:#E8B93B"></span> We represented the buyer</div>
         <div x-show="mode === 'cities'" style="color:#666; margin-top:2px;">Click a city bubble to see every home · zoom out to return</div>
-        <button x-show="mode === 'homes'" @click="showCities()" type="button" style="margin-top:6px; background:#1B3A6B; color:#fff; border:0; border-radius:6px; padding:6px 10px; font-weight:700; font-size:12px; cursor:pointer;">← Back to all cities</button>
+        <button x-show="mode === 'homes'" @click="showCities()" type="button" style="margin-top:6px; background:#0F1E2E; color:#fff; border:0; border-radius:6px; padding:6px 10px; font-weight:700; font-size:12px; cursor:pointer;">← Back to all cities</button>
     </div>
 
     <template x-if="active">
-        <div style="position:absolute; right:12px; top:12px; z-index:5; background:#fff; border-radius:10px; padding:14px 16px; width:250px; font-family:Arial,sans-serif; box-shadow:0 6px 24px rgba(0,0,0,.18); border-top:4px solid #1B3A6B;">
-            <div style="font-size:20px; font-weight:800; color:#1B3A6B;" x-text="fmt(active.price)"></div>
+        <div style="position:absolute; right:12px; top:12px; z-index:5; background:#fff; border-radius:10px; padding:14px 16px; width:250px; font-family:Arial,sans-serif; box-shadow:0 6px 24px rgba(0,0,0,.18); border-top:4px solid #0F1E2E;">
+            <div style="font-size:20px; font-weight:800; color:#0F1E2E;" x-text="fmt(active.price)"></div>
             <div style="font-size:14px; font-weight:700; margin-top:2px;" x-text="active.address"></div>
             <div style="font-size:13px; color:#555;" x-text="active.city + ', IL'"></div>
             <div style="font-size:12px; color:#666; margin-top:8px;">
                 <span x-text="active.type"></span> · Sold <span x-text="active.year"></span><br>
-                <span :style="`color:${active.side==='listing' ? '#CC0000' : '#a8842b'}; font-weight:700;`" x-text="active.side==='listing' ? 'Our listing' : 'Our buyer'"></span>
+                <span :style="`color:${active.side==='listing' ? '#C8102E' : '#9a6e00'}; font-weight:700;`" x-text="active.side==='listing' ? 'Our listing' : 'Our buyer'"></span>
             </div>
             <button @click="active=null" type="button" aria-label="Close" style="position:absolute; top:6px; right:8px; border:0; background:none; font-size:18px; color:#999; cursor:pointer;">×</button>
         </div>
@@ -56,8 +56,8 @@
     @keyframes dsm-pulse { 0% { transform:scale(.85); opacity:.9; } 100% { transform:scale(1.55); opacity:0; } }
     .dsm-pin { box-sizing:border-box; width:12px; height:12px; border-radius:50%; border:2px solid #fff; box-shadow:0 1px 5px rgba(0,0,0,.45); cursor:pointer; transition:transform .12s; }
     .dsm-pin:hover { transform:scale(1.5); }
-    .dsm-pin.listing { background:#CC0000; }
-    .dsm-pin.buyside { background:#C8A84B; }
+    .dsm-pin.listing { background:#C8102E; }
+    .dsm-pin.buyside { background:#E8B93B; }
 </style>
 
 <script>
@@ -81,7 +81,7 @@ document.addEventListener('alpine:init', () => {
         { elementType: 'labels.text.stroke', stylers: [{ color: '#f4f6fb' }] },
         { elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
         { featureType: 'administrative', elementType: 'geometry.stroke', stylers: [{ color: '#c9d1e0' }] },
-        { featureType: 'administrative.locality', elementType: 'labels.text.fill', stylers: [{ color: '#1B3A6B' }, { weight: 0.5 }] },
+        { featureType: 'administrative.locality', elementType: 'labels.text.fill', stylers: [{ color: '#0F1E2E' }, { weight: 0.5 }] },
         { featureType: 'administrative.neighborhood', stylers: [{ visibility: 'off' }] },
         { featureType: 'landscape.man_made', elementType: 'geometry', stylers: [{ color: '#f8f6f2' }] },
         { featureType: 'landscape.natural', elementType: 'geometry', stylers: [{ color: '#eef1f6' }] },
@@ -98,7 +98,7 @@ document.addEventListener('alpine:init', () => {
         { featureType: 'road.local', elementType: 'labels', stylers: [{ visibility: 'off' }] },
         { featureType: 'transit', stylers: [{ visibility: 'off' }] },
         { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#c5d5ea' }] },
-        { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#1B3A6B' }] },
+        { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#0F1E2E' }] },
     ];
 
     Alpine.data('salesMap', ({ compact, key }) => ({
