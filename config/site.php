@@ -1,6 +1,10 @@
 <?php
 
 return [
+
+    // IDX listings routes go live only when this is on (env LISTINGS_ENABLED)
+    'listings_enabled' => env('LISTINGS_ENABLED', false),
+    'josh_cell' => '(224) 628-4013',
     // Public Google reviews shown on /reviews (verbatim; also embedded as Review schema). Update as new ones come in.
     'reviews' => [
         ['Mark Kegermann', 'First-Time Buyer', 'We had an awesome experience working with Josh throughout our home buying process. He was incredibly responsive, transparent, and always quick to answer questions. His professionalism and communication made the entire experience smooth and stress-free. Made our first home purchase experience 11/10!'],
