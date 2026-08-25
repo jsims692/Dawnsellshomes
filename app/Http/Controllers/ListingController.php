@@ -67,16 +67,21 @@ class ListingController extends Controller
         // worker (budget-guarded; photos appear in ~30-60s). Pre-downloading
         // every sold gallery would be ~60GB+ at full scale — demand-driven.
         $galleryFetching = false;
-        if (! $listing->isForSale() && count($listing->photoUrls()) <= 1) {
-            if (cache()->add('gallery-fetch:'.$listing->listing_id, 1, 600)) {
+        if (! $listing->isForSale()) {
+            $lockKey = 'gallery-fetch:'.$listing->listing_id;
+            $cached = count($listing->photoUrls());
+            $expected = (int) @file_get_contents(storage_path('app/public/listings/'.$listing->listing_key.'.count'));
+            $incomplete = $cached <= 1 || ($expected > 0 && $cached < $expected);
+            if ($incomplete && cache()->add($lockKey, 1, 600)) {
+                // First view (or an abandoned partial fetch): pull the gallery.
                 exec(sprintf('%s %s mls:media --listing=%s --all >> %s 2>&1 &',
                     escapeshellarg(PHP_BINARY),
                     escapeshellarg(base_path('artisan')),
                     escapeshellarg($listing->listing_id),
                     escapeshellarg(storage_path('logs/gallery-fetch.log'))));
                 $galleryFetching = true;
-            } elseif (cache()->has('gallery-fetch:'.$listing->listing_id)) {
-                $galleryFetching = true; // another viewer's fetch is in flight
+            } elseif ($incomplete && cache()->has($lockKey)) {
+                $galleryFetching = true; // a fetch is in flight — keep the page refreshing
             }
         }
 

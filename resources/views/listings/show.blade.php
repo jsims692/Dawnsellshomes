@@ -11,6 +11,7 @@
   .ld-gallery a:first-child { grid-row:span 3; aspect-ratio:auto; min-height:280px; max-height:430px; }
   .ld-gallery.ld-few { grid-template-columns:1fr 1fr; }
   .ld-gallery.ld-few a:first-child { grid-row:auto; grid-column:1/-1; aspect-ratio:2/1; min-height:0; max-height:none; }
+  .ld-gallery.ld-few a:nth-child(2):last-child { grid-column:1/-1; aspect-ratio:5/2; }
   .ld-gallery.ld-open { grid-template-columns:repeat(3,1fr); }
   .ld-gallery.ld-open a:first-child { grid-row:auto; aspect-ratio:3/2; min-height:0; max-height:none; }
   .ld-morebtn { margin-top:10px; background:#fff; border:1px solid #c9d2e3; color:#0F1E2E; border-radius:6px; padding:9px 16px; font-weight:700; font-size:13px; cursor:pointer; }
@@ -55,10 +56,10 @@
     &#128247; Retrieving this home's full photo gallery from the MLS &mdash; the page will refresh in a moment.
   </p>
   <script>
-  if (!sessionStorage.getItem('gref-{{ $l->listing_id }}')) {
-    sessionStorage.setItem('gref-{{ $l->listing_id }}', '1');
-    setTimeout(function () { location.reload(); }, 30000);
-  }
+  (function () {
+    var k = 'gref-{{ $l->listing_id }}', n = parseInt(sessionStorage.getItem(k) || '0', 10);
+    if (n < 6) { sessionStorage.setItem(k, String(n + 1)); setTimeout(function () { location.reload(); }, 20000); }
+  })();
   </script>
   @endif
   @if(count($photos) > 4)
