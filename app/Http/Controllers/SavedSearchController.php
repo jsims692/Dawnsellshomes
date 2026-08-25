@@ -23,11 +23,17 @@ class SavedSearchController extends Controller
             'beds' => 'nullable|integer|between:1,10',
             'dwelling' => 'nullable|in:detached,attached,multi,multi5',
             'waterfront' => 'nullable|boolean',
-            'basement' => 'nullable|boolean',
+            'basement' => 'nullable|in:1,finished',
             'garage' => 'nullable|integer|between:1,5',
+            'ffmaster' => 'nullable|boolean',
+            'masterbath' => 'nullable|boolean',
+            'ranch' => 'nullable|boolean',
+            'nohoa' => 'nullable|boolean',
+            'built' => 'nullable|integer|between:1900,2030',
+            'reduced' => 'nullable|boolean',
         ]);
 
-        $criteria = array_filter($request->only(['city', 'min', 'max', 'beds', 'dwelling', 'waterfront', 'basement', 'garage']),
+        $criteria = array_filter($request->only(['city', 'min', 'max', 'beds', 'dwelling', 'waterfront', 'basement', 'garage', 'ffmaster', 'masterbath', 'ranch', 'nohoa', 'built', 'reduced']),
             fn ($v) => $v !== null && $v !== '' && $v !== []);
 
         $search = SavedSearch::firstOrCreate(

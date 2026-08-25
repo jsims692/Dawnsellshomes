@@ -385,6 +385,7 @@ class MlsSync extends Command
                 'dimensions' => mb_substr((string) ($room['RoomDimensions'] ?? ''), 0, 20) ?: null,
                 'level' => mb_substr((string) ($room['RoomLevel'] ?? ''), 0, 30) ?: null,
                 'flooring' => mb_substr(implode(', ', (array) ($room['MRD_Flooring'] ?? ($room['RoomFlooring'] ?? []))), 0, 40) ?: null,
+                'bath' => isset($room['MRD_Bath']) ? mb_substr(implode(', ', (array) $room['MRD_Bath']), 0, 20) : null,
                 'sort' => min($i, 255),
             ];
         }

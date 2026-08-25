@@ -29,6 +29,23 @@ class SavedSearch extends Model
         if ($c['beds'] ?? null) {
             $parts[] = $c['beds'].'+ beds';
         }
+        foreach (['waterfront' => 'waterfront', 'ffmaster' => 'first-floor master', 'masterbath' => 'full master bath',
+            'ranch' => 'ranch/single-story', 'nohoa' => 'no HOA', 'reduced' => 'price reduced'] as $k => $label) {
+            if ($c[$k] ?? null) {
+                $parts[] = $label;
+            }
+        }
+        if (($c['basement'] ?? null) === 'finished') {
+            $parts[] = 'finished basement';
+        } elseif ($c['basement'] ?? null) {
+            $parts[] = 'basement';
+        }
+        if ($c['built'] ?? null) {
+            $parts[] = 'built '.$c['built'].'+';
+        }
+        if ($c['garage'] ?? null) {
+            $parts[] = $c['garage'].'+ car garage';
+        }
 
         return implode(', ', $parts);
     }
@@ -49,6 +66,16 @@ class SavedSearch extends Model
             ->when($c['waterfront'] ?? null, fn ($q) => $q->where('waterfront', true))
             ->when($c['basement'] ?? null, fn ($q) => $q->whereHas('features',
                 fn ($f) => $f->where('category', 'basement')->where('value', '!=', 'None')))
-            ->when($c['garage'] ?? null, fn ($q, $v) => $q->where('garage_spaces', '>=', (int) $v));
+            ->when($c['garage'] ?? null, fn ($q, $v) => $q->where('garage_spaces', '>=', (int) $v))
+            ->when($c['ffmaster'] ?? null, fn ($q) => $q->whereHas('rooms',
+                fn ($r) => $r->where('name', 'Master Bedroom')->where('level', 'Main')))
+            ->when($c['masterbath'] ?? null, fn ($q) => $q->whereHas('rooms',
+                fn ($r) => $r->where('name', 'Master Bedroom')->where('bath', 'like', '%Full%')))
+            ->when($c['ranch'] ?? null, fn ($q) => $q->where('stories', 1))
+            ->when($c['nohoa'] ?? null, fn ($q) => $q->where(fn ($w) => $w->whereNull('hoa_fee')->orWhere('hoa_fee', 0)))
+            ->when($c['built'] ?? null, fn ($q, $v) => $q->where('year_built', '>=', (int) $v))
+            ->when($c['reduced'] ?? null, fn ($q) => $q->whereNotNull('price_dropped_at'))
+            ->when(($c['basement'] ?? null) === 'finished', fn ($q) => $q->whereHas('features',
+                fn ($f) => $f->where('category', 'basement')->where('value', 'Finished')));
     }
 }

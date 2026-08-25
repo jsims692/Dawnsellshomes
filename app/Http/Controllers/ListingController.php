@@ -44,6 +44,27 @@ class ListingController extends Controller
         if ($garage = (int) $request->query('garage')) {
             $q->where('garage_spaces', '>=', $garage);
         }
+        if ($request->boolean('ffmaster')) {
+            $q->whereHas('rooms', fn ($r) => $r->where('name', 'Master Bedroom')->where('level', 'Main'));
+        }
+        if ($request->boolean('masterbath')) {
+            $q->whereHas('rooms', fn ($r) => $r->where('name', 'Master Bedroom')->where('bath', 'like', '%Full%'));
+        }
+        if ($request->boolean('ranch')) {
+            $q->where('stories', 1);
+        }
+        if ($request->boolean('nohoa')) {
+            $q->where(fn ($w) => $w->whereNull('hoa_fee')->orWhere('hoa_fee', 0));
+        }
+        if ($built = (int) $request->query('built')) {
+            $q->where('year_built', '>=', $built);
+        }
+        if ($request->boolean('reduced')) {
+            $q->whereNotNull('price_dropped_at');
+        }
+        if ($request->query('basement') === 'finished') {
+            $q->whereHas('features', fn ($f) => $f->where('category', 'basement')->where('value', 'Finished'));
+        }
 
         // Rule 26: no artificial caps below min(500, 50%); pagination exposes
         // the complete result set. 2,500 hard ceiling per search.
@@ -68,7 +89,7 @@ class ListingController extends Controller
             'cities' => Listing::displayable()->forSale()->distinct()->orderBy('city')->pluck('city'),
             'dataAsOf' => Listing::max('mls_modified_at') ?? now(),
             'demo' => Listing::displayable()->where('is_demo', true)->exists(),
-            'filters' => ['city' => array_values(array_filter((array) $request->query('city')))] + $request->only(['min', 'max', 'beds', 'baths', 'type', 'dwelling', 'waterfront', 'basement', 'garage']),
+            'filters' => ['city' => array_values(array_filter((array) $request->query('city')))] + $request->only(['min', 'max', 'beds', 'baths', 'type', 'dwelling', 'waterfront', 'basement', 'garage', 'ffmaster', 'masterbath', 'ranch', 'nohoa', 'built', 'reduced']),
         ]);
     }
 

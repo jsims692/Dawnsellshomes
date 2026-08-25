@@ -61,8 +61,18 @@
     <div x-data="{open:false}" style="position:relative"><label>More</label>
       <button type="button" class="fl-pop-btn" @click="open=!open">More filters &#9662;</button>
       <div class="fl-pop" x-show="open" x-cloak @click.outside="open=false">
+        <label class="fl-check"><input type="checkbox" name="ffmaster" value="1" @checked($filters['ffmaster'] ?? false)> First-floor master bedroom</label>
+        <label class="fl-check"><input type="checkbox" name="masterbath" value="1" @checked($filters['masterbath'] ?? false)> Full master bath</label>
+        <label class="fl-check"><input type="checkbox" name="ranch" value="1" @checked($filters['ranch'] ?? false)> Ranch / single story</label>
         <label class="fl-check"><input type="checkbox" name="waterfront" value="1" @checked($filters['waterfront'] ?? false)> &#127754; Waterfront only</label>
-        <label class="fl-check"><input type="checkbox" name="basement" value="1" @checked($filters['basement'] ?? false)> Has basement</label>
+        <label class="fl-check" style="justify-content:space-between">Basement
+          <select name="basement" style="padding:5px 8px;border:1px solid #c9d2e3;border-radius:6px;font-size:13px;"><option value="">Any</option><option value="1" @selected(($filters['basement'] ?? '') === '1')>Has basement</option><option value="finished" @selected(($filters['basement'] ?? '') === 'finished')>Finished</option></select>
+        </label>
+        <label class="fl-check"><input type="checkbox" name="nohoa" value="1" @checked($filters['nohoa'] ?? false)> No HOA</label>
+        <label class="fl-check" style="justify-content:space-between">Built after
+          <select name="built" style="padding:5px 8px;border:1px solid #c9d2e3;border-radius:6px;font-size:13px;"><option value="">Any</option>@foreach([1980,1990,2000,2010,2020] as $y)<option value="{{ $y }}" @selected(($filters['built'] ?? '') == $y)>{{ $y }}+</option>@endforeach</select>
+        </label>
+        <label class="fl-check"><input type="checkbox" name="reduced" value="1" @checked($filters['reduced'] ?? false)> &#128201; Price reduced</label>
         <label class="fl-check" style="justify-content:space-between">Garage spaces
           <select name="garage" style="padding:5px 8px;border:1px solid #c9d2e3;border-radius:6px;font-size:13px;"><option value="">Any</option>@foreach([1,2,3] as $g)<option value="{{ $g }}" @selected(($filters['garage'] ?? '') == $g)>{{ $g }}+</option>@endforeach</select>
         </label>
