@@ -425,7 +425,10 @@ class PageController extends Controller
                 $items[$e['slug']] = ['label' => $e['name'], 'url' => '/neighborhoods/'.$e['slug'], 'active' => $e['active']];
             }
         }
-        uasort($items, fn ($a, $b) => strcasecmp($a['label'], $b['label']));
+        // Communities with homes for sale lead (most inventory first), so the
+        // 30-chip cap never buries a town's live market under quiet names.
+        uasort($items, fn ($a, $b) => (($b['active'] ?? 0) <=> ($a['active'] ?? 0))
+            ?: strcasecmp($a['label'], $b['label']));
 
         return array_values($items);
     }
