@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Listing;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 
 /**
@@ -19,6 +20,7 @@ class MlsMedia extends Command
     protected $signature = 'mls:media
         {--limit=0 : Stop after this many downloads (0 = no limit)}
         {--all : Include closed listings (default: for-sale only — sold rows feed stats, not cards)}
+        {--city=* : Only these cities (testing / targeted backfill)}
         {--refresh : Re-download photos that are already cached}';
 
     protected $description = 'Download and cache primary listing photos from MLS GRID';
@@ -50,6 +52,8 @@ class MlsMedia extends Command
 
         $q = Listing::displayable()->where('is_demo', false)->where('photo_count', '>', 0)
             ->when(! $this->option('all'), fn ($w) => $w->forSale())
+            ->when($this->option('city') !== [], fn ($w) => $w->whereIn(
+                DB::raw('LOWER(city)'), array_map(mb_strtolower(...), (array) $this->option('city'))))
             ->orderByRaw("FIELD(status, 'Active', 'Active Under Contract', 'Pending', 'Closed')")
             ->orderByDesc('mls_modified_at');
 

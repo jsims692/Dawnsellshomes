@@ -23,6 +23,7 @@ class MlsSync extends Command
 {
     protected $signature = 'mls:sync
         {--full : Ignore the saved cursor and replicate from scratch}
+        {--max=0 : Stop after roughly this many records (testing; skips the cursor save)}
         {--dry : Fetch and report without writing}';
 
     protected $description = 'Replicate MRED listings from the MLS GRID RESO API into the listings table';
@@ -94,6 +95,11 @@ class MlsSync extends Command
                 $written += $this->upsert($rec, $cities) ? 1 : 0;
             }
             $url = $json['@odata.nextLink'] ?? null;
+            if (($max = (int) $this->option('max')) > 0 && $seen >= $max) {
+                $this->warn("--max {$max} reached; stopping early (cursor not saved).");
+                $url = null;
+                $maxTs = null; // a partial crawl must not become the incremental baseline
+            }
         }
 
         if (! $this->option('dry')) {
