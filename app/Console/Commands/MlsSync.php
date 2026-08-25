@@ -218,10 +218,11 @@ class MlsSync extends Command
 
         // The team's own listings are kept wherever they are (Participant
         // Listings Use); everything else needs a coverage-city match.
-        $teamIds = config('site.team_agent_ids', []);
-        $isTeam = $teamIds !== [] && array_intersect($teamIds, array_filter([
-            $r['ListAgentMlsId'] ?? null, $r['CoListAgentMlsId'] ?? null, $r['BuyerAgentMlsId'] ?? null,
-        ])) !== [];
+        $teamIds = Listing::teamIds();
+        $isTeam = $teamIds !== [] && array_intersect($teamIds, array_map(
+            fn ($v) => preg_replace('/\D/', '', (string) $v),
+            array_filter([$r['ListAgentMlsId'] ?? null, $r['CoListAgentMlsId'] ?? null, $r['BuyerAgentMlsId'] ?? null])
+        )) !== [];
         $inCoverage = $inCoverage || $isTeam;
 
         // Out of coverage, not a home, off-market (beyond the sold-stats

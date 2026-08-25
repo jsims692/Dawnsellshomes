@@ -62,6 +62,24 @@ class Listing extends Model
      * Locally cached primary photo (mls:media). MLS GRID media URLs are signed,
      * expire within the hour, and rate-limit hotlinking — never link them directly.
      */
+    /** Team agent ids from config, digits-only (feed uses "MRD85211"). */
+    public static function teamIds(): array
+    {
+        return array_map(fn ($id) => preg_replace('/\D/', '', (string) $id), config('site.team_agent_ids', []));
+    }
+
+    /** 'listing', 'buyer', or null — which side of this deal was the team's. */
+    public function teamSide(): ?string
+    {
+        $ids = self::teamIds();
+        $n = fn ($v) => preg_replace('/\D/', '', (string) $v);
+        if (in_array($n($this->list_agent_id), $ids, true) || in_array($n($this->colist_agent_id), $ids, true)) {
+            return 'listing';
+        }
+
+        return in_array($n($this->buyer_agent_id), $ids, true) ? 'buyer' : null;
+    }
+
     public function isForSale(): bool
     {
         return in_array($this->status, ['Active', 'Active Under Contract'], true);

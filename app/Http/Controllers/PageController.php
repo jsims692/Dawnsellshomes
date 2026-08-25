@@ -95,8 +95,6 @@ class PageController extends Controller
             return [];
         }
 
-        $teamIds = config('site.team_agent_ids');
-
         return cache()->remember('home-team-listings', 300, fn () => Listing::displayable()
             ->where('is_demo', false)->where('is_team', true)->where('is_auction', false)
             ->orderByRaw("FIELD(status, 'Active', 'Active Under Contract', 'Pending', 'Closed')")
@@ -113,10 +111,7 @@ class PageController extends Controller
                 'price' => '$'.number_format($l->close_price ?: $l->list_price),
                 'meta' => trim(($l->beds ? $l->beds.' bd · '.$l->baths().' ba' : '')
                     .($l->sqft ? ' · '.number_format($l->sqft).' sqft' : '')).' · '
-                    .(in_array($l->buyer_agent_id, $teamIds, true)
-                        && ! in_array($l->list_agent_id, $teamIds, true)
-                        && ! in_array($l->colist_agent_id, $teamIds, true)
-                        ? 'We represented the buyer' : 'Listed by our team'),
+                    .($l->teamSide() === 'buyer' ? 'We represented the buyer' : 'Listed by our team'),
             ])->all());
     }
 
