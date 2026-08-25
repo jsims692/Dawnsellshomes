@@ -1,8 +1,9 @@
 <x-site.layout :page="null" :head="null" title="Homes for Sale — Northwest Suburbs | The Dawn Simmons Team">
 @php
   $dwLabel = ['detached' => 'Detached Homes', 'attached' => 'Condos & Townhomes', 'multi' => '2–4 Unit Buildings', 'multi5' => '5+ Unit Buildings'][$filters['dwelling'] ?? ''] ?? 'Homes';
-  $cityDisplay = ($filters['city'] ?? null) ? \Illuminate\Support\Str::title($filters['city']) : null;
-  $placeLabel = $cityDisplay ? $cityDisplay.', IL' : 'the Northwest Suburbs';
+  $cityList = array_map(fn ($c) => \Illuminate\Support\Str::title($c), (array) ($filters['city'] ?? []));
+  $cityDisplay = match (true) { count($cityList) === 1 => $cityList[0], count($cityList) === 2 => implode(' & ', $cityList), count($cityList) > 2 => count($cityList).' Cities', default => null };
+  $placeLabel = $cityDisplay ? ($cityDisplay.(count($cityList) === 1 ? ', IL' : '')) : 'the Northwest Suburbs';
   $pageHeading = "{$dwLabel} for Sale in {$placeLabel}";
 @endphp
 <x-slot:headExtra>
@@ -29,6 +30,9 @@
   .li-addr { font-size:14px; color:#444; margin:4px 0 8px; }
   .li-meta { font-size:13px; color:#666; }
   .li-office { font-size:11.5px; color:#888; margin-top:8px; border-top:1px dashed #e0e4ed; padding-top:8px; }
+  .li-filters .fl-pop-btn, .fl-pop-btn { padding:9px 12px; border:1px solid #c9d2e3; border-radius:6px; font-size:14px; background:#fff; cursor:pointer; font-family:inherit; color:#0F1E2E; min-width:130px; text-align:left; }
+  .fl-pop { position:absolute; top:100%; left:0; z-index:30; background:#fff; border:1px solid #c9d2e3; border-radius:10px; padding:10px 14px; box-shadow:0 12px 32px rgba(15,30,46,.16); max-height:280px; overflow:auto; min-width:230px; }
+  .fl-check { display:flex; gap:8px; align-items:center; font-size:13.5px; padding:4px 0; text-transform:none; letter-spacing:0; font-weight:500; color:#0F1E2E; cursor:pointer; }
   .demo-banner { background:#fff7e0; border:1px solid #e2cd86; color:#7a5d12; border-radius:8px; padding:12px 16px; margin:0 auto 22px; max-width:1000px; font-size:14px; }
 </style>
 
@@ -43,11 +47,27 @@
   @endif
 
   <form class="li-filters" method="get" action="/listings">
-    <div><label for="f-city">City</label><select id="f-city" name="city"><option value="">All cities</option>@foreach($cities as $c)<option value="{{ $c }}" @selected(($filters['city'] ?? '') === $c)>{{ $c }}</option>@endforeach</select></div>
+    @php $selCities = array_map('mb_strtolower', (array) ($filters['city'] ?? [])); @endphp
+    <div x-data="{open:false}" style="position:relative"><label>Cities</label>
+      <button type="button" class="fl-pop-btn" @click="open=!open">{{ count($selCities) ? count($selCities).' selected' : 'All cities' }} &#9662;</button>
+      <div class="fl-pop" x-show="open" x-cloak @click.outside="open=false">
+        @foreach($cities as $c)<label class="fl-check"><input type="checkbox" name="city[]" value="{{ $c }}" @checked(in_array(mb_strtolower($c), $selCities))> {{ $c }}</label>@endforeach
+      </div>
+    </div>
     <div><label for="f-min">Min Price</label><select id="f-min" name="min"><option value="">No min</option>@foreach([200000,300000,400000,500000,750000,1000000] as $v)<option value="{{ $v }}" @selected(($filters['min'] ?? '') == $v)>${{ number_format($v/1000) }}K</option>@endforeach</select></div>
     <div><label for="f-max">Max Price</label><select id="f-max" name="max"><option value="">No max</option>@foreach([300000,400000,500000,750000,1000000,2000000] as $v)<option value="{{ $v }}" @selected(($filters['max'] ?? '') == $v)>${{ number_format($v/1000) }}K</option>@endforeach</select></div>
     <div><label for="f-beds">Beds</label><select id="f-beds" name="beds"><option value="">Any</option>@foreach([1,2,3,4,5] as $v)<option value="{{ $v }}" @selected(($filters['beds'] ?? '') == $v)>{{ $v }}+</option>@endforeach</select></div>
     <div><label for="f-dwelling">Home type</label><select id="f-dwelling" name="dwelling"><option value="">All types</option>@foreach(['detached' => 'Detached homes', 'attached' => 'Attached (condo/townhome)', 'multi' => '2–4 unit buildings', 'multi5' => '5+ unit buildings'] as $v => $label)<option value="{{ $v }}" @selected(($filters['dwelling'] ?? '') === $v)>{{ $label }}</option>@endforeach</select></div>
+    <div x-data="{open:false}" style="position:relative"><label>More</label>
+      <button type="button" class="fl-pop-btn" @click="open=!open">More filters &#9662;</button>
+      <div class="fl-pop" x-show="open" x-cloak @click.outside="open=false">
+        <label class="fl-check"><input type="checkbox" name="waterfront" value="1" @checked($filters['waterfront'] ?? false)> &#127754; Waterfront only</label>
+        <label class="fl-check"><input type="checkbox" name="basement" value="1" @checked($filters['basement'] ?? false)> Has basement</label>
+        <label class="fl-check" style="justify-content:space-between">Garage spaces
+          <select name="garage" style="padding:5px 8px;border:1px solid #c9d2e3;border-radius:6px;font-size:13px;"><option value="">Any</option>@foreach([1,2,3] as $g)<option value="{{ $g }}" @selected(($filters['garage'] ?? '') == $g)>{{ $g }}+</option>@endforeach</select>
+        </label>
+      </div>
+    </div>
     <div><button type="submit">Search</button></div>
   </form>
 
@@ -62,7 +82,7 @@
       <span style="color:#48586B;">Save this search and we'll email you the moment new matches hit the MLS.</span></div>
     <form method="post" action="/listings/alerts" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0;">
       @csrf
-      @foreach(array_filter($filters ?? []) as $k => $v)<input type="hidden" name="{{ $k }}" value="{{ $v }}">@endforeach
+      @foreach(array_filter($filters ?? []) as $k => $v)@foreach((array) $v as $vv)<input type="hidden" name="{{ $k }}{{ is_array($v) ? '[]' : '' }}" value="{{ $vv }}">@endforeach @endforeach
       <input type="text" name="name" placeholder="First name (optional)" style="padding:9px 12px;border:1px solid #c9d2e3;border-radius:6px;font-size:14px;width:150px;">
       <input type="email" name="email" required placeholder="you@email.com" style="padding:9px 12px;border:1px solid #c9d2e3;border-radius:6px;font-size:14px;width:190px;">
       <button type="submit" style="background:#C8102E;color:#fff;border:0;border-radius:999px;padding:10px 18px;font-weight:700;font-size:13.5px;cursor:pointer;">Save search + get alerts</button>
@@ -73,7 +93,7 @@
     <div style="max-width:640px;line-height:1.6;">&#128274; <strong>What you can&rsquo;t see here: private listings.</strong>
       <span style="color:rgba(255,255,255,.75);">Some homes sell through MRED&rsquo;s Private Listing Network and never appear on any public site &mdash; not here, not Zillow. Agents can only share them directly. Tell us what you&rsquo;re looking for and we&rsquo;ll watch the PLN for you.</span></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
-      <a href="/contact?pln={{ urlencode($filters['city'] ?? 'the northwest suburbs') }}" style="background:#C8102E;color:#fff;font-weight:700;font-size:13.5px;padding:10px 18px;border-radius:999px;text-decoration:none;white-space:nowrap;">Get private matches &rarr;</a>
+      <a href="/contact?pln={{ urlencode($cityList[0] ?? 'the northwest suburbs') }}" style="background:#C8102E;color:#fff;font-weight:700;font-size:13.5px;padding:10px 18px;border-radius:999px;text-decoration:none;white-space:nowrap;">Get private matches &rarr;</a>
       <a href="/off-market-homes" style="border:1px solid rgba(255,255,255,.4);color:#fff;font-weight:700;font-size:13.5px;padding:10px 18px;border-radius:999px;text-decoration:none;white-space:nowrap;">How it works</a>
     </div>
   </div>

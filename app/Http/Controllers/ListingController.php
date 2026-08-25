@@ -12,8 +12,10 @@ class ListingController extends Controller
     {
         $q = Listing::displayable()->forSale()->orderByDesc('mls_modified_at');
 
-        if ($city = trim((string) $request->query('city'))) {
-            $q->whereRaw('LOWER(city) = ?', [mb_strtolower($city)]);
+        $cities = array_values(array_filter(array_map(
+            fn ($c) => mb_strtolower(trim((string) $c)), (array) $request->query('city'))));
+        if ($cities !== []) {
+            $q->whereIn(\Illuminate\Support\Facades\DB::raw('LOWER(city)'), $cities);
         }
         if ($min = (int) $request->query('min')) {
             $q->where('list_price', '>=', $min);
@@ -32,6 +34,15 @@ class ListingController extends Controller
         }
         if (in_array($d = $request->query('dwelling'), ['detached', 'attached', 'multi', 'multi5'], true)) {
             $q->where('dwelling', $d);
+        }
+        if ($request->boolean('waterfront')) {
+            $q->where('waterfront', true);
+        }
+        if ($request->boolean('basement')) {
+            $q->whereHas('features', fn ($f) => $f->where('category', 'basement')->where('value', '!=', 'None'));
+        }
+        if ($garage = (int) $request->query('garage')) {
+            $q->where('garage_spaces', '>=', $garage);
         }
 
         // Rule 26: no artificial caps below min(500, 50%); pagination exposes
@@ -57,7 +68,7 @@ class ListingController extends Controller
             'cities' => Listing::displayable()->forSale()->distinct()->orderBy('city')->pluck('city'),
             'dataAsOf' => Listing::max('mls_modified_at') ?? now(),
             'demo' => Listing::displayable()->where('is_demo', true)->exists(),
-            'filters' => $request->only(['city', 'min', 'max', 'beds', 'baths', 'type', 'dwelling']),
+            'filters' => ['city' => array_values(array_filter((array) $request->query('city')))] + $request->only(['min', 'max', 'beds', 'baths', 'type', 'dwelling', 'waterfront', 'basement', 'garage']),
         ]);
     }
 

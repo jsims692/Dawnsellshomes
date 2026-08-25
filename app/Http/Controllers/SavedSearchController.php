@@ -16,15 +16,19 @@ class SavedSearchController extends Controller
         $data = $request->validate([
             'email' => 'required|email:rfc',
             'name' => 'nullable|string|max:80',
-            'city' => 'nullable|string|max:60',
+            'city' => 'nullable',
+            'city.*' => 'string|max:60',
             'min' => 'nullable|integer|min:0',
             'max' => 'nullable|integer|min:0',
             'beds' => 'nullable|integer|between:1,10',
             'dwelling' => 'nullable|in:detached,attached,multi,multi5',
+            'waterfront' => 'nullable|boolean',
+            'basement' => 'nullable|boolean',
+            'garage' => 'nullable|integer|between:1,5',
         ]);
 
-        $criteria = array_filter($request->only(['city', 'min', 'max', 'beds', 'dwelling']),
-            fn ($v) => $v !== null && $v !== '');
+        $criteria = array_filter($request->only(['city', 'min', 'max', 'beds', 'dwelling', 'waterfront', 'basement', 'garage']),
+            fn ($v) => $v !== null && $v !== '' && $v !== []);
 
         $search = SavedSearch::firstOrCreate(
             ['email' => strtolower($data['email']), 'criteria' => $criteria],
