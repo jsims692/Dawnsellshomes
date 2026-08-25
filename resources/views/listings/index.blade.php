@@ -1,7 +1,8 @@
 <x-site.layout :page="null" :head="null" title="Homes for Sale — Northwest Suburbs | The Dawn Simmons Team">
 @php
   $dwLabel = ['detached' => 'Detached Homes', 'attached' => 'Condos & Townhomes', 'multi' => '2–4 Unit Buildings', 'multi5' => '5+ Unit Buildings'][$filters['dwelling'] ?? ''] ?? 'Homes';
-  $placeLabel = ($filters['city'] ?? null) ? $filters['city'].', IL' : 'the Northwest Suburbs';
+  $cityDisplay = ($filters['city'] ?? null) ? \Illuminate\Support\Str::title($filters['city']) : null;
+  $placeLabel = $cityDisplay ? $cityDisplay.', IL' : 'the Northwest Suburbs';
   $pageHeading = "{$dwLabel} for Sale in {$placeLabel}";
 @endphp
 <x-slot:headExtra>
@@ -33,7 +34,7 @@
 
 <div class="li-hero">
   <h1>{{ $pageHeading }}</h1>
-  <p>{{ ($filters['city'] ?? null) ? 'Every active '.strtolower($dwLabel === 'Homes' ? 'listing' : $dwLabel).' in '.$filters['city'] : 'Every active listing in the communities we serve' }} &mdash; updated throughout the day from the MLS via MLS GRID.</p>
+  <p>{{ ($filters['city'] ?? null) ? 'Every active '.strtolower($dwLabel === 'Homes' ? 'listing' : $dwLabel).' in '.$cityDisplay : 'Every active listing in the communities we serve' }} &mdash; updated throughout the day from the MLS via MLS GRID.</p>
 </div>
 
 <div class="li-wrap">
@@ -77,7 +78,7 @@
     </div>
   </div>
 
-  <p style="font-size:14px;color:#666;margin:0 0 18px;">{{ number_format($total) }} {{ Str::plural('listing', $total) }} found{{ ($filters['city'] ?? null) ? ' in '.$filters['city'] : '' }}.</p>
+  <p style="font-size:14px;color:#666;margin:0 0 18px;">{{ number_format($total) }} {{ Str::plural('listing', $total) }} found{{ $cityDisplay ? ' in '.$cityDisplay : '' }}.</p>
 
   <div class="li-grid">
     @foreach($listings as $l)
