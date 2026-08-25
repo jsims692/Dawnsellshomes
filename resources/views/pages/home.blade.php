@@ -2,6 +2,13 @@
      The legacy one-page homepage stays reachable at /old-home. --}}
 <x-site.layout :page="$page" :head="$head">
 <style>
+.hero-tabs{display:flex;gap:.4rem;margin:1.4rem 0 .7rem}
+.hero-tabs button{border:1px solid var(--line);background:#fff;color:var(--slate);font-family:inherit;font-size:.85rem;font-weight:700;padding:.5rem 1rem;border-radius:999px;cursor:pointer;transition:all .15s ease}
+.hero-tabs button.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.val-card.hero-search{display:flex;gap:.5rem}
+.val-card.hero-search input{flex:1;min-width:0;border:0;outline:none;font:inherit;padding:.55rem .8rem;color:var(--ink)}
+.val-card.hero-search select{border:1px solid var(--line);border-radius:10px;background:#fff;font:inherit;font-size:.88rem;color:var(--slate);padding:.45rem .5rem}
+@media(max-width:560px){.val-card.hero-search{flex-wrap:wrap}.val-card.hero-search input{flex-basis:100%}}
 /* Homepage-only styles (photo card, wired-widget results, result photos) —
    everything else comes from site-v2.css. */
 .ph .photo-card{position:relative;border-radius:20px;overflow:hidden;box-shadow:0 30px 70px rgba(15,30,46,.25)}
@@ -64,7 +71,22 @@ html,body{overflow-x:hidden}
           <a class="btn btn--primary" href="#contact">Get a free home valuation</a>
           <a class="btn btn--ghost" href="#team">Meet Dawn &amp; Josh</a>
         </div>
-        <form class="val-card" id="valForm" aria-label="Home valuation" x-data="homeValue()" x-init="init()" @submit.prevent="submit()" style="position:relative">
+        <div x-data="{ heroTab: 'search' }" style="max-width:560px">
+          <div class="hero-tabs">
+            <button type="button" :class="heroTab==='search' ? 'on' : ''" @click="heroTab='search'">&#128269; Search homes</button>
+            <button type="button" :class="heroTab==='value' ? 'on' : ''" @click="heroTab='value'">&#127968; What&rsquo;s my home worth?</button>
+          </div>
+          <div x-show="heroTab==='search'">
+            <form class="val-card hero-search" action="/listings" method="get" aria-label="Search homes">
+              <input type="text" name="city" list="dshCityList" placeholder="City — e.g. Mount Prospect" autocomplete="off" aria-label="City">
+              <select name="max" aria-label="Max price"><option value="">Max $</option><option value="300000">$300K</option><option value="400000">$400K</option><option value="500000">$500K</option><option value="600000">$600K</option><option value="750000">$750K</option><option value="1000000">$1M</option><option value="2000000">$2M</option></select>
+              <select name="beds" aria-label="Beds"><option value="">Beds</option><option value="1">1+</option><option value="2">2+</option><option value="3">3+</option><option value="4">4+</option><option value="5">5+</option></select>
+              <button class="btn btn--primary" type="submit">Search</button>
+            </form>
+            <p style="font-size:.82rem;color:var(--slate);margin-top:.5rem">Every MLS listing in the northwest suburbs — updated all day. <a href="/listings" style="color:var(--red);font-weight:600">Advanced search &rarr;</a></p>
+          </div>
+          <div x-show="heroTab==='value'" x-cloak>
+            <form class="val-card" id="valForm" aria-label="Home valuation" x-data="homeValue()" x-init="init()" @submit.prevent="submit()" style="position:relative">
           <input type="text" id="valAddress" placeholder="Enter your address — what's your home worth?" aria-label="Your home address" x-model="query" @input.debounce.220ms="suggest()" @keydown.down.prevent="move(1)" @keydown.up.prevent="move(-1)" @keydown.escape="preds=[]" autocomplete="off">
   <ul x-show="preds.length" x-cloak @mousedown.prevent class="hv-preds" role="listbox"><template x-for="(p,i) in preds" :key="p.id"><li :class="{active:i===hi}" @click="pick(p)" @mouseenter="hi=i" role="option"><strong x-text="p.main"></strong> <span x-text="p.secondary"></span></li></template><li class="hv-attrib">Powered by Google</li></ul>
           <button class="btn btn--primary" type="submit">Get value</button>
@@ -92,6 +114,8 @@ html,body{overflow-x:hidden}
     <button type="button" class="btn btn--primary" @click="toContact()">Get my free valuation →</button>
   </div></template>
 </div></form>
+          </div>
+        </div>
 
         <ul class="trust">
           <li>RE/MAX Hall of Fame</li>
