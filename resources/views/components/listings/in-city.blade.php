@@ -33,6 +33,13 @@
   .dshl-all { display:inline-block; margin-top:22px; background:#C8102E; color:#fff; font-weight:700; font-size:14.5px; padding:12px 22px; border-radius:999px; text-decoration:none; }
   .dshl-all:hover { background:#A50D24; }
   .dshl-sold-note { margin-top:18px; font-size:13.5px; color:#48586B; }
+  .dshl-subs { margin-top:34px; padding-top:24px; border-top:1px solid #DEE6EE; }
+  .dshl-subs h3 { font-family:Georgia,'Fraunces',serif; font-size:19px; color:#0F1E2E; margin:0 0 14px; }
+  .dshl-subchips { display:flex; flex-wrap:wrap; gap:8px; }
+  .dshl-subchips a { display:inline-flex; align-items:center; gap:7px; background:#fff; border:1px solid #DEE6EE; border-radius:999px; padding:7px 14px; font-size:13px; font-weight:600; color:#0F1E2E; text-decoration:none; }
+  .dshl-subchips a:hover { border-color:#C8102E; }
+  .dshl-subchips a span { font-size:10.5px; font-weight:800; color:#C8102E; background:#FDECEF; border-radius:999px; padding:2px 7px; }
+  .dshl-subs-all { display:inline-block; margin-top:14px; font-size:13.5px; font-weight:700; color:#C8102E; text-decoration:none; }
 </style>
   <div class="dshl-in">
     @unless($embedded ?? false)
@@ -91,6 +98,20 @@
       @endif
     </div>
     @endforeach
+
+    @if(!empty($subdivisions ?? []))
+    <div class="dshl-subs">
+      <h3>Neighborhoods &amp; subdivisions in {{ $cityLabel }}</h3>
+      <div class="dshl-subchips">
+        @foreach(array_slice($subdivisions, 0, 30) as $s)
+        <a href="{{ $s['url'] }}">{{ $s['label'] }}@if(($s['active'] ?? 0) > 0)<span>{{ $s['active'] }} for sale</span>@endif</a>
+        @endforeach
+      </div>
+      @if(count($subdivisions) > 30)
+      <a class="dshl-subs-all" href="/neighborhoods#{{ $citySlug }}">See all {{ count($subdivisions) }} {{ $cityLabel }} communities &rarr;</a>
+      @endif
+    </div>
+    @endif
   </div>
   @include('listings._compliance', ['dataAsOf' => $dataAsOf])
 </section>

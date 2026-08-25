@@ -31,7 +31,7 @@
   <div class="wrap">
     <p class="nb-note">Listing agents don&rsquo;t always tag a home with its subdivision in the MLS, so a community&rsquo;s page may not show every home for sale there &mdash; the city search always does. Missing your subdivision? <a class="link-arrow" href="/contact">Tell us and we&rsquo;ll add it &rarr;</a></p>
     @foreach($groups as $group)
-    <div class="nb-city">
+    <div class="nb-city" id="{{ $group['slug'] }}">
       <h2><a href="/cities/{{ $group['slug'] }}">{{ $group['name'] }}</a></h2>
       <div class="nb-chips">
         @foreach($group['items'] as $item)

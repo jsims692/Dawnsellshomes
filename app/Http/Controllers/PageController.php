@@ -6,6 +6,7 @@ use App\Models\Listing;
 use App\Models\Page;
 use App\Support\Subdivisions;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 
 class PageController extends Controller
 {
@@ -369,13 +370,64 @@ class PageController extends Controller
         }
 
         $asOf = Listing::max('mls_modified_at');
+        $citySlug = Str::slug($cityLabel);
 
         return view('components.listings.in-city', [
             'embedded' => $embedded,
             'title' => $title,
             'panels' => $panels,
             'dataAsOf' => $asOf ? Carbon::parse($asOf) : now(),
+            'cityLabel' => $cityLabel,
+            'citySlug' => $citySlug,
+            'subdivisions' => $this->citySubdivisions($citySlug),
         ])->render();
+    }
+
+    /**
+     * One city's communities for the in-city band: hand-built neighborhood
+     * and condo pages merged with the MLS subdivision index — the same rows
+     * the /neighborhoods directory shows for that city.
+     */
+    private function citySubdivisions(string $citySlug): array
+    {
+        $citySlugs = cache()->remember('city-page-slugs', now()->addDay(),
+            fn () => Page::where('type', 'city')->pluck('slug')
+                ->sortByDesc(fn ($s) => strlen($s))->values()->all());
+
+        $items = [];
+        foreach (Page::whereIn('type', ['neighborhood', 'condo'])
+            ->where('slug', 'like', '%-'.$citySlug)->get(['path', 'slug']) as $p) {
+            // Longest-suffix ownership: "…-lake-barrington" must not land
+            // under plain Barrington.
+            $owner = null;
+            foreach ($citySlugs as $cs) {
+                if (str_ends_with($p->slug, '-'.$cs) && strlen($p->slug) > strlen($cs) + 1) {
+                    $owner = $cs;
+                    break;
+                }
+            }
+            if ($owner !== $citySlug) {
+                continue;
+            }
+            $label = Subdivisions::titleize(substr($p->slug, 0, -strlen($citySlug) - 1));
+            if (preg_match('/ (of|in|the|on|at|by|a)$/', $label)) {
+                $label .= ' '.Subdivisions::titleize($citySlug);
+            }
+            $items[$p->slug] = ['label' => $label, 'url' => '/'.$p->path];
+        }
+        foreach (Subdivisions::map() as $e) {
+            if ($e['citySlug'] !== $citySlug) {
+                continue;
+            }
+            if (isset($items[$e['slug']])) {
+                $items[$e['slug']]['active'] = $e['active'];
+            } elseif ($e['total'] >= Subdivisions::MIN_LISTINGS) {
+                $items[$e['slug']] = ['label' => $e['name'], 'url' => '/neighborhoods/'.$e['slug'], 'active' => $e['active']];
+            }
+        }
+        uasort($items, fn ($a, $b) => strcasecmp($a['label'], $b['label']));
+
+        return array_values($items);
     }
 
     /** Stats + cards for one band panel (a dwelling type, or a subdivision). */
