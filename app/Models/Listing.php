@@ -62,6 +62,26 @@ class Listing extends Model
      * Locally cached primary photo (mls:media). MLS GRID media URLs are signed,
      * expire within the hour, and rate-limit hotlinking — never link them directly.
      */
+    public function isForSale(): bool
+    {
+        return in_array($this->status, ['Active', 'Active Under Contract'], true);
+    }
+
+    /** All locally cached photos, in gallery order ({key}.jpg, {key}-1.jpg …). */
+    public function photoUrls(): array
+    {
+        $base = storage_path('app/public/listings/');
+        $urls = [];
+        if (is_file($base.$this->listing_key.'.jpg')) {
+            $urls[] = asset('storage/listings/'.$this->listing_key.'.jpg');
+            for ($i = 1; is_file($base.$this->listing_key.'-'.$i.'.jpg'); $i++) {
+                $urls[] = asset('storage/listings/'.$this->listing_key.'-'.$i.'.jpg');
+            }
+        }
+
+        return $urls;
+    }
+
     public function photoUrl(): ?string
     {
         $rel = 'listings/'.$this->listing_key.'.jpg';

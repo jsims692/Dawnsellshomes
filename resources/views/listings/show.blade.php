@@ -6,8 +6,14 @@
 </x-slot:headExtra>
 <style>
   .ld-wrap { max-width:1100px; margin:0 auto; padding:32px 24px; font-family:'Archivo',Arial,sans-serif; }
-  .ld-gallery { display:grid; grid-template-columns:2fr 1fr; gap:8px; border-radius:14px; overflow:hidden; }
-  .ld-gallery div { aspect-ratio:3/2; background:#E9EFF3 center/cover no-repeat; }
+  .ld-gallery { display:grid; grid-template-columns:2fr 1fr 1fr; gap:8px; border-radius:14px; overflow:hidden; }
+  .ld-gallery a { display:block; aspect-ratio:3/2; background:#E9EFF3 center/cover no-repeat; }
+  .ld-gallery a:first-child { grid-row:span 2; aspect-ratio:auto; min-height:280px; }
+  .ld-gallery.ld-few { grid-template-columns:1fr 1fr; }
+  .ld-gallery.ld-few a:first-child { grid-row:auto; grid-column:1/-1; aspect-ratio:2/1; min-height:0; }
+  .ld-gallery.ld-open a:first-child { grid-row:auto; aspect-ratio:3/2; min-height:0; }
+  .ld-morebtn { margin-top:10px; background:#fff; border:1px solid #c9d2e3; color:#0F1E2E; border-radius:6px; padding:9px 16px; font-weight:700; font-size:13px; cursor:pointer; }
+  @media (max-width:700px) { .ld-gallery { grid-template-columns:1fr 1fr; } }
   .ld-head { display:flex; flex-wrap:wrap; justify-content:space-between; gap:16px; align-items:start; margin:24px 0 6px; }
   .ld-price { font-size:34px; font-weight:800; color:#0F1E2E; }
   .ld-status { display:inline-block; background:#0F1E2E; color:#fff; font-size:12px; font-weight:700; padding:5px 12px; border-radius:5px; }
@@ -32,11 +38,27 @@
 </style>
 
 <div class="ld-wrap">
-  {{-- Locally cached photo only: MLS GRID media URLs expire and rate-limit hotlinks --}}
-  <div class="ld-gallery">
-    <div style="background-image:url('{{ $l->photoUrl() ?? '' }}')"></div>
-    <div style="background-image:url('{{ $l->photoUrl() ?? '' }}')"></div>
+  {{-- Locally cached gallery: MLS GRID media URLs expire and rate-limit hotlinks.
+       Collapsed = hero + 4; the button reveals every cached photo. --}}
+  @php $photos = $l->photoUrls(); @endphp
+  <div class="ld-gallery{{ count($photos) < 5 ? ' ld-few' : '' }}" id="ldGallery">
+    @forelse($photos as $i => $p)
+    <a href="{{ $p }}" target="_blank" rel="noopener" style="background-image:url('{{ $p }}')"
+       aria-label="Photo {{ $i + 1 }} of {{ count($photos) }}" @if($i > 4) hidden @endif></a>
+    @empty
+    <a style="pointer-events:none"></a><a style="pointer-events:none"></a><a style="pointer-events:none"></a>
+    @endforelse
   </div>
+  @if(count($photos) > 5)
+  <button type="button" class="ld-morebtn" id="ldMoreBtn">See all {{ count($photos) }} photos</button>
+  <script>
+  document.getElementById('ldMoreBtn').addEventListener('click', function () {
+    document.querySelectorAll('#ldGallery a[hidden]').forEach(function (a) { a.hidden = false; });
+    document.getElementById('ldGallery').classList.add('ld-open');
+    this.remove();
+  });
+  </script>
+  @endif
 
   <div class="ld-head">
     <div>

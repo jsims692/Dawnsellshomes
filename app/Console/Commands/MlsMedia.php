@@ -23,11 +23,14 @@ class MlsMedia extends Command
         {--city=* : Only these cities (testing / targeted backfill)}
         {--refresh : Re-download photos that are already cached}';
 
-    protected $description = 'Download and cache primary listing photos from MLS GRID';
+    protected $description = 'Download and cache listing photo galleries from MLS GRID';
 
     private const API = 'https://api.mlsgrid.com/v2/Property';
     private const MAX_WIDTH = 800;
     private const PACE_MICROSECONDS = 450000; // ~2 requests/second
+
+    /** Gallery cap per listing (photo 0 = {key}.jpg, then {key}-1.jpg …). */
+    private const PHOTOS_MAX = 24;
 
     public function handle(): int
     {
@@ -58,39 +61,52 @@ class MlsMedia extends Command
             ->orderByDesc('mls_modified_at');
 
         foreach ($q->cursor() as $l) {
-            $file = "{$dir}/{$l->listing_key}.jpg";
-            if (! $this->option('refresh') && is_file($file)) {
-                continue;
-            }
+            // For-sale listings get the full gallery (capped); --all rows
+            // (closed, for future sold strips) just the primary photo.
+            $cap = $l->isForSale() ? self::PHOTOS_MAX : 1;
+            $countFile = "{$dir}/{$l->listing_key}.count";
+            $known = is_file($countFile) ? (int) file_get_contents($countFile) : null;
 
-            $url = $l->media[0]['url'] ?? null;
-            if (! $url) {
-                $skipped++;
-
-                continue;
-            }
-
-            // Signed URL already (or nearly) expired -> fetch fresh Media for
-            // this one listing and store the refreshed URLs.
-            if ($this->expired($url)) {
-                $url = $this->refreshMedia($l, $token);
-                if (! $url) {
-                    $failed++;
-
+            if ($known !== null && ! $this->option('refresh')) {
+                $complete = true;
+                for ($i = 0; $i < min($known, $cap); $i++) {
+                    if (! is_file($this->photoFile($dir, $l->listing_key, $i))) {
+                        $complete = false;
+                        break;
+                    }
+                }
+                if ($complete) {
                     continue;
                 }
             }
 
-            if ($this->download($url, $file)) {
-                $done++;
-            } else {
-                $failed++;
+            // One API call per listing needing photos: fresh signed URLs for
+            // the whole gallery (stored URLs die within the hour).
+            $urls = $this->refreshMedia($l, $token);
+            usleep(self::PACE_MICROSECONDS);
+            if ($urls === []) {
+                $skipped++;
+
+                continue;
+            }
+            file_put_contents($countFile, count($urls));
+
+            for ($i = 0; $i < min(count($urls), $cap); $i++) {
+                $file = $this->photoFile($dir, $l->listing_key, $i);
+                if (! $this->option('refresh') && is_file($file)) {
+                    continue;
+                }
+                if ($this->download($urls[$i], $file)) {
+                    $done++;
+                } else {
+                    $failed++;
+                }
+                usleep(self::PACE_MICROSECONDS);
             }
 
             if ($limit > 0 && $done >= $limit) {
                 break;
             }
-            usleep(self::PACE_MICROSECONDS);
         }
 
         $this->info("Media cache: {$done} downloaded, {$skipped} without media, {$failed} failed.");
@@ -98,17 +114,8 @@ class MlsMedia extends Command
         return self::SUCCESS;
     }
 
-    private function expired(string $url): bool
-    {
-        if (! preg_match('/[?&]expires=(\d+)/', $url, $m)) {
-            return false;
-        }
-
-        return ((int) $m[1]) < time() + 120;
-    }
-
-    /** Re-fetch this listing's Media (fresh signed URLs); returns the primary URL. */
-    private function refreshMedia(Listing $l, string $token): ?string
+    /** Re-fetch this listing's Media (fresh signed URLs), ordered. */
+    private function refreshMedia(Listing $l, string $token): array
     {
         $url = self::API.'?$filter='.rawurlencode("ListingId eq '{$l->listing_id}'").'&$expand=Media&$top=1';
         try {
@@ -116,15 +123,15 @@ class MlsMedia extends Command
                 ->withHeaders(['Accept-Encoding' => 'gzip'])
                 ->timeout(30)->retry(3, 5000)->get($url);
         } catch (\Throwable) {
-            return null;
+            return [];
         }
         if (! $resp->successful()) {
-            return null;
+            return [];
         }
 
         $rec = $resp->json()['value'][0] ?? null;
         if (! $rec) {
-            return null;
+            return [];
         }
 
         $media = collect($rec['Media'] ?? [])
@@ -134,7 +141,12 @@ class MlsMedia extends Command
             ->values();
         $l->update(['media' => $media->take(1)]);
 
-        return $media[0]['url'] ?? null;
+        return $media->pluck('url')->all();
+    }
+
+    private function photoFile(string $dir, string $key, int $i): string
+    {
+        return $i === 0 ? "{$dir}/{$key}.jpg" : "{$dir}/{$key}-{$i}.jpg";
     }
 
     private function download(string $url, string $file): bool
