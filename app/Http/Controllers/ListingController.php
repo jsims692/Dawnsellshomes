@@ -12,8 +12,8 @@ class ListingController extends Controller
     {
         $q = Listing::displayable()->forSale()->orderByDesc('mls_modified_at');
 
-        if ($city = $request->query('city')) {
-            $q->where('city', $city);
+        if ($city = trim((string) $request->query('city'))) {
+            $q->whereRaw('LOWER(city) = ?', [mb_strtolower($city)]);
         }
         if ($min = (int) $request->query('min')) {
             $q->where('list_price', '>=', $min);
@@ -23,6 +23,9 @@ class ListingController extends Controller
         }
         if ($beds = (int) $request->query('beds')) {
             $q->where('beds', '>=', $beds);
+        }
+        if ($baths = (int) $request->query('baths')) {
+            $q->where('baths_full', '>=', $baths);
         }
         if ($type = $request->query('type')) {
             $q->where('property_type', $type);
@@ -54,7 +57,7 @@ class ListingController extends Controller
             'cities' => Listing::displayable()->forSale()->distinct()->orderBy('city')->pluck('city'),
             'dataAsOf' => Listing::max('mls_modified_at') ?? now(),
             'demo' => Listing::displayable()->where('is_demo', true)->exists(),
-            'filters' => $request->only(['city', 'min', 'max', 'beds', 'type', 'dwelling']),
+            'filters' => $request->only(['city', 'min', 'max', 'beds', 'baths', 'type', 'dwelling']),
         ]);
     }
 
