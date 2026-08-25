@@ -294,11 +294,11 @@ details.city[open] summary::after{transform:rotate(45deg)}
 .c-card p{margin:0;color:var(--slate);font-size:.95rem;line-height:1.65}
 .c-card p a{color:var(--red);font-weight:600}
 .steps{counter-reset:s;margin-top:2rem}
-.step{display:flex;gap:1.15rem;padding:1.3rem 0;border-bottom:1px dashed var(--line)}
-.step:last-child{border-bottom:0}
-.step::before{counter-increment:s;content:counter(s);flex:0 0 46px;height:46px;border-radius:50%;background:var(--ink);color:#fff;font-family:'Fraunces',serif;font-size:1.25rem;display:flex;align-items:center;justify-content:center}
-.step h3{font-family:'Fraunces',serif;font-weight:600;font-size:1.1rem;margin:.2rem 0 .35rem;color:var(--ink)}
-.step p{margin:0;color:var(--slate);font-size:.95rem;line-height:1.65}
+.steps .step{display:flex;gap:1.15rem;padding:1.3rem 0;border-bottom:1px dashed var(--line)}
+.steps .step:last-child{border-bottom:0}
+.steps .step::before{counter-increment:s;content:counter(s);flex:0 0 46px;height:46px;border-radius:50%;background:var(--ink);color:#fff;font-family:'Fraunces',serif;font-size:1.25rem;display:flex;align-items:center;justify-content:center}
+.steps .step h3{font-family:'Fraunces',serif;font-weight:600;font-size:1.1rem;margin:.2rem 0 .35rem;color:var(--ink)}
+.steps .step p{margin:0;color:var(--slate);font-size:.95rem;line-height:1.65}
 .faq{margin-top:1.6rem}
 .faq details{background:var(--paper);border:1px solid var(--line);border-radius:12px;margin-top:.7rem;padding:0 1.2rem}
 .faq summary{cursor:pointer;font-family:'Archivo',system-ui,sans-serif;font-weight:700;color:var(--ink);padding:1rem 0;font-size:.97rem}
