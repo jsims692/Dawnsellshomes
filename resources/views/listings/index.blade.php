@@ -41,6 +41,7 @@
     <div><label for="f-min">Min Price</label><select id="f-min" name="min"><option value="">No min</option>@foreach([200000,300000,400000,500000,750000,1000000] as $v)<option value="{{ $v }}" @selected(($filters['min'] ?? '') == $v)>${{ number_format($v/1000) }}K</option>@endforeach</select></div>
     <div><label for="f-max">Max Price</label><select id="f-max" name="max"><option value="">No max</option>@foreach([300000,400000,500000,750000,1000000,2000000] as $v)<option value="{{ $v }}" @selected(($filters['max'] ?? '') == $v)>${{ number_format($v/1000) }}K</option>@endforeach</select></div>
     <div><label for="f-beds">Beds</label><select id="f-beds" name="beds"><option value="">Any</option>@foreach([1,2,3,4,5] as $v)<option value="{{ $v }}" @selected(($filters['beds'] ?? '') == $v)>{{ $v }}+</option>@endforeach</select></div>
+    <div><label for="f-dwelling">Home type</label><select id="f-dwelling" name="dwelling"><option value="">All types</option>@foreach(['detached' => 'Detached homes', 'attached' => 'Attached (condo/townhome)', 'multi' => '2–4 unit buildings', 'multi5' => '5+ unit buildings'] as $v => $label)<option value="{{ $v }}" @selected(($filters['dwelling'] ?? '') === $v)>{{ $label }}</option>@endforeach</select></div>
     <div><button type="submit">Search</button></div>
   </form>
 

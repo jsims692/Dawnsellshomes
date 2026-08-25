@@ -29,6 +29,9 @@ class MlsSync extends Command
 
     private const API = 'https://api.mlsgrid.com/v2/Property';
 
+    /** MRD_TYP values seen but not kept, reported so no home class is missed silently. */
+    private array $skippedTypes = [];
+
     /** Closed listings older than this many months are dropped (city sold stats). */
     private const CLOSED_MONTHS = 12;
 
@@ -109,6 +112,11 @@ class MlsSync extends Command
 
         $this->info(sprintf('Sync complete: %d records seen, %d written, cursor=%s, in DB: %d displayable.',
             $seen, $written, $maxTs ?? '(none)', Listing::displayable()->where('is_demo', false)->count()));
+        if ($this->skippedTypes !== []) {
+            arsort($this->skippedTypes);
+            $this->line('Skipped property types: '.collect($this->skippedTypes)
+                ->map(fn ($n, $t) => "{$t}={$n}")->implode(', '));
+        }
 
         return self::SUCCESS;
     }
@@ -127,14 +135,19 @@ class MlsSync extends Command
             return false;
         }
 
-        // Homes only (objective property-type criterion): leases, land and
-        // commercial types are excluded from this site.
-        $dwelling = match ($r['MRD_TYP'] ?? null) {
+        // Homes + multi-unit investment property (objective property-type
+        // criterion): leases, land and other commercial types are excluded.
+        $typ = $r['MRD_TYP'] ?? '';
+        $dwelling = match ($typ) {
             'Detached Single' => 'detached',
             'Attached Single' => 'attached',
             'Two to Four Units' => 'multi',
-            default => null,
+            default => (str_contains($typ, 'Five Plus') || str_contains($typ, 'Five or More') || str_contains($typ, '5+'))
+                ? 'multi5' : null,
         };
+        if (! $dwelling && $typ !== '') {
+            $this->skippedTypes[$typ] = ($this->skippedTypes[$typ] ?? 0) + 1;
+        }
 
         // Out of coverage, not a home, off-market (beyond the sold-stats
         // window), or opted out of display -> remove local copy.

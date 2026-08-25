@@ -27,7 +27,7 @@ class ListingController extends Controller
         if ($type = $request->query('type')) {
             $q->where('property_type', $type);
         }
-        if (in_array($d = $request->query('dwelling'), ['detached', 'attached', 'multi'], true)) {
+        if (in_array($d = $request->query('dwelling'), ['detached', 'attached', 'multi', 'multi5'], true)) {
             $q->where('dwelling', $d);
         }
 
