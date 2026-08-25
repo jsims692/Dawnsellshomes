@@ -6,14 +6,13 @@
 </x-slot:headExtra>
 <style>
   .ld-wrap { max-width:1100px; margin:0 auto; padding:32px 24px; font-family:'Archivo',Arial,sans-serif; }
-  .ld-gallery { display:grid; grid-template-columns:3fr 1fr; gap:8px; border-radius:14px; overflow:hidden; }
+  .ld-gallery { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; border-radius:14px; overflow:hidden; }
   .ld-gallery a { display:block; aspect-ratio:3/2; background:#E9EFF3 center/cover no-repeat; }
-  .ld-gallery a:first-child { grid-row:span 3; aspect-ratio:auto; min-height:280px; max-height:430px; }
-  .ld-gallery.ld-few { grid-template-columns:1fr 1fr; }
-  .ld-gallery.ld-few a:first-child { grid-row:auto; grid-column:1/-1; aspect-ratio:2/1; min-height:0; max-height:none; }
+  .ld-gallery a[hidden] { display:none !important; }
+  .ld-gallery a:first-child { grid-column:1/-1; aspect-ratio:21/9; max-height:430px; }
+  .ld-gallery.ld-few { grid-template-columns:repeat(2,1fr); }
   .ld-gallery.ld-few a:nth-child(2):last-child { grid-column:1/-1; aspect-ratio:5/2; }
-  .ld-gallery.ld-open { grid-template-columns:repeat(3,1fr); }
-  .ld-gallery.ld-open a:first-child { grid-row:auto; aspect-ratio:3/2; min-height:0; max-height:none; }
+  .ld-gallery.ld-open a:first-child { grid-column:auto; aspect-ratio:3/2; max-height:none; }
   .ld-morebtn { margin-top:10px; background:#fff; border:1px solid #c9d2e3; color:#0F1E2E; border-radius:6px; padding:9px 16px; font-weight:700; font-size:13px; cursor:pointer; }
   @media (max-width:700px) { .ld-gallery { grid-template-columns:1fr 1fr; } }
   .ld-head { display:flex; flex-wrap:wrap; justify-content:space-between; gap:16px; align-items:start; margin:24px 0 6px; }
