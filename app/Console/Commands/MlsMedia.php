@@ -110,7 +110,7 @@ class MlsMedia extends Command
     /** Re-fetch this listing's Media (fresh signed URLs); returns the primary URL. */
     private function refreshMedia(Listing $l, string $token): ?string
     {
-        $url = self::API.'?$filter='.rawurlencode("ListingKey eq '{$l->listing_key}'").'&$expand=Media&$top=1';
+        $url = self::API.'?$filter='.rawurlencode("ListingId eq '{$l->listing_id}'").'&$expand=Media&$top=1';
         try {
             $resp = Http::withToken($token)->acceptJson()
                 ->withHeaders(['Accept-Encoding' => 'gzip'])

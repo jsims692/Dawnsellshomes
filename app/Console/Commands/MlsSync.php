@@ -138,11 +138,11 @@ class MlsSync extends Command
      */
     private function refreshLocalKeys(string $token, array $cities): int
     {
-        $keys = Listing::where('is_demo', false)->pluck('listing_key');
+        $keys = Listing::where('is_demo', false)->pluck('listing_id');
         $written = 0;
         foreach ($keys->chunk(15) as $chunk) {
             $filter = "OriginatingSystemName eq 'mred' and ("
-                .$chunk->map(fn ($k) => "ListingKey eq '{$k}'")->implode(' or ').')';
+                .$chunk->map(fn ($k) => "ListingId eq '{$k}'")->implode(' or ').')';
             $url = self::API.'?$filter='.rawurlencode($filter).'&$expand=Media,Rooms&$top=100';
 
             for ($attempt = 1; ; $attempt++) {
@@ -314,7 +314,7 @@ class MlsSync extends Command
         $listing->rooms()->delete();
         $rooms = [];
         foreach ((array) ($r['Rooms'] ?? []) as $i => $room) {
-            $name = $room['RoomType'] ?? ($room['MRD_ROOM_NAME'] ?? null);
+            $name = $room['RoomType'] ?? ($room['MRD_Type'] ?? null);
             $name = is_array($name) ? implode(', ', $name) : $name;
             if (! $name) {
                 continue;
@@ -323,7 +323,7 @@ class MlsSync extends Command
                 'name' => mb_substr((string) $name, 0, 60),
                 'dimensions' => mb_substr((string) ($room['RoomDimensions'] ?? ''), 0, 20) ?: null,
                 'level' => mb_substr((string) ($room['RoomLevel'] ?? ''), 0, 30) ?: null,
-                'flooring' => mb_substr(implode(', ', (array) ($room['RoomFlooring'] ?? ($room['Flooring'] ?? []))), 0, 40) ?: null,
+                'flooring' => mb_substr(implode(', ', (array) ($room['MRD_Flooring'] ?? ($room['RoomFlooring'] ?? []))), 0, 40) ?: null,
                 'sort' => min($i, 255),
             ];
         }
