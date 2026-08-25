@@ -19,7 +19,21 @@ class Subdivisions
     private const JUNK = [
         'not applicable', 'not application', 'n/a', 'na', 'none', 'no',
         'other', 'unknown', 'tbd', 'see remarks', 'subdivision', '0', 'manor',
+        // Legal plat-of-survey names agents sometimes enter instead of the
+        // consumer neighborhood name (Josh, Aug 2026) — real on a county plat,
+        // meaningless to a home shopper.
+        'herzog kuntze', 'arling grove',
     ];
+
+    /**
+     * Same class, caught by shape: surveyor-initial plats ("J L Shaws",
+     * "B F Nabers & Helen F Osmonds") and bare addresses ("4929 Forest").
+     */
+    private static function looksLikePlatOrAddress(string $name): bool
+    {
+        return preg_match('/^(?:[a-z]\.? ){2}/i', $name)
+            || preg_match('/^\d{3,5} [a-z]+$/i', $name);
+    }
 
     /**
      * Auto-generated pages require this many tagged listings. One-offs are
@@ -46,7 +60,8 @@ class Subdivisions
                 $citySlug = Str::slug($r->city);
                 $nameSlug = Str::slug($r->name);
                 if ($nameSlug === '' || ! isset($citySlugs[$citySlug])
-                    || in_array(mb_strtolower($r->name), self::JUNK, true)) {
+                    || in_array(mb_strtolower($r->name), self::JUNK, true)
+                    || self::looksLikePlatOrAddress($r->name)) {
                     continue;
                 }
                 // ALL-CAPS entries read as shouting; title-case them for display.
