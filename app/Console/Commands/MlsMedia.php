@@ -22,6 +22,7 @@ class MlsMedia extends Command
         {--limit=0 : Stop after this many downloads (0 = no limit)}
         {--all : Include closed listings (default: for-sale only — sold rows feed stats, not cards)}
         {--city=* : Only these cities (testing / targeted backfill)}
+        {--listing= : One listing id — full gallery regardless of status (on-demand sold galleries)}
         {--refresh : Re-download photos that are already cached}';
 
     protected $description = 'Download and cache listing photo galleries from MLS GRID';
@@ -58,13 +59,15 @@ class MlsMedia extends Command
             ->when(! $this->option('all'), fn ($w) => $w->forSale())
             ->when($this->option('city') !== [], fn ($w) => $w->whereIn(
                 DB::raw('LOWER(city)'), array_map(mb_strtolower(...), (array) $this->option('city'))))
+            ->when($this->option('listing'), fn ($w) => $w->where('listing_id', $this->option('listing')))
             ->orderByRaw("FIELD(status, 'Active', 'Active Under Contract', 'Pending', 'Closed')")
             ->orderByDesc('mls_modified_at');
 
         foreach ($q->cursor() as $l) {
             // For-sale listings get the full gallery (capped); --all rows
-            // (closed, for future sold strips) just the primary photo.
-            $cap = $l->isForSale() ? self::PHOTOS_MAX : 1;
+            // (closed) just the primary — except a targeted --listing fetch,
+            // which is a viewer opening a sold page: they get the gallery.
+            $cap = ($l->isForSale() || $this->option('listing')) ? self::PHOTOS_MAX : 1;
             $countFile = "{$dir}/{$l->listing_key}.count";
             $known = is_file($countFile) ? (int) file_get_contents($countFile) : null;
 
@@ -123,23 +126,19 @@ class MlsMedia extends Command
     }
 
     /**
-     * Disk stays proportional to live inventory: drop files for listings no
-     * longer in the table, and gallery files (beyond the primary) for
-     * listings no longer for sale.
+     * Disk stays proportional to demand: drop files only for listings gone
+     * from the table (sold rows age out after 12 months and shed their files
+     * then; on-demand sold galleries live for their comp-viewing window).
      */
     private function prune(string $dir): int
     {
-        $known = Listing::pluck('status', 'listing_key');
+        $known = Listing::pluck('listing_key')->flip();
         $pruned = 0;
         foreach (scandir($dir) ?: [] as $f) {
-            if (! preg_match('/^([A-Z0-9]+?)(?:-(\d+))?\.(?:jpg|count)$/', $f, $m)) {
+            if (! preg_match('/^([A-Z0-9]+?)(?:-\d+)?\.(?:jpg|count)$/', $f, $m)) {
                 continue;
             }
-            $status = $known[$m[1]] ?? null;
-            $gone = $status === null;
-            $offMarketGallery = ! $gone && ! in_array($status, ['Active', 'Active Under Contract'], true)
-                && (($m[2] ?? '') !== '' || str_ends_with($f, '.count'));
-            if ($gone || $offMarketGallery) {
+            if (! isset($known[$m[1]])) {
                 @unlink("{$dir}/{$f}");
                 $pruned++;
             }
