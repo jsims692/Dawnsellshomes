@@ -258,6 +258,9 @@ class MlsSync extends Command
             'property_type' => $r['PropertyType'] ?? null,
             'property_subtype' => $r['PropertySubType'] ?? null,
             'dwelling' => $dwelling,
+            // MRED marks auctions via its own MlsStatus (StandardStatus stays Active)
+            'is_auction' => ($r['MlsStatus'] ?? null) === 'Auction'
+                || in_array('Auction', (array) ($r['SpecialListingConditions'] ?? []), true),
             'year_built' => $r['YearBuilt'] ?? null,
             'remarks' => $r['PublicRemarks'] ?? null,
             'subdivision' => $r['SubdivisionName'] ?? null,

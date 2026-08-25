@@ -214,6 +214,10 @@ class PageController extends Controller
     /** Stats + cards for one band panel (a dwelling type, or a subdivision). */
     private function bandPanel($base, string $label, string $title, string $allLabel, string $allUrl, ?string $dwelling = null): ?array
     {
+        // Auctions stay out of the band entirely (stats included): teaser
+        // prices distort medians and their "photos" are badge graphics.
+        $base = (clone $base)->where('is_auction', false);
+
         $active = (clone $base)->where('status', 'Active')->count();
         // "Under contract" the way consumers mean it: contingent + pending.
         $underContract = (clone $base)->whereIn('status', ['Active Under Contract', 'Pending'])->count();
