@@ -127,9 +127,18 @@ class MlsSync extends Command
             return false;
         }
 
-        // Out of coverage, off-market (beyond the sold-stats window), or opted
-        // out of display -> remove local copy.
-        if (! $inCoverage || ! ($active || $closedRecent) || (($r['InternetEntireListingDisplayYN'] ?? true) === false)) {
+        // Homes only (objective property-type criterion): leases, land and
+        // commercial types are excluded from this site.
+        $dwelling = match ($r['MRD_TYP'] ?? null) {
+            'Detached Single' => 'detached',
+            'Attached Single' => 'attached',
+            'Two to Four Units' => 'multi',
+            default => null,
+        };
+
+        // Out of coverage, not a home, off-market (beyond the sold-stats
+        // window), or opted out of display -> remove local copy.
+        if (! $inCoverage || ! $dwelling || ! ($active || $closedRecent) || (($r['InternetEntireListingDisplayYN'] ?? true) === false)) {
             Listing::where('listing_key', $key)->delete();
 
             return false;
@@ -165,6 +174,7 @@ class MlsSync extends Command
             'sqft' => $r['LivingArea'] ?? null,
             'property_type' => $r['PropertyType'] ?? null,
             'property_subtype' => $r['PropertySubType'] ?? null,
+            'dwelling' => $dwelling,
             'year_built' => $r['YearBuilt'] ?? null,
             'remarks' => $r['PublicRemarks'] ?? null,
             'subdivision' => $r['SubdivisionName'] ?? null,

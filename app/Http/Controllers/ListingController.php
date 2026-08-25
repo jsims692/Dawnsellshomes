@@ -27,6 +27,9 @@ class ListingController extends Controller
         if ($type = $request->query('type')) {
             $q->where('property_type', $type);
         }
+        if (in_array($d = $request->query('dwelling'), ['detached', 'attached', 'multi'], true)) {
+            $q->where('dwelling', $d);
+        }
 
         // Rule 26: no artificial caps below min(500, 50%); pagination exposes
         // the complete result set. 2,500 hard ceiling per search.
@@ -51,7 +54,7 @@ class ListingController extends Controller
             'cities' => Listing::displayable()->forSale()->distinct()->orderBy('city')->pluck('city'),
             'dataAsOf' => Listing::max('mls_modified_at') ?? now(),
             'demo' => Listing::displayable()->where('is_demo', true)->exists(),
-            'filters' => $request->only(['city', 'min', 'max', 'beds', 'type']),
+            'filters' => $request->only(['city', 'min', 'max', 'beds', 'type', 'dwelling']),
         ]);
     }
 

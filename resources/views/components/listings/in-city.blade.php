@@ -1,8 +1,10 @@
-{{-- Live MLS band injected into legacy city/neighborhood pages by
-     PageController::injectListingsBand. Fully self-contained styling (the host
-     pages carry their own imported CSS). Cards are Rule-10 thumbnails (≤8
-     fields, linked to the full compliant display); the stats strip is market
-     analytics, attributed via the standard compliance block below. --}}
+{{-- Live MLS band injected into legacy city/neighborhood/condo pages by
+     PageController::injectListingsBand. Fully self-contained styling + vanilla
+     JS (host pages carry their own imported CSS and may not load Alpine).
+     City pages show a Detached panel by default with an Attached toggle;
+     subdivision-matched pages show a single panel. Cards are Rule-10
+     thumbnails (≤8 fields, linked to the full compliant display); the stats
+     strip is market analytics, attributed via the compliance block below. --}}
 <section class="dshl{{ ($embedded ?? false) ? ' dshl--embed' : '' }}" id="live-listings">
 <style>
   .dshl { font-family:'Archivo',Arial,sans-serif; background:#F2F5F9; padding:52px 24px; }
@@ -10,7 +12,11 @@
   .dshl-in { max-width:1180px; margin:0 auto; }
   .dshl-eyebrow { font-size:11px; font-weight:800; letter-spacing:2px; text-transform:uppercase; color:#C8102E; margin-bottom:10px; }
   .dshl h2 { font-family:Georgia,'Fraunces',serif; font-size:clamp(22px,3vw,32px); color:#0F1E2E; margin:0 0 6px; }
-  .dshl-asof { font-size:12.5px; color:#8A99AA; margin:0 0 22px; }
+  .dshl-asof { font-size:12.5px; color:#8A99AA; margin:0 0 18px; }
+  .dshl-tabs { display:flex; gap:8px; margin:0 0 20px; flex-wrap:wrap; }
+  .dshl-tab { border:1px solid #DEE6EE; background:#fff; color:#48586B; font-family:inherit; font-size:13.5px; font-weight:700; padding:9px 18px; border-radius:999px; cursor:pointer; }
+  .dshl-tab[aria-selected="true"] { background:#0F1E2E; border-color:#0F1E2E; color:#fff; }
+  .dshl-panel[hidden] { display:none; }
   .dshl-stats { display:flex; flex-wrap:wrap; gap:12px; margin:0 0 26px; }
   .dshl-stat { background:#fff; border:1px solid #DEE6EE; border-radius:12px; padding:14px 18px; min-width:130px; }
   .dshl-stat b { display:block; font-size:24px; color:#0F1E2E; line-height:1.15; }
@@ -35,42 +41,73 @@
     @endunless
     <p class="dshl-asof">Updated {{ $dataAsOf instanceof \Carbon\CarbonInterface ? $dataAsOf->timezone('America/Chicago')->format('n/j/Y g:i A T') : $dataAsOf }} &middot; Listings courtesy of MRED as distributed by MLS GRID</p>
 
-    <div class="dshl-stats">
-      <div class="dshl-stat"><b>{{ number_format($stats['active']) }}</b><span>Active listings</span></div>
-      <div class="dshl-stat"><b>{{ number_format($stats['underContract']) }}</b><span>Under contract</span></div>
-      <div class="dshl-stat"><b>{{ number_format($stats['closed6mo']) }}</b><span>Sold, last {{ $stats['closedMonths'] }} months</span></div>
-      @if($stats['medianClose'])
-      <div class="dshl-stat"><b>${{ number_format($stats['medianClose']) }}</b><span>Median sale price ({{ $stats['closedMonths'] }} mo)</span></div>
-      @endif
-      @if($stats['avgDom'])
-      <div class="dshl-stat"><b>{{ $stats['avgDom'] }}</b><span>Avg days on market</span></div>
-      @endif
-      @if($stats['saleListRatio'])
-      <div class="dshl-stat"><b>{{ $stats['saleListRatio'] }}%</b><span>Sale-to-list ratio</span></div>
-      @endif
-    </div>
-
-    @if($listings->isNotEmpty())
-    <div class="dshl-grid">
-      @foreach($listings as $l)
-      <a class="dshl-card" href="/listings/{{ $l->listing_id }}">
-        <div class="dshl-photo" style="background-image:url('{{ $l->photoUrl() ?? '' }}')"><span class="dshl-status">{{ $l->status }}</span></div>
-        <div class="dshl-body">
-          <div class="dshl-price">${{ number_format($l->list_price) }}</div>
-          <div class="dshl-facts">{{ $l->beds }} bd &middot; {{ $l->baths() }} ba @if($l->sqft) &middot; {{ number_format($l->sqft) }} sqft @endif</div>
-          <div class="dshl-addr">{{ $l->displayAddress() }}</div>
-        </div>
-      </a>
+    @if(count($panels) > 1)
+    <div class="dshl-tabs" role="tablist" aria-label="Home type">
+      @foreach($panels as $i => $panel)
+      <button type="button" class="dshl-tab" role="tab" id="dshl-tab-{{ $panel['key'] }}"
+              aria-selected="{{ $i === 0 ? 'true' : 'false' }}" aria-controls="dshl-panel-{{ $panel['key'] }}">{{ $panel['label'] }}</button>
       @endforeach
     </div>
     @endif
 
-    @if($total > 0)
-    <a class="dshl-all" href="{{ $allUrl }}">See all {{ number_format($total) }} home{{ $total === 1 ? '' : 's' }} for sale in {{ $allLabel }} &rarr;</a>
-    @endif
-    @if($stats['closed6mo'] > 0)
-    <p class="dshl-sold-note">Thinking of selling here? {{ number_format($stats['closed6mo']) }} home{{ $stats['closed6mo'] === 1 ? '' : 's' }} closed in {{ $title }} in the last {{ $stats['closedMonths'] }} months{{ $stats['medianClose'] ? ' at a median of $'.number_format($stats['medianClose']) : '' }}. <a href="/sell" style="color:#C8102E;font-weight:700;">Get your free valuation &rarr;</a></p>
-    @endif
+    @foreach($panels as $i => $panel)
+    <div class="dshl-panel" id="dshl-panel-{{ $panel['key'] }}" role="tabpanel" @if($i > 0) hidden @endif>
+      <div class="dshl-stats">
+        <div class="dshl-stat"><b>{{ number_format($panel['stats']['active']) }}</b><span>Active listings</span></div>
+        <div class="dshl-stat"><b>{{ number_format($panel['stats']['underContract']) }}</b><span>Under contract</span></div>
+        <div class="dshl-stat"><b>{{ number_format($panel['stats']['closed6mo']) }}</b><span>Sold, last {{ $panel['stats']['closedMonths'] }} months</span></div>
+        @if($panel['stats']['medianClose'])
+        <div class="dshl-stat"><b>${{ number_format($panel['stats']['medianClose']) }}</b><span>Median sale price ({{ $panel['stats']['closedMonths'] }} mo)</span></div>
+        @endif
+        @if($panel['stats']['avgDom'])
+        <div class="dshl-stat"><b>{{ $panel['stats']['avgDom'] }}</b><span>Avg days on market</span></div>
+        @endif
+        @if($panel['stats']['saleListRatio'])
+        <div class="dshl-stat"><b>{{ $panel['stats']['saleListRatio'] }}%</b><span>Sale-to-list ratio</span></div>
+        @endif
+      </div>
+
+      @if($panel['listings']->isNotEmpty())
+      <div class="dshl-grid">
+        @foreach($panel['listings'] as $l)
+        <a class="dshl-card" href="/listings/{{ $l->listing_id }}">
+          <div class="dshl-photo" style="background-image:url('{{ $l->photoUrl() ?? '' }}')"><span class="dshl-status">{{ $l->status }}</span></div>
+          <div class="dshl-body">
+            <div class="dshl-price">${{ number_format($l->list_price) }}</div>
+            <div class="dshl-facts">{{ $l->beds }} bd &middot; {{ $l->baths() }} ba @if($l->sqft) &middot; {{ number_format($l->sqft) }} sqft @endif</div>
+            <div class="dshl-addr">{{ $l->displayAddress() }}</div>
+          </div>
+        </a>
+        @endforeach
+      </div>
+      @endif
+
+      @php $noun = match ($panel['key']) { 'detached' => 'detached home', 'attached' => 'attached home', default => 'home' }; @endphp
+      @if($panel['total'] > 0)
+      <a class="dshl-all" href="{{ $panel['allUrl'] }}">See all {{ number_format($panel['total']) }} {{ $noun }}{{ $panel['total'] === 1 ? '' : 's' }} for sale in {{ $panel['allLabel'] }} &rarr;</a>
+      @endif
+      @if($panel['stats']['closed6mo'] > 0)
+      <p class="dshl-sold-note">Thinking of selling here? {{ number_format($panel['stats']['closed6mo']) }} {{ $noun }}{{ $panel['stats']['closed6mo'] === 1 ? '' : 's' }} closed in {{ $panel['title'] }} in the last {{ $panel['stats']['closedMonths'] }} months{{ $panel['stats']['medianClose'] ? ' at a median of $'.number_format($panel['stats']['medianClose']) : '' }}. <a href="/sell" style="color:#C8102E;font-weight:700;">Get your free valuation &rarr;</a></p>
+      @endif
+    </div>
+    @endforeach
   </div>
   @include('listings._compliance', ['dataAsOf' => $dataAsOf])
 </section>
+@if(count($panels) > 1)
+<script>
+(function () {
+  var tabs = document.querySelectorAll('#live-listings .dshl-tab');
+  tabs.forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      tabs.forEach(function (t) {
+        t.setAttribute('aria-selected', 'false');
+        document.getElementById(t.getAttribute('aria-controls')).hidden = true;
+      });
+      tab.setAttribute('aria-selected', 'true');
+      document.getElementById(tab.getAttribute('aria-controls')).hidden = false;
+    });
+  });
+})();
+</script>
+@endif

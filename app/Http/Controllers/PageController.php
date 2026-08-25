@@ -173,17 +173,47 @@ class PageController extends Controller
         }
         $cityLabel = (clone $cityBase)->value('city') ?? ucwords($cityName);
 
-        // Neighborhood pages narrow to the subdivision when the MLS field matches.
-        $base = $cityBase;
+        // Neighborhood/condo pages narrow to the subdivision when the MLS field
+        // matches (one panel, no toggle — a complex is what it is). City pages
+        // get a detached panel (default) and an attached panel behind a toggle.
+        $panels = [];
         $title = $cityLabel;
+        $narrowed = false;
         if ($subdivision) {
             $sub = (clone $cityBase)->whereRaw('LOWER(subdivision) = ?', [$subdivision]);
             if ((clone $sub)->exists()) {
-                $base = $sub;
+                $narrowed = true;
                 $title = ucwords($subdivision).', '.$cityLabel;
+                $panels[] = $this->bandPanel($sub, 'All homes', $title, $cityLabel,
+                    '/listings?city='.urlencode($cityLabel));
             }
         }
+        if (! $narrowed) {
+            $panels[] = $this->bandPanel((clone $cityBase)->where('dwelling', 'detached'),
+                'Detached homes', $cityLabel, $cityLabel,
+                '/listings?city='.urlencode($cityLabel).'&dwelling=detached', 'detached');
+            $panels[] = $this->bandPanel((clone $cityBase)->where('dwelling', 'attached'),
+                'Attached living', $cityLabel, $cityLabel,
+                '/listings?city='.urlencode($cityLabel).'&dwelling=attached', 'attached');
+        }
+        $panels = array_values(array_filter($panels));
+        if ($panels === []) {
+            return null;
+        }
 
+        $asOf = Listing::max('mls_modified_at');
+
+        return view('components.listings.in-city', [
+            'embedded' => $embedded,
+            'title' => $title,
+            'panels' => $panels,
+            'dataAsOf' => $asOf ? Carbon::parse($asOf) : now(),
+        ])->render();
+    }
+
+    /** Stats + cards for one band panel (a dwelling type, or a subdivision). */
+    private function bandPanel($base, string $label, string $title, string $allLabel, string $allUrl, ?string $dwelling = null): ?array
+    {
         $active = (clone $base)->where('status', 'Active')->count();
         // "Under contract" the way consumers mean it: contingent + pending.
         $underContract = (clone $base)->whereIn('status', ['Active Under Contract', 'Pending'])->count();
@@ -212,10 +242,9 @@ class PageController extends Controller
             ->get(['id', 'listing_key', 'listing_id', 'status', 'list_price', 'street_address',
                 'city', 'state', 'zip', 'address_public', 'beds', 'baths_full', 'baths_half', 'sqft']);
 
-        $asOf = Listing::max('mls_modified_at');
-
-        return view('components.listings.in-city', [
-            'embedded' => $embedded,
+        return [
+            'key' => $dwelling ?? 'all',
+            'label' => $label,
             'title' => $title,
             'listings' => $cards,
             'stats' => [
@@ -227,11 +256,10 @@ class PageController extends Controller
                 'avgDom' => $avgDom ? (int) round($avgDom) : null,
                 'saleListRatio' => $ratio ? round($ratio, 1) : null,
             ],
-            'total' => (clone $cityBase)->forSale()->count(),
-            'allLabel' => $cityLabel,
-            'allUrl' => '/listings?city='.urlencode($cityLabel),
-            'dataAsOf' => $asOf ? Carbon::parse($asOf) : now(),
-        ])->render();
+            'total' => (clone $base)->forSale()->count(),
+            'allLabel' => $allLabel,
+            'allUrl' => $allUrl,
+        ];
     }
 
     /** [city name (lowercase, spaces), subdivision or null] for a city/neighborhood page. */
