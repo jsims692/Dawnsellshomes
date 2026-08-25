@@ -245,7 +245,7 @@ class MlsSync extends Command
         // cache refreshes per listing on demand; galleries will do the same).
         $media = $media->take(1);
 
-        $listing = Listing::updateOrCreate(['listing_key' => $key], [
+        $attrs = [
             'listing_id' => $r['ListingId'] ?? $key,
             'status' => $status,
             'list_price' => (int) ($r['ListPrice'] ?? 0),
@@ -298,7 +298,16 @@ class MlsSync extends Command
 
             'mls_modified_at' => $r['ModificationTimestamp'] ?? null,
             'is_demo' => false,
-        ] + self::extractDetails($r));
+        ] + self::extractDetails($r);
+        // MRED sends no coordinates; ours come from mls:geocode. Never let a
+        // re-sync null out what we geocoded.
+        if (! isset($r['Latitude'])) {
+            unset($attrs['lat']);
+        }
+        if (! isset($r['Longitude'])) {
+            unset($attrs['lng']);
+        }
+        $listing = Listing::updateOrCreate(['listing_key' => $key], $attrs);
 
         $this->syncChildren($listing, $r);
 
