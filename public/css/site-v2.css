@@ -266,7 +266,7 @@ details.city[open] summary::after{transform:rotate(45deg)}
 
 /* ---------- Mobile call bar ---------- */
 .mob-cta{position:fixed;left:0;right:0;bottom:0;z-index:60;display:none;grid-template-columns:1fr 1fr;gap:.6rem;padding:.6rem .9rem calc(.6rem + env(safe-area-inset-bottom));background:rgba(255,255,255,.95);backdrop-filter:blur(10px);border-top:1px solid var(--line)}
-@media (max-width:720px){.mob-cta{display:grid} body{padding-bottom:76px}}
+@media (max-width:720px){.mob-cta{display:grid} body{padding-bottom:76px} #tj-w{display:none}}
 
 /* ---------- Reveal ---------- */
 .rv{opacity:0;transform:translateY(16px);transition:opacity .55s ease,transform .55s ease}
