@@ -35,7 +35,11 @@
                 <div class="hv-sub" x-show="result.ours_line" x-text="result.ours_line" style="font-weight:600;"></div>
                 <ul class="hv-sample">
                     <template x-for="s in result.sample" :key="s.address+s.year">
-                        <li><span x-text="s.address+', '+s.city"></span><span x-text="fmt(s.price)+' · '+(s.when || s.year)"></span></li>
+                        <li>
+                            <a x-show="s.url" :href="s.url" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;text-underline-offset:2px;" x-text="s.address+', '+s.city"></a>
+                            <span x-show="!s.url" x-text="s.address+', '+s.city"></span>
+                            <span x-text="fmt(s.price)+' · '+(s.when || s.year)"></span>
+                        </li>
                     </template>
                 </ul>
                 <p class="hv-note">That's the neighborhood — not your house. Your kitchen, your lot, your updates and today's buyer demand move the number a lot. We'll run a real, no-obligation valuation on your specific home &mdash; usually within 24 hours.</p>

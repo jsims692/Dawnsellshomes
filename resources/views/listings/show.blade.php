@@ -63,7 +63,12 @@
 
   <div class="ld-head">
     <div>
+      @if($l->status === 'Closed' && $l->close_price)
+      <div class="ld-price">${{ number_format($l->close_price) }} <span style="font-size:14px;font-weight:800;color:#C8102E;vertical-align:middle;">SOLD {{ $l->close_date?->format('M Y') }}</span></div>
+      <div style="font-size:13.5px;color:#48586B;">Listed at ${{ number_format($l->list_price) }}</div>
+      @else
       <div class="ld-price">${{ number_format($l->list_price) }}</div>
+      @endif
       <h1 style="font-family:Georgia,serif;font-size:22px;color:#222;margin:6px 0 0;">{{ $l->displayAddress() }}</h1>
     </div>
     <span class="ld-status">{{ $l->status }}</span>
