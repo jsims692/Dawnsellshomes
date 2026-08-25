@@ -66,17 +66,23 @@ class ListingController extends Controller
         // Sold pages fetch their full gallery on first view via a detached
         // worker (budget-guarded; photos appear in ~30-60s). Pre-downloading
         // every sold gallery would be ~60GB+ at full scale — demand-driven.
-        if (! $listing->isForSale() && count($listing->photoUrls()) <= 1
-            && cache()->add('gallery-fetch:'.$listing->listing_id, 1, 600)) {
-            exec(sprintf('%s %s mls:media --listing=%s --all >> %s 2>&1 &',
-                escapeshellarg(PHP_BINARY),
-                escapeshellarg(base_path('artisan')),
-                escapeshellarg($listing->listing_id),
-                escapeshellarg(storage_path('logs/gallery-fetch.log'))));
+        $galleryFetching = false;
+        if (! $listing->isForSale() && count($listing->photoUrls()) <= 1) {
+            if (cache()->add('gallery-fetch:'.$listing->listing_id, 1, 600)) {
+                exec(sprintf('%s %s mls:media --listing=%s --all >> %s 2>&1 &',
+                    escapeshellarg(PHP_BINARY),
+                    escapeshellarg(base_path('artisan')),
+                    escapeshellarg($listing->listing_id),
+                    escapeshellarg(storage_path('logs/gallery-fetch.log'))));
+                $galleryFetching = true;
+            } elseif (cache()->has('gallery-fetch:'.$listing->listing_id)) {
+                $galleryFetching = true; // another viewer's fetch is in flight
+            }
         }
 
         return view('listings.show', [
             'l' => $listing,
+            'galleryFetching' => $galleryFetching,
             'dataAsOf' => Listing::max('mls_modified_at') ?? now(),
         ]);
     }

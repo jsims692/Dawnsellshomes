@@ -50,6 +50,17 @@
     <a style="pointer-events:none"></a><a style="pointer-events:none"></a><a style="pointer-events:none"></a>
     @endforelse
   </div>
+  @if($galleryFetching ?? false)
+  <p style="margin:10px 0 0;font-size:13px;color:#48586B;background:#F2F5F9;border-radius:8px;padding:10px 14px;">
+    &#128247; Retrieving this home's full photo gallery from the MLS &mdash; the page will refresh in a moment.
+  </p>
+  <script>
+  if (!sessionStorage.getItem('gref-{{ $l->listing_id }}')) {
+    sessionStorage.setItem('gref-{{ $l->listing_id }}', '1');
+    setTimeout(function () { location.reload(); }, 30000);
+  }
+  </script>
+  @endif
   @if(count($photos) > 4)
   <button type="button" class="ld-morebtn" id="ldMoreBtn">See all {{ count($photos) }} photos</button>
   <script>
