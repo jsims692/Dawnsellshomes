@@ -77,10 +77,47 @@ class PageController extends Controller
     private function extraData(string $path): array
     {
         return match ($path) {
+            '' => ['teamListings' => $this->teamListings()],
             'reviews', 'sell', 'buy' => ['reviews' => config('site.reviews', [])],
             'blog' => ['posts' => $this->blogPosts()],
             default => [],
         };
+    }
+
+    /**
+     * The team's own listings for the homepage "recent results" cards:
+     * on-market first, then freshest closings. Empty until TEAM_AGENT_MLS_IDS
+     * is configured (the view falls back to its static cards).
+     */
+    private function teamListings(): array
+    {
+        if (config('site.team_agent_ids', []) === []) {
+            return [];
+        }
+
+        $teamIds = config('site.team_agent_ids');
+
+        return cache()->remember('home-team-listings', 300, fn () => Listing::displayable()
+            ->where('is_demo', false)->where('is_team', true)->where('is_auction', false)
+            ->orderByRaw("FIELD(status, 'Active', 'Active Under Contract', 'Pending', 'Closed')")
+            ->orderByRaw('COALESCE(close_date, mls_modified_at) DESC')
+            ->limit(3)->get()
+            ->map(fn ($l) => [
+                'url' => '/listings/'.$l->listing_id,
+                'photo' => $l->photoUrl() ?? '',
+                'chip' => $l->status === 'Closed'
+                    ? 'Sold '.$l->close_date?->format('M Y')
+                    : ($l->status === 'Active' ? 'For sale' : 'Under contract'),
+                'addr' => $l->address_public ? $l->street_address : 'Address undisclosed',
+                'city' => $l->city.', '.$l->state.' '.$l->zip,
+                'price' => '$'.number_format($l->close_price ?: $l->list_price),
+                'meta' => trim(($l->beds ? $l->beds.' bd · '.$l->baths().' ba' : '')
+                    .($l->sqft ? ' · '.number_format($l->sqft).' sqft' : '')).' · '
+                    .(in_array($l->buyer_agent_id, $teamIds, true)
+                        && ! in_array($l->list_agent_id, $teamIds, true)
+                        && ! in_array($l->colist_agent_id, $teamIds, true)
+                        ? 'We represented the buyer' : 'Listed by our team'),
+            ])->all());
     }
 
     /**

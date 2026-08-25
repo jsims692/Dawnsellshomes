@@ -216,6 +216,14 @@ class MlsSync extends Command
             $this->skippedTypes[$typ] = ($this->skippedTypes[$typ] ?? 0) + 1;
         }
 
+        // The team's own listings are kept wherever they are (Participant
+        // Listings Use); everything else needs a coverage-city match.
+        $teamIds = config('site.team_agent_ids', []);
+        $isTeam = $teamIds !== [] && array_intersect($teamIds, array_filter([
+            $r['ListAgentMlsId'] ?? null, $r['CoListAgentMlsId'] ?? null, $r['BuyerAgentMlsId'] ?? null,
+        ])) !== [];
+        $inCoverage = $inCoverage || $isTeam;
+
         // Out of coverage, not a home, off-market (beyond the sold-stats
         // window), or opted out of display -> remove local copy.
         if (! $inCoverage || ! $dwelling || ! ($active || $closedRecent) || (($r['InternetEntireListingDisplayYN'] ?? true) === false)) {
@@ -268,6 +276,10 @@ class MlsSync extends Command
             'property_subtype' => $r['PropertySubType'] ?? null,
             'dwelling' => $dwelling,
             // MRED marks auctions via its own MlsStatus (StandardStatus stays Active)
+            'is_team' => $isTeam,
+            'list_agent_id' => $r['ListAgentMlsId'] ?? null,
+            'colist_agent_id' => $r['CoListAgentMlsId'] ?? null,
+            'buyer_agent_id' => $r['BuyerAgentMlsId'] ?? null,
             'is_auction' => ($r['MlsStatus'] ?? null) === 'Auction'
                 || in_array('Auction', (array) ($r['SpecialListingConditions'] ?? []), true),
             'year_built' => $r['YearBuilt'] ?? null,

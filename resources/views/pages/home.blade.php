@@ -169,6 +169,16 @@ html,body{overflow-x:hidden}
       <p class="lead">Real results from your neighbors in Prospect Heights, Mount Prospect, and the surrounding suburbs.</p>
     </div>
     <div class="res-grid">
+      @if(!empty($teamListings))
+      @foreach($teamListings as $t)
+      <a class="res-card rv" href="{{ $t['url'] }}"><span class="res-photo" style="background-image:url('{{ $t['photo'] }}')"></span>
+        <span class="chip">{{ $t['chip'] }}</span>
+        <div><div class="res-addr">{{ $t['addr'] }}</div><div class="res-city">{{ $t['city'] }}</div></div>
+        <div class="res-price">{{ $t['price'] }}</div>
+        <div class="res-meta">{{ $t['meta'] }}</div>
+      </a>
+      @endforeach
+      @else
       <a class="res-card rv" href="/neighborhoods/prospect-manor-mount-prospect"><span class="res-photo" style="background-image:url('/images/417-prospect-manor.jpg')"></span>
         <span class="chip">Sold in 7 days</span>
         <div><div class="res-addr">417 N Prospect Manor Ave</div><div class="res-city">Mount Prospect, IL 60056</div></div>
@@ -187,6 +197,7 @@ html,body{overflow-x:hidden}
         <div class="res-price">5 bd · 4 ba</div>
         <div class="res-meta">2,678 sqft · In-law suite</div>
       </a>
+      @endif
     </div>
     <div class="rv" style="margin-top:2.2rem">
       <x-sales.map height="480px" :compact="true" />

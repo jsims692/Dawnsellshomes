@@ -2,6 +2,11 @@
 
 return [
 
+    // MRED agent ids for Dawn + Josh — matches the team's own listings in the
+    // feed (list, co-list or buyer side). Matching only; never displayed.
+    'team_agent_ids' => array_values(array_filter(array_map('trim', explode(',', env('TEAM_AGENT_MLS_IDS', ''))))),
+
+
     // IDX listings routes go live only when this is on (env LISTINGS_ENABLED)
     'listings_enabled' => env('LISTINGS_ENABLED', false),
     'josh_cell' => '(224) 628-4013',
