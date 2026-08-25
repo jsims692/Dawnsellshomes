@@ -106,17 +106,6 @@
   @if($l->remarks)<div class="ld-remarks">{{ $l->remarks }}</div>@endif
   @if($l->virtual_tour_url)<a class="ld-tour" href="{{ $l->virtual_tour_url }}" rel="noopener nofollow" target="_blank">&#127909; Virtual tour &rarr;</a>@endif
 
-  @if($l->rooms->isNotEmpty())
-  <h2 class="ld-h2">Rooms</h2>
-  <table class="ld-rooms">
-    <thead><tr><th>Room</th><th>Size</th><th>Level</th><th>Flooring</th></tr></thead>
-    <tbody>
-      @foreach($l->rooms as $room)
-      <tr><td>{{ $room->name }}</td><td>{{ $room->dimensions }}</td><td>{{ $room->level }}</td><td>{{ $room->flooring }}</td></tr>
-      @endforeach
-    </tbody>
-  </table>
-  @endif
 
   @php
     $fmtMoney = fn ($v) => $v !== null ? '$'.number_format($v) : null;
@@ -215,6 +204,18 @@
   @endif
 
   @if($l->status !== 'Closed')
+  @if($l->rooms->isNotEmpty())
+  <h2 class="ld-h2">Rooms</h2>
+  <table class="ld-rooms">
+    <thead><tr><th>Room</th><th>Size</th><th>Level</th><th>Flooring</th></tr></thead>
+    <tbody>
+      @foreach($l->rooms as $room)
+      <tr><td>{{ $room->name }}</td><td>{{ $room->dimensions }}</td><td>{{ $room->level }}</td><td>{{ $room->flooring }}</td></tr>
+      @endforeach
+    </tbody>
+  </table>
+  @endif
+
   @include('listings._calculator')
   @endif
 
