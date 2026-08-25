@@ -325,3 +325,9 @@ main,.footer{position:relative;z-index:1}
 .footer{background:rgba(11,22,34,.965)}
 .page-hero{background:linear-gradient(180deg,rgba(11,22,34,.97),rgba(15,30,46,.955))}
 @media (prefers-reduced-motion:reduce){.lot{transition:none}}
+
+/* ---------- Quiet-read layer (Josh, Aug 25 2026): dims the plat map behind
+   text content for readability. REMOVE THIS BLOCK TO REVERT. ---------- */
+main{background:rgba(255,255,255,.6)}
+.section--mist{background:rgba(242,245,249,.95)}
+.footer{background:rgba(11,22,34,.99)}
