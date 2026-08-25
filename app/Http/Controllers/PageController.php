@@ -68,9 +68,13 @@ class PageController extends Controller
         $css = $page->css_override ?? $page->style()?->css;
         $styleTag = $css !== null ? '<style>'.$css.'</style>' : '';
 
-        return str_contains($page->head_html, '<!--STYLE-->')
+        // Legacy stylesheets now reference the v2 fonts (Fraunces/Archivo).
+        $fonts = '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
+            .'<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Fraunces:ital,wght@0,600;1,600&display=swap" rel="stylesheet">';
+
+        return $fonts.(str_contains($page->head_html, '<!--STYLE-->')
             ? str_replace('<!--STYLE-->', $styleTag, $page->head_html)
-            : $page->head_html.$styleTag;
+            : $page->head_html.$styleTag);
     }
 
     /** Extra view data for specific Blade-rendered pages. */

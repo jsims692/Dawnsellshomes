@@ -24,7 +24,7 @@
   .ld-attrib { background:#F2F5F9; border-left:4px solid #C8102E; border-radius:8px; padding:14px 18px; font-size:13.5px; color:#333; margin:0 0 22px; }
   .ld-remarks { font-family:Georgia,serif; font-size:16.5px; line-height:1.8; color:#333; max-width:820px; }
   .ld-tour { display:inline-block; margin:14px 0 0; color:#C8102E; font-weight:700; text-decoration:none; }
-  .ld-h2 { font-family:Georgia,serif; font-size:22px; color:#0F1E2E; margin:34px 0 14px; }
+  .ld-h2 { font-family:'Fraunces',Georgia,serif; font-size:22px; color:#0F1E2E; margin:34px 0 14px; }
   .ld-rooms { width:100%; border-collapse:collapse; font-size:14px; }
   .ld-rooms th { text-align:left; font-size:11.5px; letter-spacing:.8px; text-transform:uppercase; color:#48586B; border-bottom:2px solid #DEE6EE; padding:8px 10px; }
   .ld-rooms td { border-bottom:1px solid #E9EFF3; padding:9px 10px; color:#333; }
@@ -80,7 +80,7 @@
       @else
       <div class="ld-price">${{ number_format($l->list_price) }}</div>
       @endif
-      <h1 style="font-family:Georgia,serif;font-size:22px;color:#222;margin:6px 0 0;">{{ $l->displayAddress() }}</h1>
+      <h1 style="font-family:'Fraunces',Georgia,serif;font-size:22px;color:#222;margin:6px 0 0;">{{ $l->displayAddress() }}</h1>
     </div>
     <span class="ld-status">{{ $l->status }}</span>
   </div>

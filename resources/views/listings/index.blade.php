@@ -6,20 +6,20 @@
 </x-slot:headExtra>
 <style>
   .li-wrap { max-width:1180px; margin:0 auto; padding:32px 24px; font-family:Arial,sans-serif; }
-  .li-hero { background:linear-gradient(140deg,#0D2349 0%,#1e4080 60%,#2a5298 100%); color:#fff; text-align:center; padding:52px 24px 40px; }
-  .li-hero h1 { font-family:Georgia,serif; font-size:clamp(26px,4vw,42px); margin:0 0 10px; }
+  .li-hero { background:linear-gradient(180deg,#0B1622,#0F1E2E); color:#fff; text-align:center; padding:52px 24px 40px; }
+  .li-hero h1 { font-family:'Fraunces',Georgia,serif; font-size:clamp(26px,4vw,42px); margin:0 0 10px; }
   .li-hero p { color:rgba(255,255,255,.8); margin:0; }
-  .li-filters { display:flex; flex-wrap:wrap; gap:10px; align-items:end; background:#fff; border:1px solid #e0e4ed; border-radius:10px; padding:16px; margin:-28px auto 28px; max-width:1000px; box-shadow:0 6px 24px rgba(13,35,73,.12); position:relative; }
-  .li-filters label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:#1B3A6B; display:block; }
+  .li-filters { display:flex; flex-wrap:wrap; gap:10px; align-items:end; background:#fff; border:1px solid #e0e4ed; border-radius:10px; padding:16px; margin:-28px auto 28px; max-width:1000px; box-shadow:0 6px 24px rgba(15,30,46,.12); position:relative; }
+  .li-filters label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:#0F1E2E; display:block; }
   .li-filters select, .li-filters input { padding:9px 10px; border:1px solid #c9d2e3; border-radius:6px; font-size:14px; min-width:120px; }
-  .li-filters button { background:#CC0000; color:#fff; border:0; border-radius:6px; padding:11px 22px; font-weight:700; cursor:pointer; }
+  .li-filters button { background:#C8102E; color:#fff; border:0; border-radius:999px; padding:11px 22px; font-weight:700; cursor:pointer; }
   .li-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:20px; }
   .li-card { display:block; background:#fff; border:1px solid #e0e4ed; border-radius:10px; overflow:hidden; text-decoration:none; color:#222; transition:box-shadow .15s; }
-  .li-card:hover { box-shadow:0 8px 28px rgba(13,35,73,.16); }
+  .li-card:hover { box-shadow:0 8px 28px rgba(15,30,46,.16); }
   .li-photo { aspect-ratio:3/2; background:#e9edf3 center/cover no-repeat; position:relative; }
-  .li-status { position:absolute; top:10px; left:10px; background:#1B3A6B; color:#fff; font-size:11px; font-weight:700; padding:4px 10px; border-radius:4px; }
+  .li-status { position:absolute; top:10px; left:10px; background:#0F1E2E; color:#fff; font-size:11px; font-weight:700; padding:4px 10px; border-radius:4px; }
   .li-body { padding:16px; }
-  .li-price { font-size:22px; font-weight:800; color:#1B3A6B; }
+  .li-price { font-size:22px; font-weight:800; color:#0F1E2E; }
   .li-addr { font-size:14px; color:#444; margin:4px 0 8px; }
   .li-meta { font-size:13px; color:#666; }
   .li-office { font-size:11.5px; color:#888; margin-top:8px; border-top:1px dashed #e0e4ed; padding-top:8px; }
@@ -65,7 +65,7 @@
   @if($pages > 1)
   <div style="text-align:center;margin-top:28px;">
     @for($i = 1; $i <= $pages; $i++)
-      <a href="{{ request()->fullUrlWithQuery(['page' => $i]) }}" style="display:inline-block;margin:2px;padding:8px 13px;border-radius:6px;font-weight:700;text-decoration:none;{{ $i === $page ? 'background:#1B3A6B;color:#fff;' : 'background:#fff;border:1px solid #c9d2e3;color:#1B3A6B;' }}">{{ $i }}</a>
+      <a href="{{ request()->fullUrlWithQuery(['page' => $i]) }}" style="display:inline-block;margin:2px;padding:8px 13px;border-radius:6px;font-weight:700;text-decoration:none;{{ $i === $page ? 'background:#0F1E2E;color:#fff;' : 'background:#fff;border:1px solid #c9d2e3;color:#0F1E2E;' }}">{{ $i }}</a>
     @endfor
   </div>
   @endif
