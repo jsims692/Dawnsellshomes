@@ -50,7 +50,7 @@
     @foreach($listings as $l)
     {{-- Thumbnail: ≤8 objective fields, no site branding, links to the fully compliant detail page (Rules 10, 13, 22 exemptions) --}}
     <a class="li-card" href="/listings/{{ $l->listing_id }}">
-      <div class="li-photo" style="background-image:url('{{ $l->media[0]['url'] ?? '' }}')"><span class="li-status">{{ $l->status }}</span></div>
+      <div class="li-photo" style="background-image:url('{{ $l->photoUrl() ?? '' }}')"><span class="li-status">{{ $l->status }}</span></div>
       <div class="li-body">
         <div class="li-price">${{ number_format($l->list_price) }}</div>
         <div class="li-addr">{{ $l->displayAddress() }}</div>

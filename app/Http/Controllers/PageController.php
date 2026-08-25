@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Listing;
 use App\Models\Page;
+use Illuminate\Support\Carbon;
 
 class PageController extends Controller
 {
@@ -25,6 +27,12 @@ class PageController extends Controller
         if ($path === '') {
             $page->body_html = $this->swapHomepageMap($page->body_html);
             $page->body_html = $this->swapHomeValueWidget($page->body_html);
+        }
+
+        // City + neighborhood pages get a live MLS band (inventory, sold stats,
+        // listing cards) injected into the imported markup.
+        if (in_array($page->type, ['city', 'neighborhood'], true)) {
+            $this->injectListingsBand($page);
         }
 
         return view('page', [
@@ -105,6 +113,123 @@ class PageController extends Controller
                 'title' => e(preg_replace('/\s*\|\s*Dawn Simmons Team\s*$/', '', (string) $p->title)),
                 'excerpt' => e((string) $p->meta_description),
             ])->all();
+    }
+
+    /**
+     * Inject the live-MLS band (stats + listing cards) into a legacy city or
+     * neighborhood page. Rendered HTML is cached briefly so the 400+ imported
+     * pages stay fast; insertion goes after the city-search section when the
+     * page has one, otherwise just above the footer.
+     */
+    private function injectListingsBand(Page $page): void
+    {
+        if (! config('site.listings_enabled')) {
+            return;
+        }
+
+        $html = cache()->remember('listings-band:'.$page->path, 900,
+            fn () => $this->renderListingsBand($page) ?? '');
+        if ($html === '') {
+            return;
+        }
+
+        $body = $page->body_html;
+        $pos = strpos($body, 'id="city-search"');
+        if ($pos !== false && ($end = strpos($body, '</section>', $pos)) !== false) {
+            $page->body_html = substr_replace($body, "\n".$html, $end + strlen('</section>'), 0);
+
+            return;
+        }
+        $pos = strripos($body, '<footer');
+        $page->body_html = $pos === false ? $body.$html : substr_replace($body, $html."\n", $pos, 0);
+    }
+
+    private function renderListingsBand(Page $page): ?string
+    {
+        [$cityName, $subdivision] = $this->listingScope($page);
+        if (! $cityName) {
+            return null;
+        }
+
+        $cityBase = Listing::displayable()->where('is_demo', false)
+            ->whereRaw('LOWER(city) = ?', [$cityName]);
+        if (! (clone $cityBase)->exists()) {
+            return null;
+        }
+        $cityLabel = (clone $cityBase)->value('city') ?? ucwords($cityName);
+
+        // Neighborhood pages narrow to the subdivision when the MLS field matches.
+        $base = $cityBase;
+        $title = $cityLabel;
+        if ($subdivision) {
+            $sub = (clone $cityBase)->whereRaw('LOWER(subdivision) = ?', [$subdivision]);
+            if ((clone $sub)->exists()) {
+                $base = $sub;
+                $title = ucwords($subdivision).', '.$cityLabel;
+            }
+        }
+
+        $active = (clone $base)->where('status', 'Active')->count();
+        $underContract = (clone $base)->where('status', 'Active Under Contract')->count();
+        $closed = (clone $base)->where('status', 'Closed')->where('close_date', '>=', now()->subMonths(6));
+        $closedCount = (clone $closed)->count();
+        if ($active + $underContract + $closedCount === 0) {
+            return null;
+        }
+
+        $prices = (clone $closed)->whereNotNull('close_price')->orderBy('close_price')->pluck('close_price');
+        $avgDom = (clone $closed)->whereNotNull('days_on_market')->avg('days_on_market');
+        $ratio = (clone $closed)->whereNotNull('close_price')
+            ->where('original_list_price', '>', 0)
+            ->selectRaw('AVG(close_price / original_list_price * 100) AS r')->value('r');
+
+        $cards = (clone $base)->forSale()
+            ->orderByRaw("FIELD(status, 'Active', 'Active Under Contract')")
+            ->orderByDesc('mls_modified_at')->limit(6)
+            ->get(['id', 'listing_key', 'listing_id', 'status', 'list_price', 'street_address',
+                'city', 'state', 'zip', 'address_public', 'beds', 'baths_full', 'baths_half', 'sqft']);
+
+        $asOf = Listing::max('mls_modified_at');
+
+        return view('components.listings.in-city', [
+            'title' => $title,
+            'listings' => $cards,
+            'stats' => [
+                'active' => $active,
+                'underContract' => $underContract,
+                'closed6mo' => $closedCount,
+                'medianClose' => $prices->isEmpty() ? null : $prices[(int) floor(($prices->count() - 1) / 2)],
+                'avgDom' => $avgDom ? (int) round($avgDom) : null,
+                'saleListRatio' => $ratio ? round($ratio, 1) : null,
+            ],
+            'total' => (clone $cityBase)->forSale()->count(),
+            'allLabel' => $cityLabel,
+            'allUrl' => '/listings?city='.urlencode($cityLabel),
+            'dataAsOf' => $asOf ? Carbon::parse($asOf) : now(),
+        ])->render();
+    }
+
+    /** [city name (lowercase, spaces), subdivision or null] for a city/neighborhood page. */
+    private function listingScope(Page $page): array
+    {
+        $slug = $page->slug ?: basename($page->path);
+        if ($page->type === 'city') {
+            return [str_replace('-', ' ', $slug), null];
+        }
+
+        // Neighborhood slugs end in their city's slug: "{subdivision}-{city}".
+        $citySlugs = cache()->remember('city-page-slugs', now()->addDay(),
+            fn () => Page::where('type', 'city')->pluck('slug')
+                ->sortByDesc(fn ($s) => strlen($s))->values()->all());
+        foreach ($citySlugs as $citySlug) {
+            if (str_ends_with($slug, '-'.$citySlug)) {
+                $subdivision = str_replace('-', ' ', substr($slug, 0, -strlen($citySlug) - 1));
+
+                return [str_replace('-', ' ', $citySlug), $subdivision ?: null];
+            }
+        }
+
+        return [null, null];
     }
 
     /**

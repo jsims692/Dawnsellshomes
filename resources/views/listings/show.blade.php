@@ -23,9 +23,10 @@
 <div class="ld-wrap">
   @if($l->is_demo)<div style="background:#fff7e0;border:1px solid #e2cd86;color:#7a5d12;border-radius:8px;padding:12px 16px;margin-bottom:18px;font-size:14px;"><strong>SAMPLE LISTING</strong> — for display review only; not a real property.</div>@endif
 
+  {{-- Locally cached photo only: MLS GRID media URLs expire and rate-limit hotlinks --}}
   <div class="ld-gallery">
-    <div style="background-image:url('{{ $l->media[0]['url'] ?? '' }}')"></div>
-    <div style="background-image:url('{{ $l->media[1]['url'] ?? ($l->media[0]['url'] ?? '') }}')"></div>
+    <div style="background-image:url('{{ $l->photoUrl() ?? '' }}')"></div>
+    <div style="background-image:url('{{ $l->photoUrl() ?? '' }}')"></div>
   </div>
 
   <div class="ld-head">

@@ -29,8 +29,15 @@ class MlsSync extends Command
 
     private const API = 'https://api.mlsgrid.com/v2/Property';
 
+    /** Closed listings older than this many months are dropped (city sold stats). */
+    private const CLOSED_MONTHS = 12;
+
     public function handle(): int
     {
+        // A full page carries 1,000 expanded records; the default 128M limit
+        // gets the process OOM-killed silently.
+        ini_set('memory_limit', '1G');
+
         $token = config('services.mlsgrid.token');
         if (! $token) {
             $this->warn('MLSGRID_TOKEN not set — sync skipped (this is expected until MLS GRID approval).');
@@ -41,7 +48,16 @@ class MlsSync extends Command
         $cities = $this->coverageCities();
         $cursor = $this->option('full') ? null : cache()->get('mlsgrid-cursor');
 
-        $filter = "OriginatingSystemName eq 'mred' and StandardStatus eq Odata.Models.StandardStatus'Active'";
+        // CloseDate is not a filterable field on the MLS GRID API; a listing
+        // that closed inside the window was necessarily *modified* inside it
+        // (the close is a modification), and upsert() enforces the real
+        // CloseDate cutoff locally.
+        $closedSince = now()->subMonths(self::CLOSED_MONTHS)->toIso8601ZuluString();
+        $filter = "OriginatingSystemName eq 'mred' and ("
+            ."StandardStatus eq Odata.Models.StandardStatus'Active'"
+            ." or StandardStatus eq Odata.Models.StandardStatus'ActiveUnderContract'"
+            ." or (StandardStatus eq Odata.Models.StandardStatus'Closed' and ModificationTimestamp gt {$closedSince})"
+            .')';
         if ($cursor) {
             $filter = "OriginatingSystemName eq 'mred' and ModificationTimestamp gt {$cursor}";
         }
@@ -76,8 +92,16 @@ class MlsSync extends Command
             $url = $json['@odata.nextLink'] ?? null;
         }
 
-        if (! $this->option('dry') && $maxTs) {
-            cache()->forever('mlsgrid-cursor', $maxTs);
+        if (! $this->option('dry')) {
+            // Sold stats window: drop closed listings that have aged out.
+            Listing::where('status', 'Closed')
+                ->where(fn ($w) => $w->whereNull('close_date')
+                    ->orWhere('close_date', '<', now()->subMonths(self::CLOSED_MONTHS)))
+                ->delete();
+
+            if ($maxTs) {
+                cache()->forever('mlsgrid-cursor', $maxTs);
+            }
         }
 
         $this->info(sprintf('Sync complete: %d records seen, %d written, cursor=%s, in DB: %d displayable.',
@@ -92,13 +116,17 @@ class MlsSync extends Command
         $status = $r['StandardStatus'] ?? ($r['MlsStatus'] ?? '');
         $inCoverage = $city && in_array(mb_strtolower($city), $cities, true);
         $active = in_array($status, ['Active', 'Active Under Contract'], true);
+        $closedRecent = $status === 'Closed'
+            && ($r['CloseDate'] ?? null)
+            && $r['CloseDate'] >= now()->subMonths(self::CLOSED_MONTHS)->toDateString();
         $key = $r['ListingKey'] ?? null;
         if (! $key) {
             return false;
         }
 
-        // Out of coverage, off-market, or opted out of display -> remove local copy.
-        if (! $inCoverage || ! $active || (($r['InternetEntireListingDisplayYN'] ?? true) === false)) {
+        // Out of coverage, off-market (beyond the sold-stats window), or opted
+        // out of display -> remove local copy.
+        if (! $inCoverage || ! ($active || $closedRecent) || (($r['InternetEntireListingDisplayYN'] ?? true) === false)) {
             Listing::where('listing_key', $key)->delete();
 
             return false;
@@ -114,6 +142,12 @@ class MlsSync extends Command
             'listing_id' => $r['ListingId'] ?? $key,
             'status' => $status,
             'list_price' => (int) ($r['ListPrice'] ?? 0),
+            'close_price' => ($r['ClosePrice'] ?? 0) > 0 ? (int) $r['ClosePrice'] : null,
+            'close_date' => $r['CloseDate'] ?? null,
+            'original_list_price' => ($r['OriginalListPrice'] ?? 0) > 0 ? (int) $r['OriginalListPrice'] : null,
+            // MRED uses -1 as a DOM sentinel; the column is unsigned.
+            'days_on_market' => isset($r['DaysOnMarket']) && (int) $r['DaysOnMarket'] >= 0
+                ? min((int) $r['DaysOnMarket'], 65535) : null,
             'street_address' => $r['UnparsedAddress'] ?? trim(($r['StreetNumber'] ?? '').' '.($r['StreetName'] ?? '')),
             'city' => $city,
             'state' => $r['StateOrProvince'] ?? 'IL',

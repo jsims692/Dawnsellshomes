@@ -10,7 +10,7 @@ class ListingController extends Controller
     /** Search results. Filters are objective criteria only (Rule 9). */
     public function index(Request $request)
     {
-        $q = Listing::displayable()->orderByDesc('mls_modified_at');
+        $q = Listing::displayable()->forSale()->orderByDesc('mls_modified_at');
 
         if ($city = $request->query('city')) {
             $q->where('city', $city);
@@ -48,7 +48,7 @@ class ListingController extends Controller
             'total' => $total,
             'page' => $page,
             'pages' => (int) ceil($total / $perPage),
-            'cities' => Listing::displayable()->distinct()->orderBy('city')->pluck('city'),
+            'cities' => Listing::displayable()->forSale()->distinct()->orderBy('city')->pluck('city'),
             'dataAsOf' => Listing::max('mls_modified_at') ?? now(),
             'demo' => Listing::displayable()->where('is_demo', true)->exists(),
             'filters' => $request->only(['city', 'min', 'max', 'beds', 'type']),

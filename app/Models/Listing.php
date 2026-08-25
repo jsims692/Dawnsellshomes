@@ -20,6 +20,7 @@ class Listing extends Model
             'comments_allowed' => 'boolean',
             'is_demo' => 'boolean',
             'mls_modified_at' => 'datetime',
+            'close_date' => 'date',
         ];
     }
 
@@ -27,6 +28,23 @@ class Listing extends Model
     public function scopeDisplayable(Builder $q): Builder
     {
         return $q->where('display_public', true);
+    }
+
+    /** On-market listings (the table also holds recently-Closed rows for stats). */
+    public function scopeForSale(Builder $q): Builder
+    {
+        return $q->whereIn('status', ['Active', 'Active Under Contract']);
+    }
+
+    /**
+     * Locally cached primary photo (mls:media). MLS GRID media URLs are signed,
+     * expire within the hour, and rate-limit hotlinking — never link them directly.
+     */
+    public function photoUrl(): ?string
+    {
+        $rel = 'listings/'.$this->listing_key.'.jpg';
+
+        return file_exists(storage_path('app/public/'.$rel)) ? asset('storage/'.$rel) : null;
     }
 
     public function baths(): string
