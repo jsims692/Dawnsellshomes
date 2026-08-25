@@ -173,6 +173,10 @@
   </div>
   @endif
 
+  @if($l->status !== 'Closed')
+  @include('listings._calculator')
+  @endif
+
   <div class="ld-cta">
     <div style="font-family:Georgia,serif;font-size:20px;font-weight:700;">Want to see this home?</div>
     <p style="color:rgba(255,255,255,.85);margin:8px 0 0;">The Dawn Simmons Team (RE/MAX Suburban) can show you any listed property and give you a straight answer on what it's really worth. Call/text Josh at {{ config('site.josh_cell', '(224) 628-4013') }}.</p>
