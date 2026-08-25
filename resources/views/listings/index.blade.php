@@ -68,6 +68,15 @@
     </form>
   </div>
 
+  <div style="background:#0F1E2E;color:#fff;border-radius:10px;padding:16px 18px;margin:0 0 18px;font-size:14px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;">
+    <div style="max-width:640px;line-height:1.6;">&#128274; <strong>What you can&rsquo;t see here: private listings.</strong>
+      <span style="color:rgba(255,255,255,.75);">Some homes sell through MRED&rsquo;s Private Listing Network and never appear on any public site &mdash; not here, not Zillow. Agents can only share them directly. Tell us what you&rsquo;re looking for and we&rsquo;ll watch the PLN for you.</span></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <a href="/contact?pln={{ urlencode($filters['city'] ?? 'the northwest suburbs') }}" style="background:#C8102E;color:#fff;font-weight:700;font-size:13.5px;padding:10px 18px;border-radius:999px;text-decoration:none;white-space:nowrap;">Get private matches &rarr;</a>
+      <a href="/off-market-homes" style="border:1px solid rgba(255,255,255,.4);color:#fff;font-weight:700;font-size:13.5px;padding:10px 18px;border-radius:999px;text-decoration:none;white-space:nowrap;">How it works</a>
+    </div>
+  </div>
+
   <p style="font-size:14px;color:#666;margin:0 0 18px;">{{ number_format($total) }} {{ Str::plural('listing', $total) }} found{{ ($filters['city'] ?? null) ? ' in '.$filters['city'] : '' }}.</p>
 
   <div class="li-grid">

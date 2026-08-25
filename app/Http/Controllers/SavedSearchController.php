@@ -50,6 +50,21 @@ class SavedSearchController extends Controller
         return back()->with('alert_saved', $search->summary());
     }
 
+    /** Every saved search for this subscriber, each with its own remove link. */
+    public function manage(string $token)
+    {
+        $mine = SavedSearch::where('token', $token)->firstOrFail();
+        $searches = SavedSearch::where('email', $mine->email)->where('active', true)->get();
+        $rows = $searches->map(fn ($s) => '<div style="display:flex;justify-content:space-between;gap:14px;align-items:center;border:1px solid #DEE6EE;border-radius:10px;padding:14px 16px;margin:0 0 10px;">'
+            .'<div><strong>'.e($s->summary()).'</strong><br><span style="color:#8A99AA;font-size:12px;">saved '.$s->created_at->format('M j, Y').'</span></div>'
+            .'<a href="/alerts/unsubscribe/'.$s->token.'" style="color:#C8102E;font-weight:700;font-size:13px;">Remove</a></div>')->implode('');
+
+        return response('<div style="max-width:560px;margin:60px auto;font-family:Archivo,Arial,sans-serif;color:#0F1E2E;padding:0 20px;">'
+            .'<h2 style="margin-bottom:4px;">Your listing alerts</h2>'
+            .'<p style="color:#48586B;margin-top:0;">'.e($mine->email).'</p>'.$rows
+            .'<p style="margin-top:18px;"><a href="/listings" style="color:#C8102E;font-weight:700;">Save another search &rarr;</a></p></div>');
+    }
+
     public function unsubscribe(string $token)
     {
         $search = SavedSearch::where('token', $token)->first();

@@ -307,6 +307,13 @@ class MlsSync extends Command
         if (! isset($r['Longitude'])) {
             unset($attrs['lng']);
         }
+        // Price-drop detection for saved-search alerts.
+        $existing = Listing::where('listing_key', $key)->first();
+        if ($existing && $attrs['list_price'] > 0 && $attrs['list_price'] < $existing->list_price) {
+            $attrs['previous_price'] = $existing->list_price;
+            $attrs['price_dropped_at'] = now();
+        }
+
         $listing = Listing::updateOrCreate(['listing_key' => $key], $attrs);
 
         $this->syncChildren($listing, $r);
