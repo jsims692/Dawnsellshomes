@@ -21,6 +21,11 @@
 .hv-median{font-family:'Fraunces',serif;font-size:2rem;font-weight:600;color:var(--ink)}
 .hv-range{font-size:.85rem;color:var(--slate)}
 .hv-note{font-size:.85rem;color:var(--slate);margin:.3rem 0 .7rem}
+.hv-sample{list-style:none;margin:.5rem 0 .2rem;padding:0;font-size:.85rem;color:var(--slate)}
+.hv-sample li{display:flex;justify-content:space-between;gap:12px;padding:.32rem 0;border-bottom:1px dashed var(--line)}
+.hv-sample li a{color:var(--ink);text-decoration:underline;text-underline-offset:2px}
+.hv-sample li a:hover{color:var(--red)}
+.hv-sample li span:last-child{color:var(--ink);font-weight:700;white-space:nowrap}
 .res-photo{display:block;aspect-ratio:3/2;border-radius:12px;background:var(--mist) center/cover no-repeat;margin-bottom:.9rem}
 .form-ok{margin-top:.8rem;color:#177245;font-weight:600;font-family:'Archivo',system-ui,sans-serif}
 html,body{overflow-x:hidden}
@@ -68,6 +73,15 @@ html,body{overflow-x:hidden}
   <template x-if="result && result.ok"><div>
     <div class="hv-kicker"><span x-text="result.kicker"></span> <span x-text="shortAddr"></span></div>
     <div class="hv-row"><span class="hv-median" x-text="fmt(result.median)"></span><span class="hv-range">typical range <strong x-text="fmt(result.low)+' – '+fmt(result.high)"></strong> · <span x-text="result.basis_short"></span></span></div>
+    <ul class="hv-sample">
+      <template x-for="s in result.sample" :key="s.address+s.year">
+        <li>
+          <a x-show="s.url" :href="s.url" target="_blank" rel="noopener" x-text="s.address+', '+s.city"></a>
+          <span x-show="!s.url" x-text="s.address+', '+s.city"></span>
+          <span x-text="fmt(s.price)+' · '+(s.when || s.year)"></span>
+        </li>
+      </template>
+    </ul>
     <p class="hv-note" x-show="result.ours_line" x-text="result.ours_line" style="font-weight:600;margin:.2rem 0 0"></p>
     <p x-show="result.attribution" x-text="result.attribution" style="font-size:10px;color:var(--faint);margin:.3rem 0 0;line-height:1.5"></p>
     <p class="hv-note">That's the neighborhood — not your house. Get the exact number for your home, free, usually within 24 hours.</p>
