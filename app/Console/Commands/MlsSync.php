@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Listing;
 use App\Models\Page;
+use App\Support\MlsGridBudget;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
 
@@ -77,10 +78,20 @@ class MlsSync extends Command
         $maxTs = $cursor;
 
         while ($url) {
+            if (! MlsGridBudget::allow()) {
+                $this->warn('MLS GRID usage budget reached ('.MlsGridBudget::summary().') — stopping; rerun next hour.');
+                break;
+            }
             // MLS GRID rejects uncompressed requests ("COMPRESSION REQUIRED").
+            // Retry only connection errors / 5xx — never hammer a rate limit.
             $resp = Http::withToken($token)->acceptJson()
                 ->withHeaders(['Accept-Encoding' => 'gzip'])
-                ->timeout(60)->retry(3, 2000)->get($url);
+                ->timeout(60)
+                ->retry(3, 2000, fn ($e) => ! ($e instanceof \Illuminate\Http\Client\RequestException)
+                    || $e->response->serverError(), throw: false)
+                ->get($url);
+            MlsGridBudget::record(strlen($resp->body()));
+            usleep(300000); // ≤ ~2 pages/second regardless of response time
             if (! $resp->successful()) {
                 $this->error('MLS GRID API '.$resp->status().': '.substr($resp->body(), 0, 300));
 
@@ -146,8 +157,14 @@ class MlsSync extends Command
             $url = self::API.'?$filter='.rawurlencode($filter).'&$expand=Media,Rooms&$top=100';
 
             for ($attempt = 1; ; $attempt++) {
+                if (! MlsGridBudget::allow()) {
+                    $this->warn('MLS GRID usage budget reached ('.MlsGridBudget::summary().') — stopping.');
+
+                    return self::FAILURE;
+                }
                 $resp = Http::withToken($token)->acceptJson()
                     ->withHeaders(['Accept-Encoding' => 'gzip'])->timeout(60)->get($url);
+                MlsGridBudget::record(strlen($resp->body()));
                 if ($resp->status() === 429 && $attempt < 40) {
                     sleep(60); // rate window: wait it out
 

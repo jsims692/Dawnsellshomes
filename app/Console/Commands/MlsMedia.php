@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Listing;
+use App\Support\MlsGridBudget;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -80,6 +81,11 @@ class MlsMedia extends Command
                 }
             }
 
+            if (! MlsGridBudget::allow()) {
+                $this->warn('MLS GRID usage budget reached ('.MlsGridBudget::summary().') — stopping; rerun next hour.');
+                break;
+            }
+
             // One API call per listing needing photos: fresh signed URLs for
             // the whole gallery (stored URLs die within the hour).
             $urls = $this->refreshMedia($l, $token);
@@ -149,10 +155,14 @@ class MlsMedia extends Command
         try {
             $resp = Http::withToken($token)->acceptJson()
                 ->withHeaders(['Accept-Encoding' => 'gzip'])
-                ->timeout(30)->retry(3, 5000)->get($url);
+                ->timeout(30)
+                ->retry(3, 5000, fn ($e) => ! ($e instanceof \Illuminate\Http\Client\RequestException)
+                    || $e->response->serverError(), throw: false)
+                ->get($url);
         } catch (\Throwable) {
             return [];
         }
+        MlsGridBudget::record(strlen($resp->body()));
         if (! $resp->successful()) {
             return [];
         }
@@ -185,6 +195,7 @@ class MlsMedia extends Command
             } catch (\Throwable) {
                 return false;
             }
+            MlsGridBudget::record(strlen($resp->body()));
             if ($resp->status() === 429) {
                 sleep(20 * $attempt); // back off and retry
 
