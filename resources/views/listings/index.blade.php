@@ -50,6 +50,24 @@
     <div><button type="submit">Search</button></div>
   </form>
 
+  @if(session('alert_saved'))
+  <div style="background:#EAF7EF;border:1px solid #b7dfc3;color:#1d6b35;border-radius:10px;padding:12px 16px;margin:0 0 18px;font-size:14px;">
+    &#10003; <strong>Search saved!</strong> We'll email you when new homes match: {{ session('alert_saved') }}. Unsubscribe anytime from the email.
+  </div>
+  @endif
+
+  <div style="display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;background:#F2F5F9;border:1px solid #DEE6EE;border-radius:10px;padding:14px 16px;margin:0 0 18px;">
+    <div style="font-size:14px;color:#0F1E2E;"><strong>&#128276; Never miss a listing.</strong>
+      <span style="color:#48586B;">Save this search and we'll email you the moment new matches hit the MLS.</span></div>
+    <form method="post" action="/listings/alerts" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0;">
+      @csrf
+      @foreach(array_filter($filters ?? []) as $k => $v)<input type="hidden" name="{{ $k }}" value="{{ $v }}">@endforeach
+      <input type="text" name="name" placeholder="First name (optional)" style="padding:9px 12px;border:1px solid #c9d2e3;border-radius:6px;font-size:14px;width:150px;">
+      <input type="email" name="email" required placeholder="you@email.com" style="padding:9px 12px;border:1px solid #c9d2e3;border-radius:6px;font-size:14px;width:190px;">
+      <button type="submit" style="background:#C8102E;color:#fff;border:0;border-radius:999px;padding:10px 18px;font-weight:700;font-size:13.5px;cursor:pointer;">Save search + get alerts</button>
+    </form>
+  </div>
+
   <p style="font-size:14px;color:#666;margin:0 0 18px;">{{ number_format($total) }} {{ Str::plural('listing', $total) }} found{{ ($filters['city'] ?? null) ? ' in '.$filters['city'] : '' }}.</p>
 
   <div class="li-grid">

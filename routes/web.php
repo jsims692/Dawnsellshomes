@@ -36,6 +36,10 @@ Route::get('/preview/home', function () {
 // unlinked + noindexed, kept fully functional (injected widget + sales map).
 Route::get('/old-home', [PageController::class, 'legacyHome']);
 
+// Saved searches: consumers save their /listings filters for email alerts
+Route::post('/listings/alerts', [App\Http\Controllers\SavedSearchController::class, 'store'])->middleware('throttle:10,1');
+Route::get('/alerts/unsubscribe/{token}', [App\Http\Controllers\SavedSearchController::class, 'unsubscribe']);
+
 // Homepage home-value widget: nearby closed sales for a lat/lng
 Route::get('/home-value/nearby', [HomeValueController::class, 'nearby'])->middleware('throttle:60,1');
 
