@@ -50,7 +50,7 @@ class MlsMedia extends Command
         $skipped = 0;
         $failed = 0;
 
-        $q = Listing::displayable()->where('is_demo', false)->where('photo_count', '>', 0)
+        $q = Listing::displayable()->where('is_demo', false)->whereRaw('JSON_LENGTH(media) > 0')
             ->when(! $this->option('all'), fn ($w) => $w->forSale())
             ->when($this->option('city') !== [], fn ($w) => $w->whereIn(
                 DB::raw('LOWER(city)'), array_map(mb_strtolower(...), (array) $this->option('city'))))
@@ -132,7 +132,7 @@ class MlsMedia extends Command
             ->map(fn ($m) => ['url' => $m['MediaURL'] ?? null, 'order' => $m['Order'] ?? 0])
             ->filter(fn ($m) => $m['url'])
             ->values();
-        $l->update(['media' => $media->take(1), 'photo_count' => $media->count()]);
+        $l->update(['media' => $media->take(1)]);
 
         return $media[0]['url'] ?? null;
     }

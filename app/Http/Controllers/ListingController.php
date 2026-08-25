@@ -43,7 +43,7 @@ class ListingController extends Controller
             ->select(['id', 'listing_key', 'listing_id', 'status', 'list_price', 'street_address',
                 'city', 'state', 'zip', 'address_public', 'display_public', 'beds', 'baths_full',
                 'baths_half', 'sqft', 'property_type', 'property_subtype', 'year_built', 'subdivision',
-                'list_office_name', 'lat', 'lng', 'media', 'photo_count', 'mls_modified_at', 'is_demo'])
+                'list_office_name', 'lat', 'lng', 'mls_modified_at', 'is_demo'])
             ->skip($offset)->take(min($perPage, $total - $offset))->get();
 
         return view('listings.index', [

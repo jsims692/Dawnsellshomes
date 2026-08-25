@@ -13,7 +13,6 @@ class Listing extends Model
     {
         return [
             'media' => 'array',
-            'raw' => 'array',
             'address_public' => 'boolean',
             'display_public' => 'boolean',
             'avm_allowed' => 'boolean',
@@ -21,6 +20,9 @@ class Listing extends Model
             'is_demo' => 'boolean',
             'mls_modified_at' => 'datetime',
             'close_date' => 'date',
+            'listing_contract_date' => 'date',
+            'new_construction' => 'boolean',
+            'waterfront' => 'boolean',
         ];
     }
 

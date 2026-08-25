@@ -168,7 +168,6 @@ class MlsSync extends Command
             ->map(fn ($m) => ['url' => $m['MediaURL'] ?? null, 'order' => $m['Order'] ?? 0])
             ->filter(fn ($m) => $m['url'])
             ->values();
-        $photoCount = $media->count();
         // Signed URLs die within the hour — keep only the primary (the photo
         // cache refreshes per listing on demand; galleries will do the same).
         $media = $media->take(1);
@@ -207,14 +206,43 @@ class MlsSync extends Command
             'lat' => $r['Latitude'] ?? null,
             'lng' => $r['Longitude'] ?? null,
             'media' => $media,
-            'photo_count' => $photoCount,
+
             'mls_modified_at' => $r['ModificationTimestamp'] ?? null,
-            // Media + PublicRemarks live in their own columns / the photo cache.
-            'raw' => collect($r)->except(['Media', 'PublicRemarks'])->all(),
             'is_demo' => false,
-        ]);
+        ] + self::extractDetails($r));
 
         return true;
+    }
+
+    /** Typed columns for every raw field the site can use (no raw blob kept). */
+    private static function extractDetails(array $r): array
+    {
+        $join = fn ($v, int $max) => $v === null ? null
+            : mb_substr(is_array($v) ? implode(', ', $v) : (string) $v, 0, $max);
+        $int = fn ($v) => is_numeric($v) && $v >= 0 ? (int) $v : null;
+
+        return [
+            'tax_annual' => $int($r['TaxAnnualAmount'] ?? null),
+            'tax_year' => $int($r['TaxYear'] ?? null),
+            'hoa_fee' => $int($r['AssociationFee'] ?? null),
+            'hoa_fee_freq' => $join($r['AssociationFeeFrequency'] ?? null, 20),
+            'hoa_includes' => $join($r['AssociationFeeIncludes'] ?? null, 255),
+            'parking_total' => $int($r['ParkingTotal'] ?? null),
+            'garage_spaces' => $int($r['GarageSpaces'] ?? null),
+            'heating' => $join($r['Heating'] ?? null, 120),
+            'cooling' => $join($r['Cooling'] ?? null, 120),
+            'lot_dimensions' => $join($r['LotSizeDimensions'] ?? null, 60),
+            'elementary_district' => $join($r['ElementarySchoolDistrict'] ?? null, 10),
+            'middle_district' => $join($r['MiddleOrJuniorSchoolDistrict'] ?? null, 10),
+            'high_district' => $join($r['HighSchoolDistrict'] ?? null, 10),
+            'rooms_total' => $int($r['RoomsTotal'] ?? null),
+            'stories' => $int($r['StoriesTotal'] ?? null),
+            'basement' => $join($r['Basement'] ?? null, 80),
+            'new_construction' => (bool) ($r['NewConstructionYN'] ?? false),
+            'listing_contract_date' => $r['ListingContractDate'] ?? null,
+            'waterfront' => (bool) ($r['WaterfrontYN'] ?? false),
+            'ownership' => $join($r['Ownership'] ?? null, 30),
+        ];
     }
 
     private function readCursor(): ?string
