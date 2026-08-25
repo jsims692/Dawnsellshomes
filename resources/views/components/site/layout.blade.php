@@ -12,6 +12,18 @@
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-PC0KNJJZNK"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-PC0KNJJZNK');</script>
 @endif
+{{-- Who we are, machine-readable: connects the site to the team for Google and AI crawlers. --}}
+<script type="application/ld+json">{!! json_encode([
+    '@context' => 'https://schema.org',
+    '@type' => 'RealEstateAgent',
+    'name' => 'Dawn Simmons Team',
+    'alternateName' => 'Dawn Simmons Team — RE/MAX Suburban',
+    'url' => 'https://dawnsellshomes.com',
+    'telephone' => '+12246284013',
+    'areaServed' => ['@type' => 'Place', 'name' => 'Northwest Suburbs of Chicago, Illinois'],
+    'parentOrganization' => ['@type' => 'Organization', 'name' => 'RE/MAX Suburban'],
+    'sameAs' => ['https://www.instagram.com/joshsimmonsre/', 'https://www.facebook.com/joshua.simmons'],
+], JSON_UNESCAPED_SLASHES) !!}</script>
 {{-- Design v2 ("ink & red"): fonts + stylesheet load after the DB head so v2 wins ties against any imported page CSS. --}}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

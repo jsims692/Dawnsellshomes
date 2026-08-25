@@ -10,7 +10,13 @@ class ListingController extends Controller
     /** Search results. Filters are objective criteria only (Rule 9). */
     public function index(Request $request)
     {
-        $q = Listing::displayable()->forSale()->orderByDesc('mls_modified_at');
+        $q = Listing::displayable()->forSale();
+        match ($request->query('sort')) {
+            'price' => $q->orderBy('list_price'),
+            'price-desc' => $q->orderByDesc('list_price'),
+            'new' => $q->orderByDesc('listing_contract_date')->orderByDesc('mls_modified_at'),
+            default => $q->orderByDesc('mls_modified_at'),
+        };
 
         $cities = array_values(array_filter(array_map(
             fn ($c) => mb_strtolower(trim((string) $c)), (array) $request->query('city'))));
@@ -89,7 +95,7 @@ class ListingController extends Controller
             'cities' => Listing::displayable()->forSale()->distinct()->orderBy('city')->pluck('city'),
             'dataAsOf' => Listing::max('mls_modified_at') ?? now(),
             'demo' => Listing::displayable()->where('is_demo', true)->exists(),
-            'filters' => ['city' => array_values(array_filter((array) $request->query('city')))] + $request->only(['min', 'max', 'beds', 'baths', 'type', 'dwelling', 'waterfront', 'basement', 'garage', 'ffmaster', 'masterbath', 'ranch', 'nohoa', 'built', 'reduced']),
+            'filters' => ['city' => array_values(array_filter((array) $request->query('city')))] + $request->only(['min', 'max', 'beds', 'baths', 'type', 'dwelling', 'waterfront', 'basement', 'garage', 'ffmaster', 'masterbath', 'ranch', 'nohoa', 'built', 'reduced', 'sort']),
         ]);
     }
 
@@ -121,8 +127,29 @@ class ListingController extends Controller
             }
         }
 
+        // Similar homes: nearest active listings in a comparable price band
+        // (falls back to same-city when the listing lacks coordinates).
+        $similar = collect();
+        if ($listing->isForSale()) {
+            $similar = Listing::displayable()->forSale()->where('is_auction', false)
+                ->where('id', '!=', $listing->id)
+                ->when($listing->list_price, fn ($q) => $q->whereBetween('list_price',
+                    [(int) ($listing->list_price * 0.7), (int) ($listing->list_price * 1.3)]))
+                ->when($listing->lat && $listing->lng,
+                    fn ($q) => $q->whereNotNull('lat')
+                        ->whereBetween('lat', [$listing->lat - 0.05, $listing->lat + 0.05])
+                        ->whereBetween('lng', [$listing->lng - 0.07, $listing->lng + 0.07])
+                        ->orderByRaw('POW(lat - ?, 2) + POW(lng - ?, 2)', [$listing->lat, $listing->lng]),
+                    fn ($q) => $q->whereRaw('LOWER(city) = ?', [mb_strtolower((string) $listing->city)])
+                        ->orderByDesc('mls_modified_at'))
+                ->limit(3)
+                ->get(['id', 'listing_key', 'listing_id', 'status', 'list_price', 'street_address',
+                    'city', 'state', 'zip', 'address_public', 'beds', 'baths_full', 'baths_half', 'sqft']);
+        }
+
         return view('listings.show', [
             'l' => $listing,
+            'similar' => $similar,
             'galleryFetching' => $galleryFetching,
             'dataAsOf' => Listing::max('mls_modified_at') ?? now(),
         ]);

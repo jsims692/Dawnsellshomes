@@ -93,6 +93,7 @@
 
       </div>
     </div>
+    <div><label for="f-sort">Sort</label><select id="f-sort" name="sort" onchange="this.form.submit()"><option value="">Just updated</option><option value="new" @selected(($filters['sort'] ?? '') === 'new')>Newest listed</option><option value="price" @selected(($filters['sort'] ?? '') === 'price')>Price: low to high</option><option value="price-desc" @selected(($filters['sort'] ?? '') === 'price-desc')>Price: high to low</option></select></div>
     <div><button type="submit">Search</button></div>
   </form>
 

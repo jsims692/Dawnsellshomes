@@ -3,6 +3,34 @@
 <title>{{ $l->address_public ? $l->street_address.', '.$l->city : 'Home for Sale in '.$l->city }} — MLS #{{ $l->listing_id }} | Dawn Simmons Team</title>
 <meta name="description" content="{{ Str::limit(strip_tags((string) $l->remarks), 155) ?: 'Listing in '.$l->city.', IL — courtesy of '.$l->list_office_name.' via MRED / MLS GRID.' }}">
 <meta name="robots" content="{{ config('services.mlsgrid.token') ? 'index,follow' : 'noindex,nofollow' }}">
+<link rel="canonical" href="https://dawnsellshomes.com/listings/{{ $l->listing_id }}">
+@php
+  $ld = [
+    '@context' => 'https://schema.org',
+    '@type' => 'RealEstateListing',
+    'name' => $l->address_public && $l->street_address ? $l->street_address.', '.$l->city.', IL' : 'Home in '.$l->city.', IL',
+    'url' => 'https://dawnsellshomes.com/listings/'.$l->listing_id,
+  ];
+  if ($l->photoUrl()) $ld['image'] = url($l->photoUrl());
+  if ($l->address_public && $l->street_address) {
+    $ld['address'] = ['@type' => 'PostalAddress', 'streetAddress' => $l->street_address,
+      'addressLocality' => $l->city, 'addressRegion' => 'IL', 'postalCode' => $l->zip];
+  }
+  if ($l->beds) $ld['numberOfBedrooms'] = (int) $l->beds;
+  if ($l->sqft) $ld['floorSize'] = ['@type' => 'QuantitativeValue', 'value' => (int) $l->sqft, 'unitCode' => 'FTK'];
+  if ($l->isForSale() && $l->list_price && ! $l->is_auction) {
+    $ld['offers'] = ['@type' => 'Offer', 'price' => (int) $l->list_price, 'priceCurrency' => 'USD',
+      'availability' => 'https://schema.org/InStock'];
+  }
+  $crumbs = ['@context' => 'https://schema.org', '@type' => 'BreadcrumbList', 'itemListElement' => [
+    ['@type' => 'ListItem', 'position' => 1, 'name' => 'Home', 'item' => 'https://dawnsellshomes.com/'],
+    ['@type' => 'ListItem', 'position' => 2, 'name' => 'Homes for Sale', 'item' => 'https://dawnsellshomes.com/listings'],
+    ['@type' => 'ListItem', 'position' => 3, 'name' => $l->city, 'item' => 'https://dawnsellshomes.com/listings?city='.rawurlencode((string) $l->city)],
+    ['@type' => 'ListItem', 'position' => 4, 'name' => $ld['name']],
+  ]];
+@endphp
+<script type="application/ld+json">{!! json_encode($ld, JSON_UNESCAPED_SLASHES) !!}</script>
+<script type="application/ld+json">{!! json_encode($crumbs, JSON_UNESCAPED_SLASHES) !!}</script>
 </x-slot:headExtra>
 <style>
   .ld-wrap { max-width:1100px; margin:0 auto; padding:32px 24px; font-family:'Archivo',Arial,sans-serif; }
@@ -79,6 +107,9 @@
       <div style="font-size:13.5px;color:#48586B;">Listed at ${{ number_format($l->list_price) }}</div>
       @else
       <div class="ld-price">{{ $l->list_price ? '$'.number_format($l->list_price) : ($l->is_auction ? 'Auction' : 'Price on request') }}</div>
+      @if($l->previous_price && $l->price_dropped_at && $l->previous_price > $l->list_price)
+      <div style="font-size:13.5px;color:#1d6b35;font-weight:700;">&#8595; Reduced from ${{ number_format($l->previous_price) }} on {{ $l->price_dropped_at->format('M j') }}</div>
+      @endif
       @endif
       <h1 style="font-family:'Fraunces',Georgia,serif;font-size:22px;color:#222;margin:6px 0 0;">{{ $l->displayAddress() }}</h1>
     </div>
@@ -217,6 +248,22 @@
   @endif
 
   @include('listings._calculator')
+
+  @if($similar->isNotEmpty())
+  <h2 class="ld-h2">Similar homes nearby</h2>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px;">
+    @foreach($similar as $s)
+    <a href="/listings/{{ $s->listing_id }}" style="display:block;background:#fff;border:1px solid #DEE6EE;border-radius:12px;overflow:hidden;text-decoration:none;color:#0F1E2E;">
+      <div style="aspect-ratio:3/2;background:#E9EFF3 center/cover no-repeat;{{ $s->photoUrl() ? 'background-image:url(\''.$s->photoUrl().'\');' : '' }}"></div>
+      <div style="padding:13px 15px 15px;">
+        <div style="font-size:19px;font-weight:800;">${{ number_format($s->list_price) }}</div>
+        <div style="font-size:13px;color:#48586B;margin-top:2px;">{{ $s->beds }} bd &middot; {{ $s->baths() }} ba @if($s->sqft) &middot; {{ number_format($s->sqft) }} sqft @endif</div>
+        <div style="font-size:13px;color:#48586B;margin-top:5px;line-height:1.45;">{{ $s->displayAddress() }}</div>
+      </div>
+    </a>
+    @endforeach
+  </div>
+  @endif
   @endif
 
   <div class="ld-cta">
