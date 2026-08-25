@@ -1,21 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>{!! $head !!}
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Fraunces:ital,wght@0,600;1,600&display=swap" rel="stylesheet">
+<x-site.layout :page="$page" :head="$head">
 <style>
     /* Design v2 re-theme: same shell, ink/red tokens (--gold doubles as the
        plat-map buyer-side yellow). Alpine logic + sales map untouched. */
     :root { --navy:#0F1E2E; --navy-dark:#0B1622; --red:#C8102E; --gold:#E8B93B; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Archivo', Arial, sans-serif; background: #F2F5F9; color: #0F1E2E; }
-
-    nav { background: var(--navy); padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; }
-    .nav-brand { color: #fff; font-size: 20px; font-weight: 800; text-decoration: none; }
-    .nav-brand span { color: var(--gold); }
-    .nav-links a { color: rgba(255,255,255,.8); text-decoration: none; margin-left: 24px; font-size: 14px; font-weight: 600; }
-    .nav-links a:hover { color: #fff; }
 
     .hero { background: linear-gradient(135deg, var(--navy) 0%, var(--navy-dark) 100%); color: #fff; padding: 60px 40px; text-align: center; }
     .hero h1 { font-family: 'Fraunces', Georgia, serif; font-weight: 600; letter-spacing: -.01em; font-size: clamp(28px,4vw,48px); margin-bottom: 12px; }
@@ -25,7 +14,7 @@
     .stat-num { font-family: 'Fraunces', Georgia, serif; font-size: 36px; font-weight: 600; color: #fff; }
     .stat-label { font-size: 13px; opacity: .75; margin-top: 4px; }
 
-    .filters { background: #fff; padding: 20px 40px; border-bottom: 1px solid #e0e4ed; display: flex; gap: 16px; flex-wrap: wrap; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+    .filters { background: #fff; padding: 20px 40px; border-bottom: 1px solid #e0e4ed; display: flex; gap: 16px; flex-wrap: wrap; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
     .filters label { font-size: 13px; font-weight: 700; color: var(--navy); text-transform: uppercase; letter-spacing: .4px; }
     .filters select, .filters input { padding: 8px 12px; border: 1.5px solid #dde2ee; border-radius: 6px; font-size: 14px; font-family: inherit; background: #fff; }
     .filters select:focus, .filters input:focus { outline: none; border-color: var(--navy); }
@@ -49,34 +38,18 @@
     .tag-year { background: #f0f0f0; color: #555; }
 
     .no-results { text-align: center; padding: 60px; color: #888; font-size: 16px; }
-    
-    footer { background: var(--navy-dark); color: rgba(255,255,255,.6); padding: 36px; text-align: center; font-size: 13px; margin-top: 60px; }
-    footer a { color: var(--gold); text-decoration: none; }
 
     @media (max-width: 700px) {
       .filters { padding: 16px 20px; }
       .stats-bar { gap: 24px; }
-      nav { padding: 14px 20px; }
-      .nav-links { display: none; }
     }
     /* server-rendered card list is filtered client-side via data attributes */
     .card[hidden] { display:none; }
     .stat-num { font-variant-numeric: tabular-nums; }
     [x-cloak] { display:none !important; }
 </style>
-@livewireStyles
-</head>
-<body x-data="soldPage()">
-<nav>
-  <a class='nav-brand' href='/'><span>Dawn</span>SellsHomes</a>
-  <div class="nav-links">
-    <a href='/#search'>Browse Homes</a>
-    <a href='/#neighborhoods'>Areas</a>
-    <a href='/#condos'>Condos</a>
-    <a href='/#contact'>Contact</a>
-  </div>
-</nav>
 
+<div x-data="soldPage()">
 <div class="hero">
   <div style="font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--gold); margin-bottom:12px;">Track Record</div>
   <h1>{{ $stats['total'] >= 550 ? '550+' : $stats['total'] }} Homes Sold Across<br>the Northwest Suburbs</h1>
@@ -123,7 +96,7 @@
     @foreach($sales as $sale)
     <div class="card {{ $sale->side }}" data-side="{{ $sale->side }}" data-type="{{ $sale->property_type }}" data-city="{{ $sale->city }}" data-year="{{ $sale->sold_year }}"
          x-show="matches($el.dataset)">
-      <div class="card-price">${{ number_format($sale->sold_price) }}</div>
+      <div class="card-price">{{ $sale->sold_price ? '$'.number_format($sale->sold_price) : 'Price undisclosed' }}</div>
       <div class="card-addr">{{ $sale->address }}</div>
       <div class="card-city">{{ $sale->city }}, IL</div>
       <div class="card-meta">
@@ -137,13 +110,7 @@
   <div class="no-results" x-show="counts.total === 0" x-cloak>No sales match those filters — try widening your search.</div>
 </div>
 
-<footer>
-  <div style="font-weight:700; color:#fff; margin-bottom:8px;">The Dawn Simmons Team</div>
-  Dawn Simmons · REALTOR® · RE/MAX Suburban &nbsp;|&nbsp; Josh Simmons · REALTOR® · Broker Associate<br>
-  <a href="tel:2246284013">(224) 628-4013</a> &nbsp;|&nbsp; <a href="mailto:jsims692@gmail.com">jsims692@gmail.com</a>
-  <p style="margin-top:12px; font-size:11px; opacity:.5;">© {{ date('Y') }} The Dawn Simmons Team. All rights reserved. Licensed in Illinois. Equal Housing Opportunity.</p>
-</footer>
-<x-site.text-josh />
+
 
 <script>
 document.addEventListener('alpine:init', () => {
@@ -163,6 +130,5 @@ document.addEventListener('alpine:init', () => {
   }));
 });
 </script>
-@livewireScripts
-</body>
-</html>
+</div>
+</x-site.layout>

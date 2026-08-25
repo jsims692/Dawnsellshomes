@@ -78,7 +78,7 @@
       <div class="ld-price">${{ number_format($l->close_price) }} <span style="font-size:14px;font-weight:800;color:#C8102E;vertical-align:middle;">SOLD {{ $l->close_date?->format('M Y') }}</span></div>
       <div style="font-size:13.5px;color:#48586B;">Listed at ${{ number_format($l->list_price) }}</div>
       @else
-      <div class="ld-price">${{ number_format($l->list_price) }}</div>
+      <div class="ld-price">{{ $l->list_price ? '$'.number_format($l->list_price) : ($l->is_auction ? 'Auction' : 'Price on request') }}</div>
       @endif
       <h1 style="font-family:'Fraunces',Georgia,serif;font-size:22px;color:#222;margin:6px 0 0;">{{ $l->displayAddress() }}</h1>
     </div>

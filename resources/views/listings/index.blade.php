@@ -86,7 +86,7 @@
     <a class="li-card" href="/listings/{{ $l->listing_id }}">
       <div class="li-photo" style="background-image:url('{{ $l->photoUrl() ?? '' }}')"><span class="li-status">{{ $l->status }}</span></div>
       <div class="li-body">
-        <div class="li-price">${{ number_format($l->list_price) }}</div>
+        <div class="li-price">{{ $l->list_price ? '$'.number_format($l->list_price) : ($l->is_auction ? 'Auction — see details' : 'Price on request') }}</div>
         <div class="li-addr">{{ $l->displayAddress() }}</div>
         <div class="li-meta">{{ $l->beds }} bd &middot; {{ $l->baths() }} ba &middot; {{ $l->sqft ? number_format($l->sqft).' sqft' : '—' }} &middot; MLS #{{ $l->listing_id }}</div>
         <div class="li-office">Listing courtesy of {{ $l->list_office_name }}</div>

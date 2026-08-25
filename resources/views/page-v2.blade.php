@@ -11,6 +11,8 @@
   .header .nav-links a.btn { color:#fff !important; }
   .footer { text-align:left !important; margin-top:0 !important; }
   .footer a { color:inherit !important; }
+  .footer p { color:#AFC0D1 !important; }
+  .footer h4 { color:#fff !important; }
 </style>
 {!! $body !!}
 </x-site.layout>
