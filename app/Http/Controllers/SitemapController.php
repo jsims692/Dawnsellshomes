@@ -17,6 +17,15 @@ class SitemapController extends Controller
             $sitemap->add(Url::create($base.'/'.$path));
         }
 
+        // Subdivision directory + auto-generated subdivision pages (hand-built
+        // neighborhood pages are already present via the pages table above).
+        if (config('site.listings_enabled')) {
+            $sitemap->add(Url::create($base.'/neighborhoods'));
+            foreach (\App\Support\Subdivisions::dynamicOnly() as $entry) {
+                $sitemap->add(Url::create($base.'/neighborhoods/'.$entry['slug']));
+            }
+        }
+
         return $sitemap->toResponse(request());
     }
 }

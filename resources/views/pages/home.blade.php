@@ -253,7 +253,7 @@ html,body{overflow-x:hidden}
       <h2 class="h2">Browse homes across Chicagoland.</h2>
       <p class="lead">From Chicago’s north side to Fox Lake — pick a community to see active MLS listings, updated daily.</p>
     </div>
-    <div class="callout rv">🧭 New to the area? <a class="link-arrow" href="/moving-to-northwest-suburbs">Start here: the complete guide to moving to the northwest suburbs →</a></div>
+    <div class="callout rv">🧭 New to the area? <a class="link-arrow" href="/moving-to-northwest-suburbs">Start here: the complete guide to moving to the northwest suburbs →</a> &nbsp;·&nbsp; Know the subdivision you want? <a class="link-arrow" href="/neighborhoods">Browse every community we cover →</a></div>
     <div class="tabs" role="tablist" aria-label="Regions">
       <button class="tab" role="tab" aria-selected="true" aria-controls="area-core" id="tab-core">Your core market</button>
       <button class="tab" role="tab" aria-selected="false" aria-controls="area-north" id="tab-north">North suburbs</button>

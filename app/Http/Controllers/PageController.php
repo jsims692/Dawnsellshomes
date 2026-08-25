@@ -4,13 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Models\Listing;
 use App\Models\Page;
+use App\Support\Subdivisions;
 use Illuminate\Support\Carbon;
 
 class PageController extends Controller
 {
     public function show(string $path = '')
     {
-        $page = Page::where('path', $path)->firstOrFail();
+        $page = Page::where('path', $path)->first();
+        if (! $page) {
+            return $this->subdivisionFallback($path);
+        }
 
         // Progressive-rewrite hook: a Blade view at pages/{path} takes over rendering
         // for that URL. It gets the DB-backed SEO head but styles itself (design v2),
@@ -39,6 +43,101 @@ class PageController extends Controller
             'page' => $page,
             'head' => $this->legacyHead($page),
             'body' => $this->stripLegacyChrome($page->body_html),
+        ]);
+    }
+
+    /**
+     * URLs with no stored page: /neighborhoods/{subdivision}-{city} renders a
+     * live MLS subdivision page when the MLS knows the name. Hand-built pages
+     * always win (they're found by show() first); a slug owned by a condo
+     * page redirects there instead of duplicating it.
+     */
+    private function subdivisionFallback(string $path)
+    {
+        abort_unless(config('site.listings_enabled')
+            && str_starts_with($path, 'neighborhoods/')
+            && substr_count($path, '/') === 1, 404);
+
+        $slug = basename($path);
+        if ($owner = Page::whereIn('type', ['neighborhood', 'condo'])->where('slug', $slug)->value('path')) {
+            return redirect('/'.$owner, 301);
+        }
+        $entry = Subdivisions::find($slug);
+        abort_unless($entry, 404);
+
+        $base = Listing::displayable()->where('is_demo', false)
+            ->whereRaw('LOWER(city) = ?', [mb_strtolower($entry['city'])])
+            ->whereRaw('LOWER(TRIM(subdivision)) = ?', [mb_strtolower($entry['name'])]);
+        $title = $entry['name'].', '.$entry['city'];
+        $panel = $this->bandPanel($base, 'All homes', $title, $entry['city'],
+            '/listings?city='.urlencode($entry['city']));
+        abort_unless($panel, 404);
+
+        $asOf = Listing::max('mls_modified_at');
+
+        return view('subdivisions.show', [
+            'entry' => $entry,
+            'panels' => [$panel],
+            'dataAsOf' => $asOf ? Carbon::parse($asOf) : now(),
+            'head' => '<title>'.e($title.', IL Homes for Sale & Market Stats | Dawn Simmons Team').'</title>'
+                .'<meta name="description" content="'.e('Homes for sale, recent sales, and market stats for the '.$entry['name'].' subdivision of '.$entry['city'].', Illinois — updated from the MLS. Dawn Simmons Team, RE/MAX Suburban.').'">'
+                .'<link rel="canonical" href="https://dawnsellshomes.com/neighborhoods/'.e($entry['slug']).'">',
+        ]);
+    }
+
+    /**
+     * /neighborhoods directory: every hand-built neighborhood/condo page plus
+     * every MLS-tagged subdivision without one, grouped by city.
+     */
+    public function neighborhoods()
+    {
+        $citySlugs = cache()->remember('city-page-slugs', now()->addDay(),
+            fn () => Page::where('type', 'city')->pluck('slug')
+                ->sortByDesc(fn ($s) => strlen($s))->values()->all());
+        $cityName = fn (string $slug) => Subdivisions::titleize($slug);
+
+        $groups = [];
+        $put = function (string $citySlug, string $slug, array $item) use (&$groups, $cityName) {
+            $groups[$citySlug] ??= ['name' => $cityName($citySlug), 'slug' => $citySlug, 'items' => []];
+            $groups[$citySlug]['items'][$slug] = $item + ($groups[$citySlug]['items'][$slug] ?? []);
+        };
+
+        foreach (Page::whereIn('type', ['neighborhood', 'condo'])->get(['path', 'slug']) as $p) {
+            foreach ($citySlugs as $cs) {
+                if (str_ends_with($p->slug, '-'.$cs) && strlen($p->slug) > strlen($cs) + 1) {
+                    $label = Subdivisions::titleize(substr($p->slug, 0, -strlen($cs) - 1));
+                    // "Cambridge of Buffalo Grove" strips to a dangling
+                    // "Cambridge of" — the city is part of the name; restore it.
+                    if (preg_match('/ (of|in|the|on|at|by|a)$/', $label)) {
+                        $label .= ' '.$cityName($cs);
+                    }
+                    $put($cs, $p->slug, ['label' => $label, 'url' => '/'.$p->path]);
+                    break;
+                }
+            }
+        }
+        if (config('site.listings_enabled')) {
+            foreach (Subdivisions::map() as $e) {
+                $put($e['citySlug'], $e['slug'], isset($groups[$e['citySlug']]['items'][$e['slug']])
+                    ? ['active' => $e['active']]
+                    : ['label' => $e['name'], 'url' => '/neighborhoods/'.$e['slug'], 'active' => $e['active']]);
+            }
+        }
+
+        uasort($groups, fn ($a, $b) => strcasecmp($a['name'], $b['name']));
+        foreach ($groups as &$g) {
+            uasort($g['items'], fn ($a, $b) => strcasecmp($a['label'], $b['label']));
+        }
+        unset($g);
+
+        $asOf = Listing::max('mls_modified_at');
+
+        return view('subdivisions.index', [
+            'groups' => $groups,
+            'dataAsOf' => $asOf ? Carbon::parse($asOf) : now(),
+            'head' => '<title>Neighborhoods & Subdivisions We Serve | Dawn Simmons Team</title>'
+                .'<meta name="description" content="Browse every neighborhood, subdivision, and condo community the Dawn Simmons Team covers across the northwest suburbs of Chicago — with live MLS listings and market stats.">'
+                .'<link rel="canonical" href="https://dawnsellshomes.com/neighborhoods">',
         ]);
     }
 

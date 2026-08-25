@@ -41,6 +41,10 @@ Route::post('/listings/alerts', [App\Http\Controllers\SavedSearchController::cla
 Route::get('/alerts/unsubscribe/{token}', [App\Http\Controllers\SavedSearchController::class, 'unsubscribe']);
 Route::get('/alerts/manage/{token}', [App\Http\Controllers\SavedSearchController::class, 'manage']);
 
+// Neighborhood & subdivision directory (hand-built pages + MLS-derived ones;
+// individual /neighborhoods/{slug} URLs resolve via the content catch-all)
+Route::get('/neighborhoods', [PageController::class, 'neighborhoods']);
+
 // Homepage home-value widget: nearby closed sales for a lat/lng
 Route::get('/home-value/nearby', [HomeValueController::class, 'nearby'])->middleware('throttle:60,1');
 
