@@ -35,13 +35,29 @@ class PageController extends Controller
             $this->injectListingsBand($page);
         }
 
-        return view('page', [
+        return view('page-v2', [
             'page' => $page,
             'head' => $this->legacyHead($page),
-            // Imported pages are plain HTML; only load Alpine/Livewire when a
-            // component was injected (currently: the homepage sales map).
-            'needsAlpine' => str_contains($page->body_html, 'x-data='),
+            'body' => $this->stripLegacyChrome($page->body_html),
         ]);
+    }
+
+    /**
+     * Remove the baked-in navigation, footer, and floating text-widget from an
+     * imported page so the shared v2 chrome can take their place. Render-time
+     * only — the stored content is untouched.
+     */
+    private function stripLegacyChrome(string $body): string
+    {
+        $body = preg_replace('/<nav class="nav">.*?<\/nav>/s', '', $body, 1);
+        $body = preg_replace('/<div id="tj-w".*?<\/a>\s*<\/div>/s', '', $body, 1);
+        // Last footer block only (heroes etc. stay untouched).
+        $pos = strripos($body, '<footer');
+        if ($pos !== false && ($end = stripos($body, '</footer>', $pos)) !== false) {
+            $body = substr($body, 0, $pos).substr($body, $end + strlen('</footer>'));
+        }
+
+        return $body;
     }
 
     /**
