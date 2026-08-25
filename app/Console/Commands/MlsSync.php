@@ -52,7 +52,10 @@ class MlsSync extends Command
         $maxTs = $cursor;
 
         while ($url) {
-            $resp = Http::withToken($token)->acceptJson()->timeout(60)->retry(3, 2000)->get($url);
+            // MLS GRID rejects uncompressed requests ("COMPRESSION REQUIRED").
+            $resp = Http::withToken($token)->acceptJson()
+                ->withHeaders(['Accept-Encoding' => 'gzip'])
+                ->timeout(60)->retry(3, 2000)->get($url);
             if (! $resp->successful()) {
                 $this->error('MLS GRID API '.$resp->status().': '.substr($resp->body(), 0, 300));
 

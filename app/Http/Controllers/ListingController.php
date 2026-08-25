@@ -31,10 +31,17 @@ class ListingController extends Controller
         // Rule 26: no artificial caps below min(500, 50%); pagination exposes
         // the complete result set. 2,500 hard ceiling per search.
         $total = min($q->count(), 2500);
-        $listings = $q->limit(2500)->get()->take(2500);
         $page = max(1, (int) $request->query('page', 1));
         $perPage = 24;
-        $slice = $listings->slice(($page - 1) * $perPage, $perPage);
+        // Page in the database, and leave the bulky `raw` RESO blob (and long
+        // remarks) unselected — loading thousands of full rows to show 24 OOMs.
+        $offset = ($page - 1) * $perPage;
+        $slice = $offset >= $total ? collect() : $q
+            ->select(['id', 'listing_key', 'listing_id', 'status', 'list_price', 'street_address',
+                'city', 'state', 'zip', 'address_public', 'display_public', 'beds', 'baths_full',
+                'baths_half', 'sqft', 'property_type', 'property_subtype', 'year_built', 'subdivision',
+                'list_office_name', 'lat', 'lng', 'media', 'photo_count', 'mls_modified_at', 'is_demo'])
+            ->skip($offset)->take(min($perPage, $total - $offset))->get();
 
         return view('listings.index', [
             'listings' => $slice,
