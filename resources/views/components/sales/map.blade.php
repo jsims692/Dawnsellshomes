@@ -23,7 +23,7 @@
     <div x-ref="map" style="position:absolute; inset:0;"></div>
 
     <div x-show="loading" x-transition.opacity style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(244,246,251,.85); font-family:Arial,sans-serif; color:#0F1E2E; font-weight:700; letter-spacing:.5px; z-index:5;">
-        Loading {{ $compact ? '' : '550+ ' }}sales…
+        Loading {{ $compact ? '' : \App\Support\TeamStats::mappedSales().' ' }}sales…
     </div>
 
     <div style="position:absolute; left:12px; bottom:28px; z-index:5; background:rgba(255,255,255,.95); border-radius:8px; padding:10px 12px; font-family:Arial,sans-serif; font-size:12px; color:#333; box-shadow:0 2px 10px rgba(0,0,0,.15); line-height:1.7;">

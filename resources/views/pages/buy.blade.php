@@ -14,7 +14,7 @@
       <a class="btn btn--ghost" href="#contact">Talk to Dawn &amp; Josh</a>
     </div>
     <ul class="trust" style="color:rgba(255,255,255,.75)">
-      <li>550+ closed sales</li>
+      <li>{{ \App\Support\TeamStats::soldTotal() }} closed sales</li>
       <li>Off-market &amp; PLN access</li>
       <li>4.9&#9733; &middot; 62+ Google reviews</li>
     </ul>
@@ -38,7 +38,7 @@
         <div><h3>Tour smart &mdash; including off-market homes</h3><p>We flag the flood-prone blocks, the loud corners, and the overpriced flips before you fall in love. Through our network and the Private Listing Network, you&rsquo;ll also see <a href="/off-market-homes">homes that never hit Zillow</a>.</p></div>
       </div>
       <div class="step">
-        <div><h3>Win the offer</h3><p>Price, terms, timing, escalation &mdash; there&rsquo;s more than one way to win a bidding war, and overpaying is only the worst one. This is where 550+ closed deals of negotiating experience earns its keep.</p></div>
+        <div><h3>Win the offer</h3><p>Price, terms, timing, escalation &mdash; there&rsquo;s more than one way to win a bidding war, and overpaying is only the worst one. This is where {{ \App\Support\TeamStats::soldTotal() }} closed deals of negotiating experience earns its keep.</p></div>
       </div>
       <div class="step">
         <div><h3>Close with confidence</h3><p>Inspection, attorney review, appraisal, final walkthrough &mdash; we manage every deadline and every renegotiation until the keys are in your hand.</p></div>

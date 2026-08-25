@@ -22,7 +22,7 @@
         <div>
           <h3>Dawn Simmons</h3>
           <div class="role">REALTOR&reg; &middot; Broker &middot; RE/MAX Hall of Fame</div>
-          <p>Dawn grew up in Chicago and moved to Prospect Heights in 1988 &mdash; drawn by the large lots, great schools, and the kind of neighborhood where you actually know your neighbors. She raised three boys here, served as the local Cub Scout master, and watched her family grow roots in the same community she now helps others find. She got her real estate license in 2001 and has been selling homes in the northwest suburbs ever since. 550+ transactions. RE/MAX Hall of Fame. But what she&rsquo;s most proud of is that all three of her sons still call Prospect Heights home.</p>
+          <p>Dawn grew up in Chicago and moved to Prospect Heights in 1988 &mdash; drawn by the large lots, great schools, and the kind of neighborhood where you actually know your neighbors. She raised three boys here, served as the local Cub Scout master, and watched her family grow roots in the same community she now helps others find. She got her real estate license in 2001 and has been selling homes in the northwest suburbs ever since. {{ \App\Support\TeamStats::soldTotal() }} transactions. RE/MAX Hall of Fame. But what she&rsquo;s most proud of is that all three of her sons still call Prospect Heights home.</p>
           <p><a class="link-arrow" href="tel:8477381884">(847) 738-1884</a><br><a href="mailto:simsre2000@yahoo.com">simsre2000@yahoo.com</a></p>
         </div>
       </div>
@@ -42,7 +42,7 @@
 <section class="stats section--ink">
   <div class="wrap">
     <div class="stats-grid">
-      <div><div class="stat-num">550+</div><div class="stat-label">Homes sold</div></div>
+      <div><div class="stat-num">{{ \App\Support\TeamStats::soldTotal() }}</div><div class="stat-label">Homes sold</div></div>
       <div><div class="stat-num">26+</div><div class="stat-label">Years experience</div></div>
       <div><div class="stat-num">4.9&#9733;</div><div class="stat-label">62+ Google reviews</div></div>
       <div><div class="stat-num">10M+</div><div class="stat-label">Views on one home tour</div></div>
@@ -72,7 +72,7 @@
       <div class="c-card"><h3>We fight for every dollar</h3><p>Pricing strategy and hard negotiation are where money is actually made or lost. Ask our sellers about &ldquo;sold in 2 days.&rdquo;</p></div>
       <div class="c-card"><h3>Marketing that reaches millions</h3><p>One of Josh&rsquo;s video walkthroughs topped 10 million views. Your listing gets that same energy.</p></div>
       <div class="c-card"><h3>We actually grew up here</h3><p>Not &ldquo;serving the area&rdquo; &mdash; living in it. We know which blocks flood, which streets are quiet, and what a home is really worth.</p></div>
-      <div class="c-card"><h3>Verifiable track record</h3><p><a href="/sold">550+ closed sales</a>, mapped, and <a href="/reviews">62+ public Google reviews</a>. Nothing to take on faith.</p></div>
+      <div class="c-card"><h3>Verifiable track record</h3><p><a href="/sold">{{ \App\Support\TeamStats::soldTotal() }} closed sales</a>, mapped, and <a href="/reviews">62+ public Google reviews</a>. Nothing to take on faith.</p></div>
       <div class="c-card"><h3>Two full-time agents</h3><p>Every client works with both of us. Two sets of eyes, two networks, one team.</p></div>
     </div>
   </div>

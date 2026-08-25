@@ -22,7 +22,7 @@
   <div class="wrap">
     <div class="stats-grid">
       <div><div class="stat-num">26+</div><div class="stat-label">Years in NW suburbs</div></div>
-      <div><div class="stat-num">550+</div><div class="stat-label">Properties sold</div></div>
+      <div><div class="stat-num">{{ \App\Support\TeamStats::soldTotal() }}</div><div class="stat-label">Properties sold</div></div>
       <div><div class="stat-num">3</div><div class="stat-label">Airbnbs personally operated</div></div>
       <div><div class="stat-num">Flat rate</div><div class="stat-label">Transparent pricing</div></div>
     </div>
@@ -106,7 +106,7 @@
       <div class="why-card">
         <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V10M10 19V5M16 19v-8M20 19H4"></path></svg></div>
         <h3>Agent-level market knowledge</h3>
-        <p>With 550+ transactions, we can price your rental accurately and spot when it&rsquo;s time to sell, hold, or refinance.</p>
+        <p>With {{ \App\Support\TeamStats::soldTotal() }} transactions, we can price your rental accurately and spot when it&rsquo;s time to sell, hold, or refinance.</p>
       </div>
       <div class="why-card">
         <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.5 6.6L20 20l-1-3.6A7.9 7.9 0 0 0 20 12Z"></path></svg></div>

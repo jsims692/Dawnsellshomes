@@ -119,7 +119,7 @@ html,body{overflow-x:hidden}
 
         <ul class="trust">
           <li>RE/MAX Hall of Fame</li>
-          <li>644 homes sold</li>
+          <li>{{ \App\Support\TeamStats::soldTotal() }} homes sold</li>
           <li>4.9★ · 62+ Google reviews</li>
         </ul>
       </div>
@@ -137,7 +137,7 @@ html,body{overflow-x:hidden}
 <div class="section--ink stats">
   <div class="wrap">
     <div class="stats-grid">
-      <div class="rv in"><div class="stat-num">644</div><div class="stat-label">Homes sold</div></div>
+      <div class="rv in"><div class="stat-num">{{ \App\Support\TeamStats::soldTotal() }}</div><div class="stat-label">Homes sold</div></div>
       <div class="rv in"><div class="stat-num">38</div><div class="stat-label">Combined years of experience</div></div>
       <div class="rv in"><div class="stat-num">4.9★</div><div class="stat-label">Across 62+ Google reviews</div></div>
       <div class="rv in"><div class="stat-num">10M+</div><div class="stat-label">Views on one home tour</div></div>
@@ -162,7 +162,7 @@ html,body{overflow-x:hidden}
       <div class="why-card rv in">
         <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 7.5v9M14.4 9.2c-.5-.8-1.4-1.2-2.4-1.2-1.4 0-2.5.8-2.5 2 0 2.6 5 1.5 5 4 0 1.2-1.1 2-2.5 2-1 0-1.9-.4-2.4-1.2"></path></svg></div>
         <h3>We fight for every dollar</h3>
-        <p>Nobody negotiates harder. Bidding wars won for buyers, multiple offers pulled for sellers — 644 times and counting.</p>
+        <p>Nobody negotiates harder. Bidding wars won for buyers, multiple offers pulled for sellers — {{ \App\Support\TeamStats::soldTotal() }} times and counting.</p>
       </div>
       <div class="why-card rv in">
         <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="13.5" height="12" rx="2.5"></rect><path d="M16.5 10.5 21 8v8l-4.5-2.5"></path></svg></div>
@@ -427,7 +427,7 @@ html,body{overflow-x:hidden}
         <div>
           <h3>Dawn Simmons</h3>
           <p class="role">REALTOR® · Broker · RE/MAX Hall of Fame</p>
-          <p>Moved to Prospect Heights in 1988, raised three boys here, and has been selling homes in the northwest suburbs since 2001 — 550+ transactions and counting. All three sons still call Prospect Heights home.</p>
+          <p>Moved to Prospect Heights in 1988, raised three boys here, and has been selling homes in the northwest suburbs since 2001 — {{ \App\Support\TeamStats::soldTotal() }} transactions and counting. All three sons still call Prospect Heights home.</p>
           <a class="link-arrow" href="/team#dawn">Read Dawn’s story →</a>
         </div>
       </div>

@@ -22,7 +22,7 @@
 
     {{-- loading veil --}}
     <div x-show="loading" x-transition.opacity style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(244,246,251,.85); font-family:Arial,sans-serif; color:#0F1E2E; font-weight:700; letter-spacing:.5px; z-index:500;">
-        Loading {{ $compact ? '' : '550+ ' }}sales…
+        Loading {{ $compact ? '' : \App\Support\TeamStats::mappedSales().' ' }}sales…
     </div>
 
     {{-- legend + view toggle --}}

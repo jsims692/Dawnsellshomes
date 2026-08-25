@@ -52,8 +52,8 @@
 <div x-data="soldPage()">
 <div class="hero">
   <div style="font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--gold); margin-bottom:12px;">Track Record</div>
-  <h1>{{ $stats['total'] >= 550 ? '550+' : $stats['total'] }} Homes Sold Across<br>the Northwest Suburbs</h1>
-  <p>Every pin on this map is a family we helped buy or sell a home. Real deals. Real results — {{ number_format($stats['cities']) }} towns, ${{ number_format($stats['volume'] / 1e6, 0) }}M+ in closed volume since {{ $stats['first_year'] }}.</p>
+  <h1>{{ \App\Support\TeamStats::soldTotal() }} Homes Sold Across<br>the Northwest Suburbs</h1>
+  <p>Every pin on this map is a family we helped buy or sell a home. Real deals. Real results — {{ number_format($stats['cities']) }} towns, ${{ number_format($stats['volume'] / 1e6, 0) }}M+ in closed volume. The map plots our {{ number_format($stats['total']) }} closings since {{ $stats['first_year'] }}; our earliest deals predate digital mapping.</p>
   <div class="stats-bar">
     <div class="stat"><div class="stat-num" x-text="counts.total.toLocaleString()">{{ $stats['total'] }}</div><div class="stat-label">Total Transactions</div></div>
     <div class="stat"><div class="stat-num" x-text="counts.listing.toLocaleString()">{{ $stats['listing'] }}</div><div class="stat-label">Listing Side</div></div>

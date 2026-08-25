@@ -42,8 +42,21 @@ class PageController extends Controller
         return view('page-v2', [
             'page' => $page,
             'head' => $this->legacyHead($page),
-            'body' => $this->stripLegacyChrome($page->body_html),
+            'body' => $this->refreshSoldCount($this->stripLegacyChrome($page->body_html)),
         ]);
+    }
+
+    /**
+     * Legacy copy bakes the career sold-count into prose ("closed 644 deals").
+     * Swap the stale number for the live one at render time — stored content
+     * untouched, and the noun lookahead keeps prices and addresses safe.
+     */
+    private function refreshSoldCount(string $body): string
+    {
+        return preg_replace([
+            '/\b644\b(?=\s+(?:deals?|homes?|times|transactions?|families|sales|closings?)\b)/iu',
+            '/\b644\b(?=<\/div>\s*<div class="stat-lbl">[^<]*\bSold\b)/i',
+        ], (string) \App\Support\TeamStats::soldTotal(), $body);
     }
 
     /**

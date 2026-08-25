@@ -22,7 +22,7 @@
     </div>
     <ul class="trust" style="color:rgba(255,255,255,.75)">
       <li>RE/MAX Hall of Fame</li>
-      <li>550+ homes sold</li>
+      <li>{{ \App\Support\TeamStats::soldTotal() }} homes sold</li>
       <li>4.9&#9733; &middot; 62+ Google reviews</li>
     </ul>
   </div>
@@ -37,7 +37,7 @@
     </div>
     <div class="steps">
       <div class="step">
-        <div><h3>Walkthrough &amp; pricing strategy</h3><p>We tour your home, pull real comps from our own 550+ closed sales, and land on a pricing strategy together. You get an honest number &mdash; not the inflated one that wins the listing and costs you months.</p></div>
+        <div><h3>Walkthrough &amp; pricing strategy</h3><p>We tour your home, pull real comps from our own {{ \App\Support\TeamStats::soldTotal() }} closed sales, and land on a pricing strategy together. You get an honest number &mdash; not the inflated one that wins the listing and costs you months.</p></div>
       </div>
       <div class="step">
         <div><h3>Prep, staging &amp; photography</h3><p>We tell you which fixes actually pay back (and which to skip), then make the house shine: professional photos, and video that shows the home the way buyers want to see it.</p></div>
@@ -64,7 +64,7 @@
     <div class="cards3">
       <div class="c-card"><h3>7 days a week, day or night</h3><p>You get our personal cell numbers. Deals don&rsquo;t happen 9-to-5 and neither do we.</p></div>
       <div class="c-card"><h3>We actually grew up here</h3><p>Not &ldquo;serving the area&rdquo; &mdash; living in it. We know which blocks flood, which streets are quiet, and what a home is really worth.</p></div>
-      <div class="c-card"><h3>A verifiable track record</h3><p><a href="/sold">550+ closed sales</a>, mapped, and <a href="/reviews">62+ public Google reviews</a>. Nothing to take on faith.</p></div>
+      <div class="c-card"><h3>A verifiable track record</h3><p><a href="/sold">{{ \App\Support\TeamStats::soldTotal() }} closed sales</a>, mapped, and <a href="/reviews">62+ public Google reviews</a>. Nothing to take on faith.</p></div>
     </div>
   </div>
 </section>
@@ -77,7 +77,7 @@
     </div>
     <div class="cards3">
       <div class="c-card"><h3>Seller net sheet</h3><p>The sale price is the headline &mdash; the wire to your bank is the real story. Estimate your true walk-away number, Illinois costs included. <a href="/seller-net-sheet">Open the net sheet &rarr;</a></p></div>
-      <div class="c-card"><h3>Homes we&rsquo;ve sold</h3><p>Every pin is a family we helped. Browse 550+ closed sales on an interactive map and see what we&rsquo;ve done on your street. <a href="/sold">See the map &rarr;</a></p></div>
+      <div class="c-card"><h3>Homes we&rsquo;ve sold</h3><p>Every pin is a family we helped. Browse {{ \App\Support\TeamStats::mappedSales() }} closed sales on an interactive map and see what we&rsquo;ve done on your street. <a href="/sold">See the map &rarr;</a></p></div>
       <div class="c-card"><h3>Free home valuation</h3><p>Enter your address above for an instant neighborhood snapshot from our own sales &mdash; then we&rsquo;ll follow up with a real number for your specific home, usually within 24 hours.</p></div>
     </div>
   </div>

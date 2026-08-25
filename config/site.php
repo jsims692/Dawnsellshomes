@@ -9,6 +9,12 @@ return [
 
     // IDX listings routes go live only when this is on (env LISTINGS_ENABLED)
     'listings_enabled' => env('LISTINGS_ENABLED', false),
+
+    // Early-career closings that predate the mapped sales table (2007+).
+    // Career total shown sitewide = sales rows + this. 89 reconciles the
+    // 644 career count with the 555 mapped sales as of Aug 2026 — correct
+    // it here if the real archive count differs.
+    'sales_baseline' => (int) env('SALES_BASELINE', 89),
     'josh_cell' => '(224) 628-4013',
     // Public Google reviews shown on /reviews (verbatim; also embedded as Review schema). Update as new ones come in.
     'reviews' => [
