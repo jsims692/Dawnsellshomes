@@ -35,6 +35,11 @@
   .fl-pop--right { left:auto; right:0; }
   .li-filters .fl-pop label.fl-check, .fl-check { display:flex; gap:9px; align-items:center; justify-content:flex-start; font-size:13.5px; padding:5px 0; text-transform:none; letter-spacing:0; font-weight:500; color:#0F1E2E; cursor:pointer; white-space:nowrap; }
   .li-filters .fl-pop label.fl-check input[type=checkbox] { margin:0; flex:none; width:15px; height:15px; min-width:0; padding:0; border:0; }
+  .li-filters .fl-pop input.fl-city-q { display:block; width:100%; min-width:0; margin:0 0 8px; padding:8px 10px; border:1px solid #c9d2e3; border-radius:6px; font-size:13.5px; position:sticky; top:-12px; background:#fff; box-shadow:0 4px 8px #fff; }
+  .fl-pop-actions { display:flex; gap:8px; position:sticky; bottom:-12px; background:#fff; padding:10px 0 12px; border-top:1px solid #E9EFF3; margin-top:8px; }
+  .li-filters .fl-pop-actions button { min-width:0; }
+  .fl-pop-actions .fl-apply { background:#C8102E; color:#fff; border:0; border-radius:999px; padding:8px 18px; font-weight:700; font-size:13px; cursor:pointer; }
+  .fl-pop-actions .fl-clear { background:none; border:1px solid #c9d2e3; color:#48586B; border-radius:999px; padding:8px 14px; font-weight:600; font-size:13px; cursor:pointer; }
   .demo-banner { background:#fff7e0; border:1px solid #e2cd86; color:#7a5d12; border-radius:8px; padding:12px 16px; margin:0 auto 22px; max-width:1000px; font-size:14px; }
 </style>
 
@@ -50,10 +55,16 @@
 
   <form class="li-filters" method="get" action="/listings">
     @php $selCities = array_map('mb_strtolower', (array) ($filters['city'] ?? [])); @endphp
-    <div x-data="{open:false}" style="position:relative"><label>Cities</label>
-      <button type="button" class="fl-pop-btn" @click="open=!open">{{ count($selCities) ? count($selCities).' selected' : 'All cities' }} &#9662;</button>
-      <div class="fl-pop" x-show="open" x-cloak @click.outside="open=false">
-        @foreach($cities as $c)<label class="fl-check"><input type="checkbox" name="city[]" value="{{ $c }}" @checked(in_array(mb_strtolower($c), $selCities))> {{ $c }}</label>@endforeach
+    <div x-data="{open:false, q:'', n:{{ count($selCities) }}}" style="position:relative"><label>Cities</label>
+      <button type="button" class="fl-pop-btn" @click="open=!open"><span x-text="n ? n+' selected' : 'All cities'">{{ count($selCities) ? count($selCities).' selected' : 'All cities' }}</span> &#9662;</button>
+      <div class="fl-pop" x-show="open" x-cloak @click.outside="open=false" x-ref="pop"
+           @change="n = $refs.pop.querySelectorAll('input[type=checkbox]:checked').length">
+        <input type="search" class="fl-city-q" placeholder="Type a city&hellip;" x-model="q" @keydown.enter.prevent>
+        @foreach($cities as $c)<label class="fl-check" x-show="!q || $el.textContent.toLowerCase().includes(q.toLowerCase())"><input type="checkbox" name="city[]" value="{{ $c }}" @checked(in_array(mb_strtolower($c), $selCities))> {{ $c }}</label>@endforeach
+        <div class="fl-pop-actions">
+          <button type="submit" class="fl-apply">Apply</button>
+          <button type="button" class="fl-clear" x-show="n > 0" @click="$refs.pop.querySelectorAll('input[type=checkbox]').forEach(i => i.checked = false); n = 0">Clear all</button>
+        </div>
       </div>
     </div>
     <div><label for="f-min">Min Price</label><select id="f-min" name="min"><option value="">No min</option>@foreach([200000,300000,400000,500000,750000,1000000] as $v)<option value="{{ $v }}" @selected(($filters['min'] ?? '') == $v)>${{ number_format($v/1000) }}K</option>@endforeach</select></div>
