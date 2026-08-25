@@ -76,7 +76,7 @@ class PageController extends Controller
             return redirect('/'.$owner, 301);
         }
         $entry = Subdivisions::find($slug);
-        abort_unless($entry, 404);
+        abort_unless($entry && $entry['total'] >= Subdivisions::MIN_LISTINGS, 404);
 
         $base = Listing::displayable()->where('is_demo', false)
             ->whereRaw('LOWER(city) = ?', [mb_strtolower($entry['city'])])
@@ -131,9 +131,12 @@ class PageController extends Controller
         }
         if (config('site.listings_enabled')) {
             foreach (Subdivisions::map() as $e) {
-                $put($e['citySlug'], $e['slug'], isset($groups[$e['citySlug']]['items'][$e['slug']])
-                    ? ['active' => $e['active']]
-                    : ['label' => $e['name'], 'url' => '/neighborhoods/'.$e['slug'], 'active' => $e['active']]);
+                if (isset($groups[$e['citySlug']]['items'][$e['slug']])) {
+                    $put($e['citySlug'], $e['slug'], ['active' => $e['active']]);
+                } elseif ($e['total'] >= Subdivisions::MIN_LISTINGS) {
+                    $put($e['citySlug'], $e['slug'],
+                        ['label' => $e['name'], 'url' => '/neighborhoods/'.$e['slug'], 'active' => $e['active']]);
+                }
             }
         }
 
