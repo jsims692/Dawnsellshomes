@@ -396,7 +396,7 @@ html,body{overflow-x:hidden}
     </div>
     <div class="team-grid">
       <div class="member rv">
-        <div class="ph noimg"><div class="ph-frame">
+        <div class="ph"><div class="ph-frame">
           <img src="/images/dawn-simmons.jpg" alt="Dawn Simmons, REALTOR and Broker at RE/MAX Suburban" loading="lazy" onerror="this.closest(&#39;.ph&#39;).classList.add(&#39;noimg&#39;)">
           <div class="ph-fallback"><span class="mono">D</span><small>Dawn Simmons</small></div>
         </div></div>
@@ -408,7 +408,7 @@ html,body{overflow-x:hidden}
         </div>
       </div>
       <div class="member rv">
-        <div class="ph noimg"><div class="ph-frame">
+        <div class="ph"><div class="ph-frame">
           <img src="/images/josh-simmons.jpg" alt="Josh Simmons, Broker Associate at RE/MAX Suburban" loading="lazy" onerror="this.closest(&#39;.ph&#39;).classList.add(&#39;noimg&#39;)">
           <div class="ph-fallback"><span class="mono">J</span><small>Josh Simmons</small></div>
         </div></div>
