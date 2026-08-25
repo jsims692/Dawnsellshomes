@@ -26,6 +26,26 @@ class Listing extends Model
         ];
     }
 
+    /** Room-by-room detail (name, dimensions, level, flooring). */
+    public function rooms(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(ListingRoom::class)->orderBy('sort');
+    }
+
+    /** Multi-value attributes (appliances, features, amenities…), one row per item. */
+    public function features(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(ListingFeature::class);
+    }
+
+    /** Feature values for one category, comma-joined for display. */
+    public function featureList(string $category): ?string
+    {
+        $values = $this->features->where('category', $category)->pluck('value');
+
+        return $values->isEmpty() ? null : $values->implode(', ');
+    }
+
     /** Only listings the rules allow us to display. */
     public function scopeDisplayable(Builder $q): Builder
     {

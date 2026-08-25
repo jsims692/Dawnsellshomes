@@ -60,7 +60,8 @@ class ListingController extends Controller
 
     public function show(string $listingId)
     {
-        $listing = Listing::displayable()->where('listing_id', $listingId)->firstOrFail();
+        $listing = Listing::displayable()->with(['rooms', 'features'])
+            ->where('listing_id', $listingId)->firstOrFail();
 
         return view('listings.show', [
             'l' => $listing,

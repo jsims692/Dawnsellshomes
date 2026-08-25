@@ -24,6 +24,7 @@ class MlsSync extends Command
     protected $signature = 'mls:sync
         {--full : Ignore the saved cursor and replicate from scratch}
         {--max=0 : Stop after roughly this many records (testing; skips the cursor save)}
+        {--keys : Re-fetch only the listings already in the local table (chunked by key)}
         {--dry : Fetch and report without writing}';
 
     protected $description = 'Replicate MRED listings from the MLS GRID RESO API into the listings table';
@@ -50,6 +51,9 @@ class MlsSync extends Command
         }
 
         $cities = $this->coverageCities();
+        if ($this->option('keys')) {
+            return $this->refreshLocalKeys($token, $cities);
+        }
         $cursor = $this->option('full') ? null : $this->readCursor();
 
         // CloseDate is not a filterable field on the MLS GRID API; a listing
@@ -67,7 +71,7 @@ class MlsSync extends Command
             $filter = "OriginatingSystemName eq 'mred' and ModificationTimestamp gt {$cursor}";
         }
 
-        $url = self::API.'?$filter='.rawurlencode($filter).'&$expand=Media&$top=1000';
+        $url = self::API.'?$filter='.rawurlencode($filter).'&$expand=Media,Rooms&$top=1000';
         $seen = 0;
         $written = 0;
         $maxTs = $cursor;
@@ -127,6 +131,46 @@ class MlsSync extends Command
         return self::SUCCESS;
     }
 
+    /**
+     * Re-fetch every listing already in the local table (fresh Media + Rooms +
+     * details) without a feed crawl — chunked OR-filters over listing keys.
+     * Patient with 429s: waits out the rate window instead of failing.
+     */
+    private function refreshLocalKeys(string $token, array $cities): int
+    {
+        $keys = Listing::where('is_demo', false)->pluck('listing_key');
+        $written = 0;
+        foreach ($keys->chunk(15) as $chunk) {
+            $filter = "OriginatingSystemName eq 'mred' and ("
+                .$chunk->map(fn ($k) => "ListingKey eq '{$k}'")->implode(' or ').')';
+            $url = self::API.'?$filter='.rawurlencode($filter).'&$expand=Media,Rooms&$top=100';
+
+            for ($attempt = 1; ; $attempt++) {
+                $resp = Http::withToken($token)->acceptJson()
+                    ->withHeaders(['Accept-Encoding' => 'gzip'])->timeout(60)->get($url);
+                if ($resp->status() === 429 && $attempt < 40) {
+                    sleep(60); // rate window: wait it out
+
+                    continue;
+                }
+                if (! $resp->successful()) {
+                    $this->error('MLS GRID API '.$resp->status().' during key refresh; stopping.');
+
+                    return self::FAILURE;
+                }
+                break;
+            }
+
+            foreach ($resp->json()['value'] ?? [] as $rec) {
+                $written += $this->upsert($rec, $cities) ? 1 : 0;
+            }
+            usleep(600000);
+        }
+        $this->info("Key refresh complete: {$written} of {$keys->count()} listings re-written.");
+
+        return self::SUCCESS;
+    }
+
     private function upsert(array $r, array $cities): bool
     {
         $city = $r['City'] ?? null;
@@ -172,7 +216,7 @@ class MlsSync extends Command
         // cache refreshes per listing on demand; galleries will do the same).
         $media = $media->take(1);
 
-        Listing::updateOrCreate(['listing_key' => $key], [
+        $listing = Listing::updateOrCreate(['listing_key' => $key], [
             'listing_id' => $r['ListingId'] ?? $key,
             'status' => $status,
             'list_price' => (int) ($r['ListPrice'] ?? 0),
@@ -211,7 +255,81 @@ class MlsSync extends Command
             'is_demo' => false,
         ] + self::extractDetails($r));
 
+        $this->syncChildren($listing, $r);
+
         return true;
+    }
+
+    /** RESO multi-value fields -> listing_features categories (whitelist = compliance filter). */
+    private const FEATURE_MAP = [
+        'Appliances' => 'appliances',
+        'InteriorFeatures' => 'interior',
+        'ExteriorFeatures' => 'exterior',
+        'ConstructionMaterials' => 'construction',
+        'ArchitecturalStyle' => 'style',
+        'Roof' => 'roof',
+        'FoundationDetails' => 'foundation',
+        'Basement' => 'basement',
+        'WindowFeatures' => 'windows',
+        'DoorFeatures' => 'doors',
+        'LaundryFeatures' => 'laundry',
+        'FireplaceFeatures' => 'fireplace',
+        'FireplaceLocation' => 'fireplace_location',
+        'Flooring' => 'flooring',
+        'Heating' => 'heating',
+        'Cooling' => 'cooling',
+        'Electric' => 'electric',
+        'WaterSource' => 'water',
+        'Sewer' => 'sewer',
+        'OtherEquipment' => 'equipment',
+        'ParkingFeatures' => 'parking',
+        'PatioAndPorchFeatures' => 'patio',
+        'OtherStructures' => 'structures',
+        'LotFeatures' => 'lot',
+        'AssociationAmenities' => 'amenities',
+        'AssociationFeeIncludes' => 'hoa_includes',
+        'CommunityFeatures' => 'community',
+        'RoomType' => 'additional_rooms',
+        'Possession' => 'possession',
+        'SpecialListingConditions' => 'conditions',
+        'PetsAllowed' => 'pets',
+    ];
+
+    /** Rewrite the rooms + features child rows from the fresh record. */
+    private function syncChildren(Listing $listing, array $r): void
+    {
+        $listing->features()->delete();
+        $features = [];
+        foreach (self::FEATURE_MAP as $field => $category) {
+            foreach ((array) ($r[$field] ?? []) as $value) {
+                if (is_scalar($value) && trim((string) $value) !== '') {
+                    $features[] = ['category' => $category, 'value' => mb_substr(trim((string) $value), 0, 150)];
+                }
+            }
+        }
+        if ($features !== []) {
+            $listing->features()->createMany($features);
+        }
+
+        $listing->rooms()->delete();
+        $rooms = [];
+        foreach ((array) ($r['Rooms'] ?? []) as $i => $room) {
+            $name = $room['RoomType'] ?? ($room['MRD_ROOM_NAME'] ?? null);
+            $name = is_array($name) ? implode(', ', $name) : $name;
+            if (! $name) {
+                continue;
+            }
+            $rooms[] = [
+                'name' => mb_substr((string) $name, 0, 60),
+                'dimensions' => mb_substr((string) ($room['RoomDimensions'] ?? ''), 0, 20) ?: null,
+                'level' => mb_substr((string) ($room['RoomLevel'] ?? ''), 0, 30) ?: null,
+                'flooring' => mb_substr(implode(', ', (array) ($room['RoomFlooring'] ?? ($room['Flooring'] ?? []))), 0, 40) ?: null,
+                'sort' => min($i, 255),
+            ];
+        }
+        if ($rooms !== []) {
+            $listing->rooms()->createMany($rooms);
+        }
     }
 
     /** Typed columns for every raw field the site can use (no raw blob kept). */
@@ -226,22 +344,29 @@ class MlsSync extends Command
             'tax_year' => $int($r['TaxYear'] ?? null),
             'hoa_fee' => $int($r['AssociationFee'] ?? null),
             'hoa_fee_freq' => $join($r['AssociationFeeFrequency'] ?? null, 20),
-            'hoa_includes' => $join($r['AssociationFeeIncludes'] ?? null, 255),
             'parking_total' => $int($r['ParkingTotal'] ?? null),
             'garage_spaces' => $int($r['GarageSpaces'] ?? null),
-            'heating' => $join($r['Heating'] ?? null, 120),
-            'cooling' => $join($r['Cooling'] ?? null, 120),
             'lot_dimensions' => $join($r['LotSizeDimensions'] ?? null, 60),
             'elementary_district' => $join($r['ElementarySchoolDistrict'] ?? null, 10),
             'middle_district' => $join($r['MiddleOrJuniorSchoolDistrict'] ?? null, 10),
             'high_district' => $join($r['HighSchoolDistrict'] ?? null, 10),
             'rooms_total' => $int($r['RoomsTotal'] ?? null),
             'stories' => $int($r['StoriesTotal'] ?? null),
-            'basement' => $join($r['Basement'] ?? null, 80),
             'new_construction' => (bool) ($r['NewConstructionYN'] ?? false),
             'listing_contract_date' => $r['ListingContractDate'] ?? null,
             'waterfront' => (bool) ($r['WaterfrontYN'] ?? false),
             'ownership' => $join($r['Ownership'] ?? null, 30),
+            'exposure' => $join($r['MRD_EXP'] ?? null, 40),
+            'age_range' => $join($r['MRD_AGE'] ?? null, 20),
+            'parcel_number' => $join($r['ParcelNumber'] ?? null, 20),
+            'township' => $join($r['Township'] ?? null, 40),
+            'county' => $join($r['CountyOrParish'] ?? null, 40),
+            'elementary_school' => $join($r['ElementarySchool'] ?? null, 80),
+            'middle_school' => $join($r['MiddleOrJuniorSchool'] ?? null, 80),
+            'high_school' => $join($r['HighSchool'] ?? null, 80),
+            'water_body' => $join($r['WaterBodyName'] ?? null, 60),
+            'virtual_tour_url' => $join($r['VirtualTourURLUnbranded'] ?? null, 255),
+            'fireplaces' => $int($r['FireplacesTotal'] ?? null),
         ];
     }
 
