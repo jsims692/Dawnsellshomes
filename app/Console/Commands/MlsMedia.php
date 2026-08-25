@@ -18,6 +18,7 @@ class MlsMedia extends Command
 {
     protected $signature = 'mls:media
         {--limit=0 : Stop after this many downloads (0 = no limit)}
+        {--all : Include closed listings (default: for-sale only — sold rows feed stats, not cards)}
         {--refresh : Re-download photos that are already cached}';
 
     protected $description = 'Download and cache primary listing photos from MLS GRID';
@@ -48,7 +49,8 @@ class MlsMedia extends Command
         $failed = 0;
 
         $q = Listing::displayable()->where('is_demo', false)->where('photo_count', '>', 0)
-            ->orderByRaw("FIELD(status, 'Active', 'Active Under Contract', 'Closed')")
+            ->when(! $this->option('all'), fn ($w) => $w->forSale())
+            ->orderByRaw("FIELD(status, 'Active', 'Active Under Contract', 'Pending', 'Closed')")
             ->orderByDesc('mls_modified_at');
 
         foreach ($q->cursor() as $l) {
