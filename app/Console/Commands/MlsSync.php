@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Listing;
+use App\Models\Sale;
 use App\Models\Page;
 use App\Support\MlsGridBudget;
 use Illuminate\Console\Command;
@@ -118,6 +119,8 @@ class MlsSync extends Command
         }
 
         if (! $this->option('dry')) {
+            $this->recordTeamClosings();
+
             // Sold stats window: drop closed listings that have aged out.
             Listing::where('status', 'Closed')
                 ->where(fn ($w) => $w->whereNull('close_date')
@@ -410,6 +413,61 @@ class MlsSync extends Command
             'virtual_tour_url' => $join($r['VirtualTourURLUnbranded'] ?? null, 255),
             'fireplaces' => $int($r['FireplacesTotal'] ?? null),
         ];
+    }
+
+    /**
+     * The sales table is the team's permanent track record (the listings
+     * table is a rolling 12-month window) — append the team's new closings
+     * so the sold map and stats update themselves. Deduped by MLS number,
+     * with a normalized address+year fallback for the imported era.
+     */
+    private function recordTeamClosings(): void
+    {
+        $added = 0;
+        $closings = Listing::where('is_team', true)->where('status', 'Closed')
+            ->whereNotNull('close_price')->whereNotNull('close_date')->get();
+        foreach ($closings as $l) {
+            if (Sale::where('mls_number', $l->listing_id)->exists()) {
+                continue;
+            }
+            $streetDigits = preg_replace('/\D/', '', strtok((string) $l->street_address, ' '));
+            $nameToken = strtolower(explode(' ', trim(preg_replace('/^\S+\s+(S |N |E |W )?/i', '', (string) $l->street_address)))[0] ?? '');
+            $dupe = Sale::where('sold_year', (int) $l->close_date->format('Y'))
+                ->whereRaw('LOWER(city) = ?', [strtolower((string) $l->city)])
+                ->get(['id', 'address'])
+                ->first(fn ($s) => str_starts_with(preg_replace('/\D/', '', strtok((string) $s->address, ' ')), $streetDigits)
+                    && $nameToken !== '' && stripos((string) $s->address, $nameToken) !== false);
+            if ($dupe) {
+                continue;
+            }
+
+            Sale::create([
+                'address' => $l->street_address,
+                'city' => $l->city,
+                'state' => $l->state ?: 'IL',
+                'zip' => $l->zip,
+                'sold_price' => $l->close_price,
+                'sold_at' => $l->close_date,
+                'sold_year' => (int) $l->close_date->format('Y'),
+                'property_type' => match ($l->dwelling) {
+                    'detached' => 'Single Family',
+                    'attached' => 'Condo/Townhome',
+                    'multi', 'multi5' => 'Multi-Unit',
+                    default => 'Home',
+                },
+                'side' => $l->teamSide() === 'buyer' ? 'buyside' : 'listing',
+                'lat' => $l->lat,
+                'lng' => $l->lng,
+                'mls_number' => $l->listing_id,
+                'notes' => 'Auto-recorded from the MLS feed',
+                'is_public' => (bool) $l->address_public,
+            ]);
+            $added++;
+        }
+        if ($added > 0) {
+            $this->info("Track record: {$added} new team closing(s) added to the sales table.");
+            cache()->forget('sales-map-payload');
+        }
     }
 
     private function readCursor(): ?string
