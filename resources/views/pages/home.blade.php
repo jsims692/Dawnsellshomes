@@ -66,8 +66,10 @@ html,body{overflow-x:hidden}
 
         <div x-show="result" x-cloak x-transition class="hv-result rv">
   <template x-if="result && result.ok"><div>
-    <div class="hv-kicker">Homes we've sold within <span x-text="result.radius_miles"></span> mi of <span x-text="shortAddr"></span></div>
-    <div class="hv-row"><span class="hv-median" x-text="fmt(result.median)"></span><span class="hv-range">typical range <strong x-text="fmt(result.low)+' – '+fmt(result.high)"></strong> · based on <strong x-text="result.count"></strong> of our own sales</span></div>
+    <div class="hv-kicker"><span x-text="result.kicker"></span> <span x-text="shortAddr"></span></div>
+    <div class="hv-row"><span class="hv-median" x-text="fmt(result.median)"></span><span class="hv-range">typical range <strong x-text="fmt(result.low)+' – '+fmt(result.high)"></strong> · <span x-text="result.basis_short"></span></span></div>
+    <p class="hv-note" x-show="result.ours_line" x-text="result.ours_line" style="font-weight:600;margin:.2rem 0 0"></p>
+    <p x-show="result.attribution" x-text="result.attribution" style="font-size:10px;color:var(--faint);margin:.3rem 0 0;line-height:1.5"></p>
     <p class="hv-note">That's the neighborhood — not your house. Get the exact number for your home, free, usually within 24 hours.</p>
     <button type="button" class="btn btn--primary" @click="toContact()">Get my exact number →</button>
   </div></template>

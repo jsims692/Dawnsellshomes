@@ -28,16 +28,18 @@
     <div x-show="result" x-cloak x-transition class="hv-result">
         <template x-if="result && result.ok">
             <div>
-                <div class="hv-kicker">Homes we've sold within <span x-text="result.radius_miles"></span> mi of <span x-text="shortAddr"></span></div>
+                <div class="hv-kicker"><span x-text="result.kicker"></span> <span x-text="shortAddr"></span></div>
                 <div class="hv-median" x-text="fmt(result.median)"></div>
                 <div class="hv-sub">Median sale price · typical range <strong x-text="fmt(result.low)+' – '+fmt(result.high)"></strong></div>
-                <div class="hv-sub">Based on <strong x-text="result.count"></strong> of our own closed sales, <span x-text="result.years[0]"></span>–<span x-text="result.years[1]"></span></div>
+                <div class="hv-sub" x-text="result.basis"></div>
+                <div class="hv-sub" x-show="result.ours_line" x-text="result.ours_line" style="font-weight:600;"></div>
                 <ul class="hv-sample">
                     <template x-for="s in result.sample" :key="s.address+s.year">
                         <li><span x-text="s.address+', '+s.city"></span><span x-text="fmt(s.price)+' · '+s.year"></span></li>
                     </template>
                 </ul>
                 <p class="hv-note">That's the neighborhood — not your house. Your kitchen, your lot, your updates and today's buyer demand move the number a lot. We'll run a real, no-obligation valuation on your specific home &mdash; usually within 24 hours.</p>
+                <p class="hv-attrib-line" x-show="result.attribution" x-text="result.attribution" style="font-size:10.5px;color:rgba(255,255,255,.55);margin:0 0 10px;line-height:1.5;"></p>
                 <button type="button" class="hv-cta" @click="toContact()">Get My Exact Number — Free →</button>
             </div>
         </template>
