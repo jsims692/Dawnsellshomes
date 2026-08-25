@@ -35,7 +35,9 @@ class MlsGeocode extends Command
                 ]))->implode("\n");
 
                 try {
-                    $resp = Http::timeout(120)
+                    // Census batches routinely take minutes under load; a tight
+                    // timeout aborts whole runs (Aug 2026 full-crawl backfill).
+                    $resp = Http::timeout(300)
                         ->attach('addressFile', $csv, 'addresses.csv')
                         ->post(self::API, ['benchmark' => 'Public_AR_Current']);
                 } catch (\Throwable $e) {
