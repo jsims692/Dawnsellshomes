@@ -167,6 +167,10 @@ class PageController extends Controller
     {
         $body = preg_replace('/<nav class="nav">.*?<\/nav>/s', '', $body, 1);
         $body = preg_replace('/<div id="tj-w".*?<\/a>\s*<\/div>/s', '', $body, 1);
+        // Older bare-anchor variant of the same floating widget (+ its
+        // positioning script) — the v2 chrome supplies the real button.
+        $body = preg_replace('/<a id="tj-btn".*?<\/a>/s', '', $body, 1);
+        $body = preg_replace('/<script>.{0,40}getElementById\(\'tj-btn\'\).*?<\/script>/s', '', $body, 1);
         // Last footer block only (heroes etc. stay untouched).
         $pos = strripos($body, '<footer');
         if ($pos !== false && ($end = stripos($body, '</footer>', $pos)) !== false) {
