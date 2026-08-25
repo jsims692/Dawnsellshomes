@@ -7,6 +7,11 @@
 <link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png">
 <meta property="og:image" content="https://dawnsellshomes.com/images/og-image-2.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image">
 @endisset
+{{-- Sitewide analytics; imported heads that already carry the tag (the homepage) are left to it. --}}
+@if(! str_contains($head ?? '', 'googletagmanager'))
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-PC0KNJJZNK"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-PC0KNJJZNK');</script>
+@endif
 {{-- Design v2 ("ink & red"): fonts + stylesheet load after the DB head so v2 wins ties against any imported page CSS. --}}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
