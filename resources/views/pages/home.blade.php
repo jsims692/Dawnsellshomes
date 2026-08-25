@@ -18,7 +18,7 @@
 .hv-result{background:#fff;border:1px solid var(--line);border-radius:16px;padding:1.1rem 1.25rem;margin-top:.9rem;font-family:'Archivo',system-ui,sans-serif;text-align:left}
 .hv-kicker{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--red)}
 .hv-row{display:flex;flex-wrap:wrap;align-items:baseline;gap:.7rem;margin:.35rem 0 .3rem}
-.hv-median{font-family:'Fraunces',serif;font-size:2rem;font-weight:600;color:var(--ink)}
+.hv-median{font-family:'Fraunces',serif;font-size:1.55rem;font-weight:600;color:var(--ink)}
 .hv-range{font-size:.85rem;color:var(--slate)}
 .hv-note{font-size:.85rem;color:var(--slate);margin:.3rem 0 .7rem}
 .hv-sample{list-style:none;margin:.5rem 0 .2rem;padding:0;font-size:.85rem;color:var(--slate)}
@@ -72,7 +72,7 @@ html,body{overflow-x:hidden}
         <div x-show="result" x-cloak x-transition class="hv-result rv">
   <template x-if="result && result.ok"><div>
     <div class="hv-kicker"><span x-text="result.kicker"></span> <span x-text="shortAddr"></span></div>
-    <div class="hv-row"><span class="hv-median" x-text="fmt(result.median)"></span><span class="hv-range">typical range <strong x-text="fmt(result.low)+' – '+fmt(result.high)"></strong> · <span x-text="result.basis_short"></span></span></div>
+    <div class="hv-row"><span class="hv-median" x-text="fmt(result.low)+' – '+fmt(result.high)"></span><span class="hv-range">median <strong x-text="fmt(result.median)"></strong> · <span x-text="result.basis_short"></span></span></div>
     <ul class="hv-sample">
       <template x-for="s in result.sample" :key="s.address+s.year">
         <li>

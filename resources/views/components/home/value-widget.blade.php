@@ -29,8 +29,8 @@
         <template x-if="result && result.ok">
             <div>
                 <div class="hv-kicker"><span x-text="result.kicker"></span> <span x-text="shortAddr"></span></div>
-                <div class="hv-median" x-text="fmt(result.median)"></div>
-                <div class="hv-sub">Median sale price · typical range <strong x-text="fmt(result.low)+' – '+fmt(result.high)"></strong></div>
+                <div class="hv-median" x-text="fmt(result.low)+' – '+fmt(result.high)"></div>
+                <div class="hv-sub">What nearby homes actually sold for · median <strong x-text="fmt(result.median)"></strong></div>
                 <div class="hv-sub" x-text="result.basis"></div>
                 <div class="hv-sub" x-show="result.ours_line" x-text="result.ours_line" style="font-weight:600;"></div>
                 <ul class="hv-sample">
@@ -67,7 +67,7 @@
 .hv-preds li.hv-attrib:hover { background:transparent; }
 .hv-result { margin-top:16px; padding-top:16px; border-top:1px solid rgba(255,255,255,.18); text-align:left; font-family:Arial,sans-serif; }
 .hv-kicker { font-size:12px; letter-spacing:.6px; text-transform:uppercase; color:var(--gold); font-weight:700; }
-.hv-median { font-size:38px; font-weight:800; color:#fff; line-height:1.1; margin:6px 0 4px; }
+.hv-median { font-size:29px; font-weight:800; color:#fff; line-height:1.1; margin:6px 0 4px; }
 .hv-sub { font-size:13px; color:rgba(255,255,255,.8); }
 .hv-sub strong { color:#fff; }
 .hv-sample { list-style:none; margin:12px 0 0; padding:0; font-size:12.5px; color:rgba(255,255,255,.85); }
