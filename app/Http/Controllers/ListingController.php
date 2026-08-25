@@ -71,7 +71,8 @@ class ListingController extends Controller
             $lockKey = 'gallery-fetch:'.$listing->listing_id;
             $cached = count($listing->photoUrls());
             $expected = (int) @file_get_contents(storage_path('app/public/listings/'.$listing->listing_key.'.count'));
-            $incomplete = $cached <= 1 || ($expected > 0 && $cached < $expected);
+            $incomplete = $cached <= 1
+                || ($expected > 0 && $cached < min($expected, \App\Console\Commands\MlsMedia::PHOTOS_MAX));
             if ($incomplete && cache()->add($lockKey, 1, 600)) {
                 // First view (or an abandoned partial fetch): pull the gallery.
                 exec(sprintf('%s %s mls:media --listing=%s --all >> %s 2>&1 &',

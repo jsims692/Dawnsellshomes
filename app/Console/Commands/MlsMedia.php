@@ -32,7 +32,7 @@ class MlsMedia extends Command
     private const PACE_MICROSECONDS = 450000; // ~2 requests/second
 
     /** Sanity bound only — buyers get every photo the listing has. */
-    private const PHOTOS_MAX = 60;
+    public const PHOTOS_MAX = 60;
 
     public function handle(): int
     {
@@ -111,6 +111,15 @@ class MlsMedia extends Command
                     $failed++;
                 }
                 usleep(self::PACE_MICROSECONDS);
+            }
+
+            // Targeted (on-demand) fetch: record what was actually achieved
+            // so a permanently-broken photo can't hold the page in
+            // "incomplete" forever, and release the fetch lock immediately.
+            if ($this->option('listing')) {
+                $achieved = count(glob("{$dir}/{$l->listing_key}-*.jpg") ?: []) + (int) is_file("{$dir}/{$l->listing_key}.jpg");
+                file_put_contents($countFile, $achieved);
+                cache()->forget('gallery-fetch:'.$l->listing_id);
             }
 
             if ($limit > 0 && $done >= $limit) {
