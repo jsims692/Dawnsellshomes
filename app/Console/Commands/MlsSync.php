@@ -243,7 +243,12 @@ class MlsSync extends Command
             // MRED uses -1 as a DOM sentinel; the column is unsigned.
             'days_on_market' => isset($r['DaysOnMarket']) && (int) $r['DaysOnMarket'] >= 0
                 ? min((int) $r['DaysOnMarket'], 65535) : null,
-            'street_address' => $r['UnparsedAddress'] ?? trim(($r['StreetNumber'] ?? '').' '.($r['StreetName'] ?? '')),
+            // MRED's UnparsedAddress is bare — compose the real line from parts
+            // ("263 S Clubhouse Dr #101", not "263 Clubhouse").
+            'street_address' => trim(preg_replace('/\s+/', ' ', implode(' ', [
+                $r['StreetNumber'] ?? '', $r['StreetDirPrefix'] ?? '', $r['StreetName'] ?? '',
+                $r['StreetSuffix'] ?? '', isset($r['UnitNumber']) ? '#'.$r['UnitNumber'] : '',
+            ]))) ?: ($r['UnparsedAddress'] ?? ''),
             'city' => $city,
             'state' => $r['StateOrProvince'] ?? 'IL',
             'zip' => $r['PostalCode'] ?? null,
@@ -252,9 +257,13 @@ class MlsSync extends Command
             'avm_allowed' => $r['InternetAutomatedValuationDisplayYN'] ?? true,
             'comments_allowed' => $r['InternetConsumerCommentYN'] ?? true,
             'beds' => $r['BedroomsTotal'] ?? null,
+            'bedrooms_possible' => $r['BedroomsPossible'] ?? null,
             'baths_full' => $r['BathroomsFull'] ?? null,
             'baths_half' => $r['BathroomsHalf'] ?? null,
             'sqft' => $r['LivingArea'] ?? null,
+            'living_area_source' => $r['LivingAreaSource'] ?? null,
+            'parcel_number' => $r['ParcelNumber'] ?? null,
+            'entry_level' => $r['EntryLevel'] ?? null,
             'property_type' => $r['PropertyType'] ?? null,
             'property_subtype' => $r['PropertySubType'] ?? null,
             'dwelling' => $dwelling,

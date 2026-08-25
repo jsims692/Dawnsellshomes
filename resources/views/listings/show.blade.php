@@ -86,9 +86,9 @@
   </div>
 
   <div class="ld-facts">
-    <span><strong>{{ $l->beds }}</strong> beds</span>
+    <span><strong>{{ $l->beds }}</strong> beds{{ $l->bedrooms_possible > $l->beds ? ' ('.$l->bedrooms_possible.' possible)' : '' }}</span>
     <span><strong>{{ $l->baths() }}</strong> baths</span>
-    @if($l->sqft)<span><strong>{{ number_format($l->sqft) }}</strong> sqft</span>@endif
+    @if($l->sqft)<span><strong>{{ number_format($l->sqft) }}</strong> sqft{{ $l->living_area_source ? ' ('.strtolower($l->living_area_source).')' : '' }}</span>@endif
     @if($l->year_built)<span>Built <strong>{{ $l->year_built }}</strong></span>@endif
     <span>{{ $l->property_subtype ?: $l->property_type }}</span>
     <span>MLS #<strong>{{ $l->listing_id }}</strong></span>
@@ -138,6 +138,7 @@
         'Style' => $l->featureList('style'),
         'Age' => $l->age_range,
         'Stories' => $l->stories,
+        'Entry level' => $l->entry_level,
         'Exterior' => $l->featureList('construction'),
         'Exterior features' => $l->featureList('exterior'),
         'Roof' => $l->featureList('roof'),
@@ -184,6 +185,7 @@
       ],
       'Taxes & terms' => [
         'Annual taxes' => $l->tax_annual ? $fmtMoney($l->tax_annual).($l->tax_year ? ' ('.$l->tax_year.')' : '') : null,
+        'Parcel number (PIN)' => $l->parcel_number,
         'PIN' => $l->parcel_number,
         'Ownership' => $l->ownership,
         'Possession' => $l->featureList('possession'),
