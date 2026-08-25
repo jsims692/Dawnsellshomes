@@ -41,6 +41,12 @@
   .fl-pop-actions .fl-apply { background:#C8102E; color:#fff; border:0; border-radius:999px; padding:8px 18px; font-weight:700; font-size:13px; cursor:pointer; }
   .fl-pop-actions .fl-clear { background:none; border:1px solid #c9d2e3; color:#48586B; border-radius:999px; padding:8px 14px; font-weight:600; font-size:13px; cursor:pointer; }
   .demo-banner { background:#fff7e0; border:1px solid #e2cd86; color:#7a5d12; border-radius:8px; padding:12px 16px; margin:0 auto 22px; max-width:1000px; font-size:14px; }
+  .lv-toggle { display:flex; border:1px solid #c9d2e3; border-radius:999px; overflow:hidden; background:#fff; }
+  .li-filters ~ * .lv-toggle button, .lv-toggle button { background:#fff; color:#48586B; border:0; border-radius:0; padding:8px 18px; font-size:13.5px; font-weight:700; cursor:pointer; min-width:0; }
+  .lv-toggle button.on { background:#0F1E2E; color:#fff; }
+  #lmap { height:72vh; min-height:420px; border-radius:12px; border:1px solid #DEE6EE; }
+  .lmap-key { display:inline-block; width:10px; height:10px; border-radius:50%; vertical-align:-1px; }
+  .leaflet-popup-content { margin:10px 12px; }
 </style>
 
 <div class="li-hero">
@@ -124,8 +130,25 @@
     </div>
   </div>
 
-  <p style="font-size:14px;color:#666;margin:0 0 18px;">{{ number_format($total) }} {{ Str::plural('listing', $total) }} found{{ $cityDisplay ? ' in '.$cityDisplay : '' }}.</p>
+  <div x-data="{ view: 'list' }">
+  <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin:0 0 18px;">
+    <p style="font-size:14px;color:#666;margin:0;">{{ number_format($total) }} {{ Str::plural('listing', $total) }} found{{ $cityDisplay ? ' in '.$cityDisplay : '' }}.</p>
+    <div class="lv-toggle" role="tablist" aria-label="Results view">
+      <button type="button" :class="{ on: view === 'list' }" class="on" @click="view = 'list'">&#9776; List</button>
+      <button type="button" :class="{ on: view === 'map' }" @click="view = 'map'; window.initListingsMap && initListingsMap()">&#128506; Map</button>
+    </div>
+  </div>
 
+  <div x-show="view === 'map'" x-cloak>
+    <div id="lmap"></div>
+    <p style="font-size:12.5px;color:#8A99AA;margin:10px 0 0;">
+      <span class="lmap-key" style="background:#C8102E"></span> Active &nbsp;
+      <span class="lmap-key" style="background:#0F1E2E"></span> Under contract &nbsp;&middot;&nbsp;
+      Up to 1,500 mapped listings for this search; homes without a mappable address appear in the list view only.
+    </p>
+  </div>
+
+  <div x-show="view === 'list'">
   <div class="li-grid">
     @foreach($listings as $l)
     {{-- Thumbnail: ≤8 objective fields, no site branding, links to the fully compliant detail page (Rules 10, 13, 22 exemptions) --}}
@@ -148,7 +171,57 @@
     @endfor
   </div>
   @endif
+  </div>{{-- /list view --}}
+  </div>{{-- /view toggle --}}
 </div>
+
+<script>
+// Map view: Leaflet loads on first open; pins come from /listings/map-data
+// with the current search's query string, so map and list always agree.
+window.initListingsMap = (function () {
+  var started = false;
+  return function () {
+    if (started) return; started = true;
+    var css = document.createElement('link');
+    css.rel = 'stylesheet'; css.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+    document.head.appendChild(css);
+    var js = document.createElement('script');
+    js.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+    js.onload = function () { setTimeout(build, 60); };
+    document.head.appendChild(js);
+  };
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+  function build() {
+    fetch('/listings/map-data' + window.location.search)
+      .then(function (r) { return r.json(); })
+      .then(function (pins) {
+        var map = L.map('lmap', { preferCanvas: true });
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+          attribution: '&copy; OpenStreetMap &copy; CARTO', maxZoom: 19
+        }).addTo(map);
+        var pts = [];
+        pins.forEach(function (p) {
+          var m = L.circleMarker([p.lat, p.lng], {
+            radius: 7, weight: 1.5, color: '#fff',
+            fillColor: p.s === 'Active' ? '#C8102E' : '#0F1E2E', fillOpacity: .92
+          }).addTo(map);
+          m.bindPopup('<a href="/listings/' + esc(p.id) + '" style="display:block;width:210px;text-decoration:none;color:#0F1E2E;font-family:Archivo,Arial,sans-serif;">'
+            + (p.ph ? '<div style="aspect-ratio:3/2;border-radius:8px;background:#E9EFF3 center/cover no-repeat;background-image:url(\'' + esc(p.ph) + '\');margin-bottom:8px;"></div>' : '')
+            + '<b style="font-size:16px;">' + (p.p ? '$' + Number(p.p).toLocaleString() : 'Auction') + '</b>'
+            + '<div style="font-size:12.5px;color:#48586B;">' + esc(p.b) + ' bd &middot; ' + esc(p.ba) + ' ba &middot; ' + esc(p.s) + '</div>'
+            + '<div style="font-size:12.5px;color:#48586B;margin-top:3px;line-height:1.4;">' + esc(p.a) + '</div></a>');
+          pts.push([p.lat, p.lng]);
+        });
+        if (pts.length) map.fitBounds(pts, { padding: [30, 30], maxZoom: 15 });
+        else map.setView([42.15, -88.0], 10);
+      });
+  }
+})();
+</script>
 
 @include('listings._compliance')
 </x-site.layout>

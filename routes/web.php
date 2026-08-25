@@ -22,6 +22,7 @@ Route::get('/sold/map-data', [SoldController::class, 'data']);
 // demo rows preview the display for MRED's compliance review meanwhile.
 if (config('site.listings_enabled')) {
     Route::get('/listings', [ListingController::class, 'index']);
+    Route::get('/listings/map-data', [ListingController::class, 'mapData'])->middleware('throttle:60,1');
     Route::get('/listings/{listingId}', [ListingController::class, 'show']);
 }
 

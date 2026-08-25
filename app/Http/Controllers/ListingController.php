@@ -7,16 +7,10 @@ use Illuminate\Http\Request;
 
 class ListingController extends Controller
 {
-    /** Search results. Filters are objective criteria only (Rule 9). */
-    public function index(Request $request)
+    /** The shared search query: every filter, applied identically for the list and the map. */
+    private function applyFilters(Request $request)
     {
         $q = Listing::displayable()->forSale();
-        match ($request->query('sort')) {
-            'price' => $q->orderBy('list_price'),
-            'price-desc' => $q->orderByDesc('list_price'),
-            'new' => $q->orderByDesc('listing_contract_date')->orderByDesc('mls_modified_at'),
-            default => $q->orderByDesc('mls_modified_at'),
-        };
 
         $cities = array_values(array_filter(array_map(
             fn ($c) => mb_strtolower(trim((string) $c)), (array) $request->query('city'))));
@@ -72,6 +66,20 @@ class ListingController extends Controller
             $q->whereHas('features', fn ($f) => $f->where('category', 'basement')->where('value', 'Finished'));
         }
 
+        return $q;
+    }
+
+    /** Search results. Filters are objective criteria only (Rule 9). */
+    public function index(Request $request)
+    {
+        $q = $this->applyFilters($request);
+        match ($request->query('sort')) {
+            'price' => $q->orderBy('list_price'),
+            'price-desc' => $q->orderByDesc('list_price'),
+            'new' => $q->orderByDesc('listing_contract_date')->orderByDesc('mls_modified_at'),
+            default => $q->orderByDesc('mls_modified_at'),
+        };
+
         // Rule 26: no artificial caps below min(500, 50%); pagination exposes
         // the complete result set. 2,500 hard ceiling per search.
         $total = min($q->count(), 2500);
@@ -97,6 +105,33 @@ class ListingController extends Controller
             'demo' => Listing::displayable()->where('is_demo', true)->exists(),
             'filters' => ['city' => array_values(array_filter((array) $request->query('city')))] + $request->only(['min', 'max', 'beds', 'baths', 'type', 'dwelling', 'waterfront', 'basement', 'garage', 'ffmaster', 'masterbath', 'ranch', 'nohoa', 'built', 'reduced', 'sort']),
         ]);
+    }
+
+    /**
+     * Pins for the map view: same filters as the list, coordinates only.
+     * Rule-10 thumbnails in the popups (price, beds/baths, address, photo),
+     * each linked to the fully compliant detail page.
+     */
+    public function mapData(Request $request)
+    {
+        $pins = $this->applyFilters($request)
+            ->whereNotNull('lat')->whereNotNull('lng')
+            ->limit(1500)
+            ->get(['listing_id', 'listing_key', 'status', 'list_price', 'street_address', 'city',
+                'state', 'zip', 'address_public', 'beds', 'baths_full', 'baths_half', 'lat', 'lng', 'is_auction'])
+            ->map(fn ($l) => [
+                'id' => $l->listing_id,
+                'lat' => (float) $l->lat,
+                'lng' => (float) $l->lng,
+                'p' => $l->is_auction ? null : $l->list_price,
+                'a' => $l->displayAddress(),
+                'b' => (int) $l->beds,
+                'ba' => $l->baths(),
+                's' => $l->status,
+                'ph' => $l->photoUrl(),
+            ])->values();
+
+        return response()->json($pins)->header('Cache-Control', 'public, max-age=120');
     }
 
     public function show(string $listingId)
