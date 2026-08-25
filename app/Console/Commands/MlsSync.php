@@ -168,6 +168,10 @@ class MlsSync extends Command
             ->map(fn ($m) => ['url' => $m['MediaURL'] ?? null, 'order' => $m['Order'] ?? 0])
             ->filter(fn ($m) => $m['url'])
             ->values();
+        $photoCount = $media->count();
+        // Signed URLs die within the hour — keep only the primary (the photo
+        // cache refreshes per listing on demand; galleries will do the same).
+        $media = $media->take(1);
 
         Listing::updateOrCreate(['listing_key' => $key], [
             'listing_id' => $r['ListingId'] ?? $key,
@@ -203,9 +207,10 @@ class MlsSync extends Command
             'lat' => $r['Latitude'] ?? null,
             'lng' => $r['Longitude'] ?? null,
             'media' => $media,
-            'photo_count' => $media->count(),
+            'photo_count' => $photoCount,
             'mls_modified_at' => $r['ModificationTimestamp'] ?? null,
-            'raw' => $r,
+            // Media + PublicRemarks live in their own columns / the photo cache.
+            'raw' => collect($r)->except(['Media', 'PublicRemarks'])->all(),
             'is_demo' => false,
         ]);
 

@@ -132,7 +132,7 @@ class MlsMedia extends Command
             ->map(fn ($m) => ['url' => $m['MediaURL'] ?? null, 'order' => $m['Order'] ?? 0])
             ->filter(fn ($m) => $m['url'])
             ->values();
-        $l->update(['media' => $media, 'photo_count' => $media->count()]);
+        $l->update(['media' => $media->take(1), 'photo_count' => $media->count()]);
 
         return $media[0]['url'] ?? null;
     }
