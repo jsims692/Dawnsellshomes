@@ -46,7 +46,7 @@ class MlsSync extends Command
         }
 
         $cities = $this->coverageCities();
-        $cursor = $this->option('full') ? null : cache()->get('mlsgrid-cursor');
+        $cursor = $this->option('full') ? null : $this->readCursor();
 
         // CloseDate is not a filterable field on the MLS GRID API; a listing
         // that closed inside the window was necessarily *modified* inside it
@@ -56,6 +56,7 @@ class MlsSync extends Command
         $filter = "OriginatingSystemName eq 'mred' and ("
             ."StandardStatus eq Odata.Models.StandardStatus'Active'"
             ." or StandardStatus eq Odata.Models.StandardStatus'ActiveUnderContract'"
+            ." or StandardStatus eq Odata.Models.StandardStatus'Pending'"
             ." or (StandardStatus eq Odata.Models.StandardStatus'Closed' and ModificationTimestamp gt {$closedSince})"
             .')';
         if ($cursor) {
@@ -100,7 +101,9 @@ class MlsSync extends Command
                 ->delete();
 
             if ($maxTs) {
-                cache()->forever('mlsgrid-cursor', $maxTs);
+                // A file, not the cache: cache:clear must never cost us the
+                // cursor (that silently turns hourly increments into full pulls).
+                file_put_contents(storage_path('app/mlsgrid-cursor'), $maxTs);
             }
         }
 
@@ -115,7 +118,7 @@ class MlsSync extends Command
         $city = $r['City'] ?? null;
         $status = $r['StandardStatus'] ?? ($r['MlsStatus'] ?? '');
         $inCoverage = $city && in_array(mb_strtolower($city), $cities, true);
-        $active = in_array($status, ['Active', 'Active Under Contract'], true);
+        $active = in_array($status, ['Active', 'Active Under Contract', 'Pending'], true);
         $closedRecent = $status === 'Closed'
             && ($r['CloseDate'] ?? null)
             && $r['CloseDate'] >= now()->subMonths(self::CLOSED_MONTHS)->toDateString();
@@ -178,6 +181,13 @@ class MlsSync extends Command
         ]);
 
         return true;
+    }
+
+    private function readCursor(): ?string
+    {
+        $file = storage_path('app/mlsgrid-cursor');
+
+        return is_file($file) ? (trim((string) file_get_contents($file)) ?: null) : cache()->get('mlsgrid-cursor');
     }
 
     /** The objective geographic coverage: every city this site has a page for. */

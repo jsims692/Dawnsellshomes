@@ -29,9 +29,9 @@ class PageController extends Controller
             $page->body_html = $this->swapHomeValueWidget($page->body_html);
         }
 
-        // City + neighborhood pages get a live MLS band (inventory, sold stats,
-        // listing cards) injected into the imported markup.
-        if (in_array($page->type, ['city', 'neighborhood'], true)) {
+        // City, neighborhood and condo pages get a live MLS band (inventory,
+        // sold stats, listing cards) injected into the imported markup.
+        if (in_array($page->type, ['city', 'neighborhood', 'condo'], true)) {
             $this->injectListingsBand($page);
         }
 
@@ -127,13 +127,28 @@ class PageController extends Controller
             return;
         }
 
-        $html = cache()->remember('listings-band:'.$page->path, 900,
-            fn () => $this->renderListingsBand($page) ?? '');
+        $body = $page->body_html;
+        // Pages with the old IDX Broker carousel ("Active Listings in …") get
+        // the live cards swapped into that slot; everywhere else the full band
+        // is inserted after the search section (fallback: above the footer).
+        $embedded = str_contains($body, 'idx-widget-wrap');
+
+        $html = cache()->remember('listings-band:'.$page->path.($embedded ? ':embed' : ''), 300,
+            fn () => $this->renderListingsBand($page, $embedded) ?? '');
         if ($html === '') {
             return;
         }
 
-        $body = $page->body_html;
+        if ($embedded) {
+            // preg_replace_callback: the band HTML contains "$123,456" prices,
+            // which a plain replacement string would treat as backreferences.
+            $page->body_html = preg_replace_callback(
+                '/<div class="idx-widget-wrap"[^>]*>\s*<script[^>]*><\/script>\s*<\/div>/',
+                fn () => $html, $body, 1);
+
+            return;
+        }
+
         $pos = strpos($body, 'id="city-search"');
         if ($pos !== false && ($end = strpos($body, '</section>', $pos)) !== false) {
             $page->body_html = substr_replace($body, "\n".$html, $end + strlen('</section>'), 0);
@@ -144,7 +159,7 @@ class PageController extends Controller
         $page->body_html = $pos === false ? $body.$html : substr_replace($body, $html."\n", $pos, 0);
     }
 
-    private function renderListingsBand(Page $page): ?string
+    private function renderListingsBand(Page $page, bool $embedded = false): ?string
     {
         [$cityName, $subdivision] = $this->listingScope($page);
         if (! $cityName) {
@@ -170,9 +185,17 @@ class PageController extends Controller
         }
 
         $active = (clone $base)->where('status', 'Active')->count();
-        $underContract = (clone $base)->where('status', 'Active Under Contract')->count();
+        // "Under contract" the way consumers mean it: contingent + pending.
+        $underContract = (clone $base)->whereIn('status', ['Active Under Contract', 'Pending'])->count();
+        // Sold window: 6 months, widened to 12 when the 6-month bucket is empty.
+        $closedMonths = 6;
         $closed = (clone $base)->where('status', 'Closed')->where('close_date', '>=', now()->subMonths(6));
         $closedCount = (clone $closed)->count();
+        if ($closedCount === 0) {
+            $closedMonths = 12;
+            $closed = (clone $base)->where('status', 'Closed')->where('close_date', '>=', now()->subMonths(12));
+            $closedCount = (clone $closed)->count();
+        }
         if ($active + $underContract + $closedCount === 0) {
             return null;
         }
@@ -192,12 +215,14 @@ class PageController extends Controller
         $asOf = Listing::max('mls_modified_at');
 
         return view('components.listings.in-city', [
+            'embedded' => $embedded,
             'title' => $title,
             'listings' => $cards,
             'stats' => [
                 'active' => $active,
                 'underContract' => $underContract,
                 'closed6mo' => $closedCount,
+                'closedMonths' => $closedMonths,
                 'medianClose' => $prices->isEmpty() ? null : $prices[(int) floor(($prices->count() - 1) / 2)],
                 'avgDom' => $avgDom ? (int) round($avgDom) : null,
                 'saleListRatio' => $ratio ? round($ratio, 1) : null,
@@ -217,7 +242,7 @@ class PageController extends Controller
             return [str_replace('-', ' ', $slug), null];
         }
 
-        // Neighborhood slugs end in their city's slug: "{subdivision}-{city}".
+        // Neighborhood/condo slugs end in their city's slug: "{subdivision}-{city}".
         $citySlugs = cache()->remember('city-page-slugs', now()->addDay(),
             fn () => Page::where('type', 'city')->pluck('slug')
                 ->sortByDesc(fn ($s) => strlen($s))->values()->all());

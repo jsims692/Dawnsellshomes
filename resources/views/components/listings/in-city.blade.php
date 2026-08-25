@@ -3,9 +3,10 @@
      pages carry their own imported CSS). Cards are Rule-10 thumbnails (≤8
      fields, linked to the full compliant display); the stats strip is market
      analytics, attributed via the standard compliance block below. --}}
-<section class="dshl" id="live-listings">
+<section class="dshl{{ ($embedded ?? false) ? ' dshl--embed' : '' }}" id="live-listings">
 <style>
   .dshl { font-family:'Archivo',Arial,sans-serif; background:#F2F5F9; padding:52px 24px; }
+  .dshl--embed { background:transparent; padding:8px 0 0; }
   .dshl-in { max-width:1180px; margin:0 auto; }
   .dshl-eyebrow { font-size:11px; font-weight:800; letter-spacing:2px; text-transform:uppercase; color:#C8102E; margin-bottom:10px; }
   .dshl h2 { font-family:Georgia,'Fraunces',serif; font-size:clamp(22px,3vw,32px); color:#0F1E2E; margin:0 0 6px; }
@@ -28,16 +29,18 @@
   .dshl-sold-note { margin-top:18px; font-size:13.5px; color:#48586B; }
 </style>
   <div class="dshl-in">
+    @unless($embedded ?? false)
     <div class="dshl-eyebrow">Live from the MLS</div>
     <h2>Homes for sale in {{ $title }}</h2>
+    @endunless
     <p class="dshl-asof">Updated {{ $dataAsOf instanceof \Carbon\CarbonInterface ? $dataAsOf->timezone('America/Chicago')->format('n/j/Y g:i A T') : $dataAsOf }} &middot; Listings courtesy of MRED as distributed by MLS GRID</p>
 
     <div class="dshl-stats">
       <div class="dshl-stat"><b>{{ number_format($stats['active']) }}</b><span>Active listings</span></div>
       <div class="dshl-stat"><b>{{ number_format($stats['underContract']) }}</b><span>Under contract</span></div>
-      <div class="dshl-stat"><b>{{ number_format($stats['closed6mo']) }}</b><span>Sold, last 6 months</span></div>
+      <div class="dshl-stat"><b>{{ number_format($stats['closed6mo']) }}</b><span>Sold, last {{ $stats['closedMonths'] }} months</span></div>
       @if($stats['medianClose'])
-      <div class="dshl-stat"><b>${{ number_format($stats['medianClose']) }}</b><span>Median sale price (6 mo)</span></div>
+      <div class="dshl-stat"><b>${{ number_format($stats['medianClose']) }}</b><span>Median sale price ({{ $stats['closedMonths'] }} mo)</span></div>
       @endif
       @if($stats['avgDom'])
       <div class="dshl-stat"><b>{{ $stats['avgDom'] }}</b><span>Avg days on market</span></div>
@@ -66,7 +69,7 @@
     <a class="dshl-all" href="{{ $allUrl }}">See all {{ number_format($total) }} home{{ $total === 1 ? '' : 's' }} for sale in {{ $allLabel }} &rarr;</a>
     @endif
     @if($stats['closed6mo'] > 0)
-    <p class="dshl-sold-note">Thinking of selling here? {{ number_format($stats['closed6mo']) }} home{{ $stats['closed6mo'] === 1 ? '' : 's' }} closed in {{ $title }} in the last 6 months{{ $stats['medianClose'] ? ' at a median of $'.number_format($stats['medianClose']) : '' }}. <a href="/sell" style="color:#C8102E;font-weight:700;">Get your free valuation &rarr;</a></p>
+    <p class="dshl-sold-note">Thinking of selling here? {{ number_format($stats['closed6mo']) }} home{{ $stats['closed6mo'] === 1 ? '' : 's' }} closed in {{ $title }} in the last {{ $stats['closedMonths'] }} months{{ $stats['medianClose'] ? ' at a median of $'.number_format($stats['medianClose']) : '' }}. <a href="/sell" style="color:#C8102E;font-weight:700;">Get your free valuation &rarr;</a></p>
     @endif
   </div>
   @include('listings._compliance', ['dataAsOf' => $dataAsOf])
