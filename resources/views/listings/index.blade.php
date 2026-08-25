@@ -1,6 +1,11 @@
 <x-site.layout :page="null" :head="null" title="Homes for Sale — Northwest Suburbs | The Dawn Simmons Team">
+@php
+  $dwLabel = ['detached' => 'Detached Homes', 'attached' => 'Condos & Townhomes', 'multi' => '2–4 Unit Buildings', 'multi5' => '5+ Unit Buildings'][$filters['dwelling'] ?? ''] ?? 'Homes';
+  $placeLabel = ($filters['city'] ?? null) ? $filters['city'].', IL' : 'the Northwest Suburbs';
+  $pageHeading = "{$dwLabel} for Sale in {$placeLabel}";
+@endphp
 <x-slot:headExtra>
-<title>Homes for Sale in the Northwest Suburbs | The Dawn Simmons Team – RE/MAX Suburban</title>
+<title>{{ $pageHeading }} | The Dawn Simmons Team – RE/MAX Suburban</title>
 <meta name="description" content="Search homes for sale across Chicago's northwest suburbs with the Dawn Simmons Team, RE/MAX Suburban. Listings courtesy of MRED as distributed by MLS GRID, updated throughout the day.">
 <meta name="robots" content="{{ config('services.mlsgrid.token') ? 'index,follow' : 'noindex,nofollow' }}">
 </x-slot:headExtra>
@@ -27,8 +32,8 @@
 </style>
 
 <div class="li-hero">
-  <h1>Homes for Sale in the Northwest Suburbs</h1>
-  <p>Every active listing in the communities we serve &mdash; updated throughout the day from the MLS via MLS GRID.</p>
+  <h1>{{ $pageHeading }}</h1>
+  <p>{{ ($filters['city'] ?? null) ? 'Every active '.strtolower($dwLabel === 'Homes' ? 'listing' : $dwLabel).' in '.$filters['city'] : 'Every active listing in the communities we serve' }} &mdash; updated throughout the day from the MLS via MLS GRID.</p>
 </div>
 
 <div class="li-wrap">
