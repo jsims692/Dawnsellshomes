@@ -29,8 +29,8 @@ class MlsMedia extends Command
     private const MAX_WIDTH = 800;
     private const PACE_MICROSECONDS = 450000; // ~2 requests/second
 
-    /** Gallery cap per listing (photo 0 = {key}.jpg, then {key}-1.jpg …). */
-    private const PHOTOS_MAX = 24;
+    /** Sanity bound only — buyers get every photo the listing has. */
+    private const PHOTOS_MAX = 60;
 
     public function handle(): int
     {
@@ -109,9 +109,37 @@ class MlsMedia extends Command
             }
         }
 
-        $this->info("Media cache: {$done} downloaded, {$skipped} without media, {$failed} failed.");
+        $pruned = $this->prune($dir);
+
+        $this->info("Media cache: {$done} downloaded, {$skipped} without media, {$failed} failed, {$pruned} stale files pruned.");
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Disk stays proportional to live inventory: drop files for listings no
+     * longer in the table, and gallery files (beyond the primary) for
+     * listings no longer for sale.
+     */
+    private function prune(string $dir): int
+    {
+        $known = Listing::pluck('status', 'listing_key');
+        $pruned = 0;
+        foreach (scandir($dir) ?: [] as $f) {
+            if (! preg_match('/^([A-Z0-9]+?)(?:-(\d+))?\.(?:jpg|count)$/', $f, $m)) {
+                continue;
+            }
+            $status = $known[$m[1]] ?? null;
+            $gone = $status === null;
+            $offMarketGallery = ! $gone && ! in_array($status, ['Active', 'Active Under Contract'], true)
+                && (($m[2] ?? '') !== '' || str_ends_with($f, '.count'));
+            if ($gone || $offMarketGallery) {
+                @unlink("{$dir}/{$f}");
+                $pruned++;
+            }
+        }
+
+        return $pruned;
     }
 
     /** Re-fetch this listing's Media (fresh signed URLs), ordered. */
