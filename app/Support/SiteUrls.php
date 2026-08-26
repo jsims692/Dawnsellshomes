@@ -56,6 +56,32 @@ class SiteUrls
         });
     }
 
+    /**
+     * The fully rendered sitemap XML. Building it walks ~10k URLs (22s on
+     * prod) — far too slow per-request, so the scheduler warms this cache
+     * hourly and the controller serves the cached document.
+     */
+    public static function sitemapXml(bool $fresh = false): string
+    {
+        if ($fresh) {
+            cache()->forget('site-urls');
+            cache()->forget('sitemap-xml');
+        }
+
+        return cache()->remember('sitemap-xml', 7200, function () {
+            $sitemap = \Spatie\Sitemap\Sitemap::create();
+            foreach (self::all() as $url => $lastmod) {
+                $u = \Spatie\Sitemap\Tags\Url::create($url);
+                if ($lastmod) {
+                    $u->setLastModificationDate(Carbon::parse($lastmod));
+                }
+                $sitemap->add($u);
+            }
+
+            return $sitemap->render();
+        });
+    }
+
     /** URLs whose content changed within the window — the IndexNow freshness ping. */
     public static function recent(int $hours = 2): array
     {

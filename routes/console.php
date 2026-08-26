@@ -23,3 +23,8 @@ Schedule::command('mls:alerts')->hourlyAt(30)->withoutOverlapping();
 // Freshness ping: tell IndexNow-connected engines (Bing, Yandex, ...) which
 // URLs the last sync actually changed. Google gets lastmod via sitemap.xml.
 Schedule::command('sitemap:submit', ['--recent' => 2])->hourlyAt(40)->withoutOverlapping();
+
+// Rebuild the cached sitemap document after each sync cycle (serving it
+// fresh per-request takes ~22s — crawlers give up).
+Schedule::call(fn () => \App\Support\SiteUrls::sitemapXml(fresh: true))
+    ->name('sitemap-warm')->hourlyAt(45)->withoutOverlapping();
