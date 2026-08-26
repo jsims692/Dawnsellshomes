@@ -19,6 +19,22 @@ class TeamStats
             fn () => DB::table('sales')->count() + (int) config('site.sales_baseline'));
     }
 
+    /**
+     * Swap stale sold-count generations baked into stored copy ("644 homes
+     * sold", "550+ transactions", stat blocks, meta descriptions) for the
+     * live number. Noun/markup lookaheads keep prices, ZIPs, coordinates,
+     * and MLS numbers untouched.
+     */
+    public static function refreshCopy(string $html): string
+    {
+        return preg_replace([
+            '/\b644\b(?=\s+(?:deals?|homes?|times|transactions?|families|sales|closings?)\b)/iu',
+            '/\b644\b(?=<\/div>\s*<div class="stat-lbl">[^<]*\bSold\b)/i',
+            '/\b550\+(?=\s+(?:deals?|homes?|times|transactions?|families|sales|closed|closings?|properties)\b)/iu',
+            '/\b550\+(?=<\/div>\s*<div class="stat-lbl">[^<]*\bSold\b)/i',
+        ], (string) self::soldTotal(), $html);
+    }
+
     /** Mapped closings only (what the /sold map can actually pin). */
     public static function mappedSales(): int
     {

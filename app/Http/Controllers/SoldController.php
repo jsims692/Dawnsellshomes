@@ -16,7 +16,8 @@ class SoldController extends Controller
     public function show()
     {
         $page = Page::where('path', 'sold')->firstOrFail();
-        $head = str_replace('<!--STYLE-->', '', $page->head_html); // page ships its own styles
+        $head = \App\Support\TeamStats::refreshCopy(
+            str_replace('<!--STYLE-->', '', $page->head_html)); // page ships its own styles
 
         $sales = Sale::public()->orderByDesc('sold_year')->orderByDesc('sold_price')->get();
 

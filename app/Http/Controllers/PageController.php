@@ -22,7 +22,7 @@ class PageController extends Controller
         // so the imported stylesheet slot is dropped rather than filled.
         $override = 'pages.'.($path === '' ? 'home' : str_replace('/', '.', $path));
         if (view()->exists($override)) {
-            $head = str_replace('<!--STYLE-->', '', $page->head_html);
+            $head = $this->refreshSoldCount(str_replace('<!--STYLE-->', '', $page->head_html));
 
             return view($override, ['page' => $page, 'head' => $head] + $this->extraData($path));
         }
@@ -42,7 +42,7 @@ class PageController extends Controller
 
         return view('page-v2', [
             'page' => $page,
-            'head' => $this->legacyHead($page),
+            'head' => $this->refreshSoldCount($this->legacyHead($page)),
             'body' => $this->refreshSoldCount($this->stripLegacyChrome($page->body_html)),
         ]);
     }
@@ -54,10 +54,7 @@ class PageController extends Controller
      */
     private function refreshSoldCount(string $body): string
     {
-        return preg_replace([
-            '/\b644\b(?=\s+(?:deals?|homes?|times|transactions?|families|sales|closings?)\b)/iu',
-            '/\b644\b(?=<\/div>\s*<div class="stat-lbl">[^<]*\bSold\b)/i',
-        ], (string) \App\Support\TeamStats::soldTotal(), $body);
+        return \App\Support\TeamStats::refreshCopy($body);
     }
 
     /**
@@ -197,10 +194,11 @@ class PageController extends Controller
 
         $page->body_html = $this->swapHomepageMap($page->body_html);
         $page->body_html = $this->swapHomeValueWidget($page->body_html);
+        $page->body_html = $this->refreshSoldCount($page->body_html);
 
         return view('page', [
             'page' => $page,
-            'head' => '<meta name="robots" content="noindex,nofollow">'.$this->legacyHead($page),
+            'head' => '<meta name="robots" content="noindex,nofollow">'.$this->refreshSoldCount($this->legacyHead($page)),
             'needsAlpine' => str_contains($page->body_html, 'x-data='),
         ]);
     }
