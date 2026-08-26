@@ -99,6 +99,7 @@
         <label class="fl-check"><input type="checkbox" name="waterfront" value="1" @checked($filters['waterfront'] ?? false)> &#127754; Waterfront only</label>
         <label class="fl-check"><input type="checkbox" name="nohoa" value="1" @checked($filters['nohoa'] ?? false)> No HOA</label>
         <label class="fl-check"><input type="checkbox" name="reduced" value="1" @checked($filters['reduced'] ?? false)> &#128201; Price reduced</label>
+        <label class="fl-check"><input type="checkbox" name="available" value="1" @checked($filters['available'] ?? false)> &#9989; Available only (hide under contract)</label>
         <div style="border-top:1px solid #E9EFF3;margin:8px 0 4px"></div>
         <label class="fl-check" style="justify-content:space-between !important">Basement
           <select name="basement" style="padding:5px 8px;border:1px solid #c9d2e3;border-radius:6px;font-size:13px;"><option value="">Any</option><option value="1" @selected(($filters['basement'] ?? '') === '1')>Has basement</option><option value="finished" @selected(($filters['basement'] ?? '') === 'finished')>Finished</option></select>

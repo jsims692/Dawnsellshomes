@@ -76,6 +76,7 @@ class SavedSearch extends Model
             ->when($c['reduced'] ?? null, fn ($q) => $q->whereNotNull('price_dropped_at'))
             ->when($c['school'] ?? null, fn ($q, $v) => $q->where(fn ($w) => $w
                 ->where('elementary_school', $v)->orWhere('middle_school', $v)->orWhere('high_school', $v)))
+            ->when($c['available'] ?? null, fn ($q) => $q->where('status', 'Active'))
             ->when(($c['basement'] ?? null) === 'finished', fn ($q) => $q->whereHas('features',
                 fn ($f) => $f->where('category', 'basement')->where('value', 'Finished')));
     }

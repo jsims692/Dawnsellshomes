@@ -59,6 +59,9 @@ class ListingController extends Controller
         if ($built = (int) $request->query('built')) {
             $q->where('year_built', '>=', $built);
         }
+        if ($request->boolean('available')) {
+            $q->where('status', 'Active');
+        }
         if ($request->boolean('reduced')) {
             $q->whereNotNull('price_dropped_at');
         }
@@ -77,6 +80,9 @@ class ListingController extends Controller
     public function index(Request $request)
     {
         $q = $this->applyFilters($request);
+        // Available homes always lead — under-contract stays visible (deals
+        // fall through; backups happen) but never buries what a buyer can get.
+        $q->orderByRaw("FIELD(status, 'Active', 'Active Under Contract')");
         match ($request->query('sort')) {
             'price' => $q->orderBy('list_price'),
             'price-desc' => $q->orderByDesc('list_price'),
@@ -107,7 +113,7 @@ class ListingController extends Controller
             'cities' => Listing::displayable()->forSale()->distinct()->orderBy('city')->pluck('city'),
             'dataAsOf' => Listing::max('mls_modified_at') ?? now(),
             'demo' => Listing::displayable()->where('is_demo', true)->exists(),
-            'filters' => ['city' => array_values(array_filter((array) $request->query('city')))] + $request->only(['min', 'max', 'beds', 'baths', 'type', 'dwelling', 'waterfront', 'basement', 'garage', 'ffmaster', 'masterbath', 'ranch', 'nohoa', 'built', 'reduced', 'sort', 'school']),
+            'filters' => ['city' => array_values(array_filter((array) $request->query('city')))] + $request->only(['min', 'max', 'beds', 'baths', 'type', 'dwelling', 'waterfront', 'basement', 'garage', 'ffmaster', 'masterbath', 'ranch', 'nohoa', 'built', 'reduced', 'available', 'sort', 'school']),
         ]);
     }
 
