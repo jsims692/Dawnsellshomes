@@ -1,12 +1,15 @@
 @props(['page' => null, 'head' => null, 'title' => null])
 <!DOCTYPE html>
 <html lang="en">
-<head>{!! $head !!}@isset($headExtra){!! $headExtra !!}
+@php $hx = isset($headExtra) ? (string) $headExtra : null; @endphp
+<head>{!! $head !!}@if($hx !== null){!! $hx !!}
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png">
-<meta property="og:image" content="https://dawnsellshomes.com/images/og-image-2.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image">
-@endisset
+{{-- Default social card only when the page didn't provide its own (two
+     og:images confuse some messengers into the wrong crop) --}}
+@if(! str_contains($hx, 'og:image'))<meta property="og:image" content="https://dawnsellshomes.com/images/og-image-2.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">@endif<meta name="twitter:card" content="summary_large_image">
+@endif
 {{-- Sitewide analytics; imported heads that already carry the tag (the homepage) are left to it. --}}
 @if(! str_contains($head ?? '', 'googletagmanager'))
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-PC0KNJJZNK"></script>

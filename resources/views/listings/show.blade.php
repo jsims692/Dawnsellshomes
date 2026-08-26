@@ -11,7 +11,12 @@
 <meta property="og:description" content="{{ $l->beds }} bed · {{ $l->baths() }} bath{{ $l->sqft ? ' · '.number_format($l->sqft).' sqft' : '' }} — listing courtesy of {{ $l->list_office_name }} via MRED / MLS GRID.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://dawnsellshomes.com/listings/{{ $l->listing_id }}">
-@if($l->photoUrl())<meta property="og:image" content="{{ url($l->photoUrl()) }}">@endif
+@if($l->photoUrl())
+@php [$ogW, $ogH] = @getimagesize(public_path(ltrim((string) parse_url($l->photoUrl(), PHP_URL_PATH), '/'))) ?: [null, null]; @endphp
+<meta property="og:image" content="{{ url($l->photoUrl()) }}">
+@if($ogW)<meta property="og:image:width" content="{{ $ogW }}"><meta property="og:image:height" content="{{ $ogH }}">@endif
+<meta property="og:image:alt" content="{{ $l->address_public && $l->street_address ? $l->street_address.', '.$l->city : 'Home in '.$l->city }}">
+@endif
 @php
   $ld = [
     '@context' => 'https://schema.org',
