@@ -13,8 +13,10 @@ return [
     // Service-area towns WITHOUT a hand-built city page (the sync's coverage
     // filter unions these with city-page slugs). Lowercase, spaces.
     'extra_coverage_cities' => [
-        'hawthorn woods',
-        'long grove',
+        'hawthorn woods', 'long grove', 'lake zurich', 'kildeer', 'deer park',
+        'lincolnshire', 'riverwoods', 'johnsburg', 'spring grove', 'wonder lake',
+        'lakemoor', 'port barrington', 'tower lakes', 'oakwood hills',
+        'prairie grove', 'richmond', 'green oaks', 'hainesville',
     ],
 
     // Early-career closings that predate the mapped sales table (2007+).

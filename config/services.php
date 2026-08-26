@@ -49,8 +49,15 @@ return [
     ],
 
 
+    // ONE google block — a duplicate key here silently clobbers the earlier
+    // one (it cost us the Maps key for a day; don't split this again).
     'google' => [
         'maps_key' => env('GOOGLE_MAPS_KEY'),
+        // Path to the Search Console service-account JSON (never in git)
+        'search_console_credentials' => env('GSC_CREDENTIALS'),
+        // 'sc-domain:dawnsellshomes.com' for a Domain property, or the full
+        // 'https://dawnsellshomes.com/' URL for a URL-prefix property
+        'search_console_property' => env('GSC_PROPERTY', 'sc-domain:dawnsellshomes.com'),
     ],
 
     'mlsgrid' => [
@@ -59,14 +66,6 @@ return [
 
     'indexnow' => [
         'key' => env('INDEXNOW_KEY'),
-    ],
-
-    'google' => [
-        // Path to the Search Console service-account JSON (never in git)
-        'search_console_credentials' => env('GSC_CREDENTIALS'),
-        // 'sc-domain:dawnsellshomes.com' for a Domain property, or the full
-        // 'https://dawnsellshomes.com/' URL for a URL-prefix property
-        'search_console_property' => env('GSC_PROPERTY', 'sc-domain:dawnsellshomes.com'),
     ],
 
 ];
