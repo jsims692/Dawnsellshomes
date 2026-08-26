@@ -61,4 +61,12 @@ return [
         'key' => env('INDEXNOW_KEY'),
     ],
 
+    'google' => [
+        // Path to the Search Console service-account JSON (never in git)
+        'search_console_credentials' => env('GSC_CREDENTIALS'),
+        // 'sc-domain:dawnsellshomes.com' for a Domain property, or the full
+        // 'https://dawnsellshomes.com/' URL for a URL-prefix property
+        'search_console_property' => env('GSC_PROPERTY', 'sc-domain:dawnsellshomes.com'),
+    ],
+
 ];
