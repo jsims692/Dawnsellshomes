@@ -321,8 +321,10 @@ class PageController extends Controller
         if ($embedded) {
             // preg_replace_callback: the band HTML contains "$123,456" prices,
             // which a plain replacement string would treat as backreferences.
+            // The wrap's old IDX <script> is optional — the widget-script
+            // purge (Aug 2026) emptied it but the slot itself remains.
             $page->body_html = preg_replace_callback(
-                '/<div class="idx-widget-wrap"[^>]*>\s*<script[^>]*><\/script>\s*<\/div>/',
+                '/<div class="idx-widget-wrap"[^>]*>\s*(?:<script[^>]*><\/script>\s*)?<\/div>/',
                 fn () => $html, $body, 1);
 
             return;
@@ -330,6 +332,13 @@ class PageController extends Controller
 
         $pos = strpos($body, 'id="city-search"');
         if ($pos !== false && ($end = strpos($body, '</section>', $pos)) !== false) {
+            $page->body_html = substr_replace($body, "\n".$html, $end + strlen('</section>'), 0);
+
+            return;
+        }
+        // No search section (neighborhood/condo pages): right under the hero,
+        // so live listings lead the page (Josh, Aug 2026).
+        if (($end = strpos($body, '</section>')) !== false) {
             $page->body_html = substr_replace($body, "\n".$html, $end + strlen('</section>'), 0);
 
             return;
