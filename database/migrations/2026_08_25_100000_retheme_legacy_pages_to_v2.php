@@ -34,7 +34,7 @@ return new class extends Migration
     {
         DB::statement('CREATE TABLE IF NOT EXISTS page_styles_navy_backup LIKE page_styles');
         DB::statement('INSERT INTO page_styles_navy_backup SELECT * FROM page_styles');
-        DB::statement('CREATE TABLE IF NOT EXISTS pages_navy_body_backup (id BIGINT UNSIGNED PRIMARY KEY, body_html LONGTEXT)');
+        DB::statement('CREATE TABLE IF NOT EXISTS pages_navy_body_backup (id BIGINT UNSIGNED PRIMARY KEY, body_html LONGTEXT) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci');
         DB::statement('INSERT INTO pages_navy_body_backup SELECT id, body_html FROM pages');
 
         foreach (DB::table('page_styles')->get() as $row) {
