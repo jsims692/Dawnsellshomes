@@ -116,6 +116,23 @@ class Subdivisions
         return self::map()[$slug] ?? null;
     }
 
+    /** Community-page URL for a listing's subdivision tag, or null if none exists. */
+    public static function urlFor(?string $name, ?string $city): ?string
+    {
+        $nameSlug = Str::slug((string) $name);
+        $citySlug = Str::slug((string) $city);
+        if ($nameSlug === '' || $citySlug === '') {
+            return null;
+        }
+        $slug = str_ends_with($nameSlug, '-'.$citySlug) ? $nameSlug : $nameSlug.'-'.$citySlug;
+        if ($hand = Page::whereIn('type', ['neighborhood', 'condo'])->where('slug', $slug)->value('path')) {
+            return '/'.$hand;
+        }
+        $e = self::find($slug);
+
+        return $e && $e['total'] >= self::MIN_LISTINGS ? '/neighborhoods/'.$slug : null;
+    }
+
     /**
      * The facts a subdivision page states about itself — build era, housing
      * mix, sizes, taxes, assigned schools, recent sales — all derived from

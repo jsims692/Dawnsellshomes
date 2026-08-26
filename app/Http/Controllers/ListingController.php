@@ -186,8 +186,31 @@ class ListingController extends Controller
                     'city', 'state', 'zip', 'address_public', 'beds', 'baths_full', 'baths_half', 'sqft']);
         }
 
+        // Community link + nearby sold comps (for-sale pages only): the
+        // context Zillow gives, from data we already replicate.
+        $nearbySolds = [];
+        if ($listing->isForSale() && $listing->lat && $listing->lng) {
+            $nearbySolds = Listing::displayable()->where('is_demo', false)
+                ->where('status', 'Closed')->whereNotNull('close_price')
+                ->where('id', '!=', $listing->id)
+                ->whereBetween('lat', [$listing->lat - 0.015, $listing->lat + 0.015])
+                ->whereBetween('lng', [$listing->lng - 0.02, $listing->lng + 0.02])
+                ->orderByRaw('POW(lat - ?, 2) + POW(lng - ?, 2)', [$listing->lat, $listing->lng])
+                ->limit(4)
+                ->get(['listing_id', 'street_address', 'address_public', 'close_price', 'close_date', 'beds', 'baths_full', 'baths_half'])
+                ->map(fn ($s) => [
+                    'id' => $s->listing_id,
+                    'address' => $s->address_public && $s->street_address ? $s->street_address : null,
+                    'beds' => $s->beds, 'baths' => $s->baths(),
+                    'when' => $s->close_date?->format('M Y'), 'price' => $s->close_price,
+                ])->all();
+        }
+
         return view('listings.show', [
             'l' => $listing,
+            'subUrl' => $listing->isForSale()
+                ? \App\Support\Subdivisions::urlFor($listing->subdivision, $listing->city) : null,
+            'nearbySolds' => $nearbySolds,
             'similar' => $similar,
             'galleryFetching' => $galleryFetching,
             'dataAsOf' => Listing::max('mls_modified_at') ?? now(),

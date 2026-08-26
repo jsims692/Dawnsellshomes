@@ -94,7 +94,7 @@
       <a class="dshl-all" href="{{ $panel['allUrl'] }}">See all {{ number_format($panel['total']) }} {{ $noun }}{{ $panel['total'] === 1 ? '' : 's' }} for sale in {{ $panel['allLabel'] }} &rarr;</a>
       @endif
       @if($panel['stats']['closed6mo'] > 0)
-      <p class="dshl-sold-note">Thinking of selling here? {{ number_format($panel['stats']['closed6mo']) }} {{ $noun }}{{ $panel['stats']['closed6mo'] === 1 ? '' : 's' }} closed in {{ $panel['title'] }} in the last {{ $panel['stats']['closedMonths'] }} months{{ $panel['stats']['medianClose'] ? ' at a median of $'.number_format($panel['stats']['medianClose']) : '' }}. <a href="/sell" style="color:#C8102E;font-weight:700;">Get your free valuation &rarr;</a></p>
+      <p class="dshl-sold-note">Thinking of selling here? {{ number_format($panel['stats']['closed6mo']) }} {{ $noun }}{{ $panel['stats']['closed6mo'] === 1 ? '' : 's' }} closed in {{ $panel['title'] }} in the last {{ $panel['stats']['closedMonths'] }} months{{ $panel['stats']['medianClose'] ? ' at a median of $'.number_format($panel['stats']['medianClose']) : '' }}. <a href="/sell" style="color:#C8102E;font-weight:700;">Get your free valuation &rarr;</a>@if($marketUrl ?? null) &nbsp;&middot;&nbsp; <a href="{{ $marketUrl }}" style="color:#C8102E;font-weight:700;">Live {{ $cityLabel ?? '' }} market report &rarr;</a>@endif</p>
       @endif
     </div>
     @endforeach

@@ -398,6 +398,9 @@ class PageController extends Controller
             'cityLabel' => $cityLabel,
             'citySlug' => $citySlug,
             'subdivisions' => $this->citySubdivisions($citySlug),
+            'marketUrl' => Listing::displayable()->where('is_demo', false)
+                ->whereRaw('LOWER(city) = ?', [mb_strtolower($cityLabel)])->count() >= 20
+                ? '/market/'.$citySlug : null,
         ])->render();
     }
 

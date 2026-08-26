@@ -257,6 +257,26 @@
 
   @include('listings._calculator')
 
+  @if($subUrl && $l->subdivision)
+  <p style="margin:22px 0 0;font-size:14.5px;">&#127968; This home is in <a href="{{ $subUrl }}" style="color:#C8102E;font-weight:700;">{{ $l->subdivision }}</a> &mdash; see the community's listings, sold prices, and market stats.</p>
+  @endif
+
+  @if(!empty($nearbySolds))
+  <h2 class="ld-h2">Recently sold nearby</h2>
+  <table class="ld-rooms" style="max-width:760px;">
+    <tr><th>Address</th><th>Beds / Baths</th><th>Sold</th><th>Price</th></tr>
+    @foreach($nearbySolds as $s)
+    <tr>
+      <td><a href="/listings/{{ $s['id'] }}" style="color:#0F1E2E;font-weight:600;text-decoration:none;">{{ $s['address'] ?? 'Address withheld' }}</a></td>
+      <td>{{ $s['beds'] }} bd / {{ $s['baths'] }} ba</td>
+      <td>{{ $s['when'] }}</td>
+      <td>${{ number_format($s['price']) }}</td>
+    </tr>
+    @endforeach
+  </table>
+  <p style="font-size:12px;color:#8A99AA;margin-top:8px;">Sold data courtesy of MRED as distributed by MLS GRID; properties may be listed or sold by various participants in the MLS.</p>
+  @endif
+
   @if($similar->isNotEmpty())
   <h2 class="ld-h2">Similar homes nearby</h2>
   <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px;">

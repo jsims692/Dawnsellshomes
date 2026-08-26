@@ -93,8 +93,9 @@ html,body{overflow-x:hidden}
 
         <div x-show="result" x-cloak x-transition class="hv-result rv">
   <template x-if="result && result.ok"><div>
-    <div class="hv-kicker"><span x-text="result.kicker"></span> <span x-text="shortAddr"></span></div>
+    <div class="hv-kicker">Estimated value range</div>
     <div class="hv-row"><span class="hv-median" x-text="fmt(result.low)+' – '+fmt(result.high)"></span><span class="hv-range">median <strong x-text="fmt(result.median)"></strong> · <span x-text="result.basis_short"></span></span></div>
+    <p class="hv-note" style="margin:.1rem 0 .4rem"><span x-text="result.kicker"></span> <span x-text="shortAddr"></span>. An estimate from recent nearby sales &mdash; not an appraisal or CMA.</p>
     <ul class="hv-sample">
       <template x-for="s in result.sample" :key="s.address+s.year">
         <li>
@@ -106,8 +107,9 @@ html,body{overflow-x:hidden}
     </ul>
     <p class="hv-note" x-show="result.ours_line" x-text="result.ours_line" style="font-weight:600;margin:.2rem 0 0"></p>
     <p x-show="result.attribution" x-text="result.attribution" style="font-size:10px;color:var(--faint);margin:.3rem 0 0;line-height:1.5"></p>
-    <p class="hv-note">That's the neighborhood — not your house. Get the exact number for your home, free, usually within 24 hours.</p>
+    <p class="hv-note">That's the data — now get Josh's number for your specific house, free, usually within 24 hours.</p>
     <button type="button" class="btn btn--primary" @click="toContact()">Get my exact number →</button>
+    <a href="/seller-net-sheet" style="display:inline-block;margin-left:10px;font-size:.85rem;font-weight:700;color:var(--red);text-decoration:none;">What would I actually walk away with? →</a>
   </div></template>
   <template x-if="result && !result.ok"><div>
     <p class="hv-note">We haven't closed enough sales right there for a fair snapshot — but we'll pull real comps and send you a free valuation within 24 hours.</p>
