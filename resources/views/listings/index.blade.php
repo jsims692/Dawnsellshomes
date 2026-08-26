@@ -46,6 +46,19 @@
   .lv-toggle button.on { background:#0F1E2E; color:#fff; }
   #lmap { height:72vh; min-height:420px; border-radius:12px; border:1px solid #DEE6EE; }
   .lmap-key { display:inline-block; width:10px; height:10px; border-radius:50%; vertical-align:-1px; }
+  /* Mobile default: one view at a time, driven by the List|Map toggle */
+  .li-mapcol { display:none; }
+  .is-map .li-mapcol { display:block; }
+  .is-map .li-results { display:none; }
+  /* Desktop: portal split — sticky map beside the scrolling results */
+  @media (min-width:1000px) {
+    .lv-toggle { display:none; }
+    .li-split { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:20px; align-items:start; }
+    .li-results { display:block !important; }
+    .li-mapcol { display:block !important; position:sticky; top:76px; }
+    #lmap { height:calc(100vh - 165px); }
+    .li-results .li-grid { grid-template-columns:repeat(auto-fill,minmax(235px,1fr)); }
+  }
   .leaflet-popup-content { margin:10px 12px; }
 </style>
 
@@ -130,7 +143,10 @@
     </div>
   </div>
 
-  <div x-data="{ view: 'list' }">
+  {{-- Desktop: portal-style split (scrolling cards + sticky map, both always
+       on). Mobile: the List|Map toggle, since side-by-side can't fit. --}}
+  <div x-data="{ view: 'list' }" :class="{ 'is-map': view === 'map' }"
+       x-init="window.matchMedia('(min-width:1000px)').matches && window.initListingsMap && initListingsMap()">
   <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin:0 0 18px;">
     <p style="font-size:14px;color:#666;margin:0;">{{ number_format($total) }} {{ Str::plural('listing', $total) }} found{{ $cityDisplay ? ' in '.$cityDisplay : '' }}.</p>
     <div class="lv-toggle" role="tablist" aria-label="Results view">
@@ -139,16 +155,17 @@
     </div>
   </div>
 
-  <div x-show="view === 'map'" x-cloak>
+  <div class="li-split">
+  <div class="li-mapcol">
     <div id="lmap"></div>
     <p style="font-size:12.5px;color:#8A99AA;margin:10px 0 0;">
       <span class="lmap-key" style="background:#C8102E"></span> Active &nbsp;
       <span class="lmap-key" style="background:#0F1E2E"></span> Under contract &nbsp;&middot;&nbsp;
-      Up to 1,500 mapped listings for this search; homes without a mappable address appear in the list view only.
+      Up to 1,500 mapped listings for this search; homes without a mappable address appear in the list only.
     </p>
   </div>
 
-  <div x-show="view === 'list'">
+  <div class="li-results">
   <div class="li-grid">
     @foreach($listings as $l)
     {{-- Thumbnail: ≤8 objective fields, no site branding, links to the fully compliant detail page (Rules 10, 13, 22 exemptions) --}}
@@ -171,8 +188,9 @@
     @endfor
   </div>
   @endif
-  </div>{{-- /list view --}}
-  </div>{{-- /view toggle --}}
+  </div>{{-- /.li-results --}}
+  </div>{{-- /.li-split --}}
+  </div>{{-- /view state --}}
 </div>
 
 <script>
