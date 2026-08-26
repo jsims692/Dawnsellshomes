@@ -231,7 +231,24 @@ window.initListingsMap = (function () {
             + (p.ph ? '<div style="aspect-ratio:3/2;border-radius:8px;background:#E9EFF3 center/cover no-repeat;background-image:url(\'' + esc(p.ph) + '\');margin-bottom:8px;"></div>' : '')
             + '<b style="font-size:16px;">' + (p.p ? '$' + Number(p.p).toLocaleString() : 'Auction') + '</b>'
             + '<div style="font-size:12.5px;color:#48586B;">' + esc(p.b) + ' bd &middot; ' + esc(p.ba) + ' ba &middot; ' + esc(p.s) + '</div>'
-            + '<div style="font-size:12.5px;color:#48586B;margin-top:3px;line-height:1.4;">' + esc(p.a) + '</div></a>');
+            + '<div style="font-size:12.5px;color:#48586B;margin-top:3px;line-height:1.4;">' + esc(p.a) + '</div></a>',
+            { autoPan: false });
+          // Hover opens the card; a short close delay lets the cursor travel
+          // into the popup to click through. Touch devices still tap to open.
+          var closeTimer;
+          m.on('mouseover', function () { clearTimeout(closeTimer); this.openPopup(); });
+          m.on('mouseout', function () {
+            var self = this;
+            closeTimer = setTimeout(function () { self.closePopup(); }, 350);
+          });
+          m.on('popupopen', function (e) {
+            var el = e.popup.getElement();
+            if (!el) return;
+            el.addEventListener('mouseenter', function () { clearTimeout(closeTimer); });
+            el.addEventListener('mouseleave', function () {
+              closeTimer = setTimeout(function () { m.closePopup(); }, 300);
+            });
+          });
           pts.push([p.lat, p.lng]);
         });
         if (pts.length) map.fitBounds(pts, { padding: [30, 30], maxZoom: 15 });
