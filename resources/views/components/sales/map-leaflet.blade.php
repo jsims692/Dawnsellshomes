@@ -90,10 +90,10 @@ document.addEventListener('alpine:init', () => {
         async init() {
             this.map = L.map(this.$refs.map, { scrollWheelZoom: !compact, zoomControl: true, attributionControl: true })
                 .setView([42.10, -87.98], compact ? 10 : 10);
-            // Muted, brand-friendly basemap (free, no key). Swap to a keyed
-            // provider later without touching the rest of this component.
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-                attribution: '&copy; OpenStreetMap &copy; CARTO', subdomains: 'abcd', maxZoom: 19,
+            // OSM standard tiles (free, no key): CARTO's free basemaps began
+            // watermarking "API KEY REQUIRED" across keyless usage (Aug 2026).
+            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors', maxZoom: 19,
             }).addTo(this.map);
             this.cityLayer = L.layerGroup().addTo(this.map);
             this.homeLayer = L.layerGroup().addTo(this.map);

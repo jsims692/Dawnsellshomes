@@ -219,8 +219,10 @@ window.initListingsMap = (function () {
       .then(function (r) { return r.json(); })
       .then(function (pins) {
         var map = L.map('lmap', { preferCanvas: true });
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-          attribution: '&copy; OpenStreetMap &copy; CARTO', maxZoom: 19
+        // OSM standard tiles: CARTO's free basemaps began watermarking
+        // "API KEY REQUIRED" across keyless usage (Aug 2026).
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; OpenStreetMap contributors', maxZoom: 19
         }).addTo(map);
         var pts = [];
         pins.forEach(function (p) {
