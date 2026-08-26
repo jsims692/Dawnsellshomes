@@ -118,7 +118,9 @@ class SubmitSitemap extends Command
             }
 
             $property = config('services.google.search_console_property', 'sc-domain:'.$host);
-            $resp = Http::withToken($token)->timeout(20)->put(
+            // A bare PUT — Google rejects the empty-array body a default
+            // ->put() would JSON-encode.
+            $resp = Http::withToken($token)->timeout(20)->send('PUT',
                 'https://www.googleapis.com/webmasters/v3/sites/'.urlencode($property)
                 .'/sitemaps/'.urlencode('https://'.$host.'/sitemap.xml'));
 
