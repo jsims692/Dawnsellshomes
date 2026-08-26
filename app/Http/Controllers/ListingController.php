@@ -62,6 +62,10 @@ class ListingController extends Controller
         if ($request->boolean('reduced')) {
             $q->whereNotNull('price_dropped_at');
         }
+        if ($school = trim((string) $request->query('school'))) {
+            $q->where(fn ($w) => $w->where('elementary_school', $school)
+                ->orWhere('middle_school', $school)->orWhere('high_school', $school));
+        }
         if ($request->query('basement') === 'finished') {
             $q->whereHas('features', fn ($f) => $f->where('category', 'basement')->where('value', 'Finished'));
         }
@@ -103,7 +107,7 @@ class ListingController extends Controller
             'cities' => Listing::displayable()->forSale()->distinct()->orderBy('city')->pluck('city'),
             'dataAsOf' => Listing::max('mls_modified_at') ?? now(),
             'demo' => Listing::displayable()->where('is_demo', true)->exists(),
-            'filters' => ['city' => array_values(array_filter((array) $request->query('city')))] + $request->only(['min', 'max', 'beds', 'baths', 'type', 'dwelling', 'waterfront', 'basement', 'garage', 'ffmaster', 'masterbath', 'ranch', 'nohoa', 'built', 'reduced', 'sort']),
+            'filters' => ['city' => array_values(array_filter((array) $request->query('city')))] + $request->only(['min', 'max', 'beds', 'baths', 'type', 'dwelling', 'waterfront', 'basement', 'garage', 'ffmaster', 'masterbath', 'ranch', 'nohoa', 'built', 'reduced', 'sort', 'school']),
         ]);
     }
 

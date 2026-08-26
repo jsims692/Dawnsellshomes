@@ -91,6 +91,7 @@ class PageController extends Controller
 
         return view('subdivisions.show', [
             'entry' => $entry,
+            'profile' => Subdivisions::profile($entry),
             'panels' => [$panel],
             'dataAsOf' => $asOf ? Carbon::parse($asOf) : now(),
             'head' => '<title>'.e($title.', IL Homes for Sale & Market Stats | Dawn Simmons Team').'</title>'

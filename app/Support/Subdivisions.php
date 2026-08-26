@@ -116,6 +116,66 @@ class Subdivisions
         return self::map()[$slug] ?? null;
     }
 
+    /**
+     * The facts a subdivision page states about itself — build era, housing
+     * mix, sizes, taxes, assigned schools, recent sales — all derived from
+     * the listings we replicate (actives + 12 months of solds). This is the
+     * data-backed version of the intro formula that wins subdivision SERPs.
+     */
+    public static function profile(array $entry): array
+    {
+        return cache()->remember('subdivision-profile:'.$entry['slug'], 3600, function () use ($entry) {
+            $base = fn () => Listing::displayable()->where('is_demo', false)
+                ->whereRaw('LOWER(city) = ?', [mb_strtolower($entry['city'])])
+                ->whereRaw('LOWER(TRIM(subdivision)) = ?', [mb_strtolower($entry['name'])]);
+
+            $years = $base()->where('year_built', '>', 1800)
+                ->selectRaw('MIN(year_built) lo, MAX(year_built) hi')->first();
+            $sqft = $base()->where('sqft', '>', 200)
+                ->selectRaw('MIN(sqft) lo, MAX(sqft) hi')->first();
+            $tax = $base()->where('tax_annual', '>', 100)->avg('tax_annual');
+
+            $mix = $base()->whereNotNull('dwelling')->selectRaw('dwelling, COUNT(*) c')
+                ->groupBy('dwelling')->orderByDesc('c')->pluck('c', 'dwelling')->all();
+            $phrase = match (true) {
+                $mix === [] => 'community',
+                count($mix) === 1 && isset($mix['detached']) => 'single-family home community',
+                count($mix) === 1 && isset($mix['attached']) => 'townhome and condo community',
+                isset($mix['detached']) && array_key_first($mix) === 'detached' => 'community of mostly single-family homes',
+                default => 'community of townhomes, condos and single-family homes',
+            };
+
+            // Assigned schools: the most common value wins (edge parcels can
+            // feed a different school; we state the norm, not a guarantee).
+            $school = fn (string $col) => $base()->whereNotNull($col)->where($col, '!=', '')
+                ->selectRaw("$col v, COUNT(*) c")->groupBy('v')->orderByDesc('c')->value('v');
+
+            // Plain arrays only — this cache store corrupts serialized objects
+            // (Carbon and Eloquent both bit us; see SiteUrls).
+            $solds = $base()->where('status', 'Closed')->whereNotNull('close_price')
+                ->orderByDesc('close_date')->limit(8)
+                ->get(['listing_id', 'street_address', 'address_public', 'close_price', 'close_date', 'beds', 'baths_full', 'baths_half'])
+                ->map(fn ($s) => [
+                    'id' => $s->listing_id,
+                    'address' => $s->address_public && $s->street_address ? $s->street_address : null,
+                    'beds' => $s->beds, 'baths' => $s->baths(),
+                    'when' => $s->close_date?->format('M Y'),
+                    'price' => $s->close_price,
+                ])->all();
+
+            return [
+                'phrase' => $phrase,
+                'yearLo' => $years?->lo, 'yearHi' => $years?->hi,
+                'sqftLo' => $sqft?->lo, 'sqftHi' => $sqft?->hi,
+                'avgTax' => $tax ? (int) round($tax) : null,
+                'elementary' => $school('elementary_school'),
+                'middle' => $school('middle_school'),
+                'high' => $school('high_school'),
+                'solds' => $solds,
+            ];
+        });
+    }
+
     /** Entries with no hand-built neighborhood/condo page (for sitemap + fallback routing). */
     public static function dynamicOnly(): array
     {

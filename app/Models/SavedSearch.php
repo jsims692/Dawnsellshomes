@@ -75,6 +75,8 @@ class SavedSearch extends Model
             ->when($c['nohoa'] ?? null, fn ($q) => $q->where(fn ($w) => $w->whereNull('hoa_fee')->orWhere('hoa_fee', 0)))
             ->when($c['built'] ?? null, fn ($q, $v) => $q->where('year_built', '>=', (int) $v))
             ->when($c['reduced'] ?? null, fn ($q) => $q->whereNotNull('price_dropped_at'))
+            ->when($c['school'] ?? null, fn ($q, $v) => $q->where(fn ($w) => $w
+                ->where('elementary_school', $v)->orWhere('middle_school', $v)->orWhere('high_school', $v)))
             ->when(($c['basement'] ?? null) === 'finished', fn ($q) => $q->whereHas('features',
                 fn ($f) => $f->where('category', 'basement')->where('value', 'Finished')));
     }
