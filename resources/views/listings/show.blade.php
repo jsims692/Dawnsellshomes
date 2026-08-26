@@ -54,6 +54,9 @@
   .ld-head { display:flex; flex-wrap:wrap; justify-content:space-between; gap:16px; align-items:start; margin:24px 0 6px; }
   .ld-price { font-size:34px; font-weight:800; color:#0F1E2E; }
   .ld-status { display:inline-block; background:#0F1E2E; color:#fff; font-size:12px; font-weight:700; padding:5px 12px; border-radius:5px; }
+  .ld-share { background:#fff; border:1.5px solid #c9d2e3; color:#0F1E2E; font-size:13px; font-weight:700; padding:6px 14px; border-radius:999px; cursor:pointer; font-family:inherit; }
+  .ld-share:hover { border-color:#C8102E; color:#C8102E; }
+  .ld-share--done { border-color:#1d6b35; color:#1d6b35; }
   .ld-facts { display:flex; flex-wrap:wrap; gap:22px; font-size:15px; color:#333; margin:14px 0 20px; }
   .ld-facts strong { color:#0F1E2E; }
   /* Rule 22: brokerage attribution immediately adjacent to the property information */
@@ -121,8 +124,34 @@
       @endif
       <h1 style="font-family:'Fraunces',Georgia,serif;font-size:22px;color:#222;margin:6px 0 0;">{{ $l->displayAddress() }}</h1>
     </div>
-    <span class="ld-status">{{ $l->status }}</span>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <button type="button" id="ld-share" class="ld-share">&#8599; Share</button>
+      <span class="ld-status">{{ $l->status }}</span>
+    </div>
   </div>
+  <script>
+  (function () {
+    var b = document.getElementById('ld-share');
+    if (!b) return;
+    var payload = {
+      title: @json($l->address_public && $l->street_address ? $l->street_address.', '.$l->city : 'Home in '.$l->city.', IL'),
+      text: @json(($l->address_public && $l->street_address ? $l->street_address.', '.$l->city : 'A home in '.$l->city).($l->isForSale() && $l->list_price ? ' — $'.number_format($l->list_price) : '').' (via Dawn Simmons Team)'),
+      url: window.location.href
+    };
+    b.addEventListener('click', function () {
+      if (navigator.share) {
+        navigator.share(payload).catch(function () {});
+      } else if (navigator.clipboard) {
+        navigator.clipboard.writeText(payload.url).then(function () {
+          var old = b.innerHTML;
+          b.innerHTML = '&#10003; Link copied';
+          b.classList.add('ld-share--done');
+          setTimeout(function () { b.innerHTML = old; b.classList.remove('ld-share--done'); }, 2200);
+        });
+      }
+    });
+  })();
+  </script>
 
   <div class="ld-facts">
     <span><strong>{{ $l->beds }}</strong> beds{{ $l->bedrooms_possible > $l->beds ? ' ('.$l->bedrooms_possible.' possible)' : '' }}</span>
