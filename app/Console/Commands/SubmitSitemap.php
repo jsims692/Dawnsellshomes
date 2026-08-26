@@ -34,6 +34,14 @@ class SubmitSitemap extends Command
             return self::SUCCESS;
         }
 
+        // Full (deploy) submissions rebuild the URL inventory from scratch so
+        // the sitemap and this submission reflect the code that just shipped.
+        if ((int) $this->option('recent') <= 0) {
+            cache()->forget('site-urls');
+            cache()->forget('subdivision-map');
+            cache()->forget('llms-txt');
+        }
+
         // Same inventory the sitemap serves (pages + subdivision pages +
         // for-sale listings); --recent narrows to what the last syncs touched.
         $urls = array_slice(

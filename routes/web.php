@@ -8,6 +8,14 @@ use App\Http\Controllers\ListingController;
 use App\Http\Controllers\SoldController;
 use Illuminate\Support\Facades\Route;
 
+// The retired IDX Broker subdomain: once DNS points it here (instead of
+// idxbroker.com), every old bookmark, backlink, and indexed result URL
+// 301s to our own search rather than dying with the subscription.
+Route::domain('search.dawnsellshomes.com')->group(function () {
+    Route::any('/{any?}', fn () => redirect('https://dawnsellshomes.com/listings', 301))
+        ->where('any', '.*');
+});
+
 // Sitewide contact form (posts to "/" with form-name=contact, matching the
 // contract the original Netlify form used).
 Route::post('/', [ContactController::class, 'store']);
