@@ -10,6 +10,13 @@ return [
     // IDX listings routes go live only when this is on (env LISTINGS_ENABLED)
     'listings_enabled' => env('LISTINGS_ENABLED', false),
 
+    // Service-area towns WITHOUT a hand-built city page (the sync's coverage
+    // filter unions these with city-page slugs). Lowercase, spaces.
+    'extra_coverage_cities' => [
+        'hawthorn woods',
+        'long grove',
+    ],
+
     // Early-career closings that predate the mapped sales table (2007+).
     // Career total shown sitewide = sales rows + this. 89 reconciles the
     // 644 career count with the 555 mapped sales as of Aug 2026 — correct

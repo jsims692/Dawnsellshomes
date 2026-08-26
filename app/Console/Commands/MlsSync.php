@@ -506,7 +506,8 @@ class MlsSync extends Command
         return cache()->remember('coverage-cities', now()->addDay(), function () {
             return Page::where('type', 'city')->pluck('slug')
                 ->map(fn ($slug) => mb_strtolower(str_replace('-', ' ', $slug)))
-                ->all();
+                ->merge(config('site.extra_coverage_cities', []))
+                ->unique()->values()->all();
         });
     }
 }
