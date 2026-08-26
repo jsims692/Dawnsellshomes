@@ -55,6 +55,7 @@
       <a href="/cities/{{ $citySlug }}">About {{ $city }} &rarr;</a>
       <a href="/neighborhoods#{{ $citySlug }}">{{ $city }} subdivisions &rarr;</a>
       <a href="/sell">What's my home worth? &rarr;</a>
+      <a href="/compare">Compare {{ $city }} with another town &rarr;</a>
     </div>
   </div>
 </section>

@@ -42,6 +42,11 @@ if (config('site.listings_enabled')) {
     Route::get('/market', [App\Http\Controllers\MarketController::class, 'index']);
     Route::get('/market/{citySlug}', [App\Http\Controllers\MarketController::class, 'show'])
         ->where('citySlug', '[a-z0-9\-]+');
+
+    // Town-vs-town live comparisons (curated pairs indexed; ad-hoc noindexed)
+    Route::get('/compare', [App\Http\Controllers\CompareController::class, 'index']);
+    Route::get('/compare/{pair}', [App\Http\Controllers\CompareController::class, 'show'])
+        ->where('pair', '[a-z0-9\-]+');
 }
 
 // Homepage redesign preview (Pat's design, wired): unlinked + noindexed until approved

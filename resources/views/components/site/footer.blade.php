@@ -29,6 +29,7 @@
         <h4>Tools &amp; guides</h4>
         <ul>
           <li><a href="/market">Live market reports</a></li>
+          <li><a href="/compare">Compare towns</a></li>
           <li><a href="/homes/waterfront">Waterfront homes</a></li>
           <li><a href="/homes/new-construction">New construction</a></li>
           <li><a href="/homes/first-floor-master">First-floor master &amp; 55+</a></li>

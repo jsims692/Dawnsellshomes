@@ -31,6 +31,10 @@ class SiteUrls
                 foreach (array_keys(\App\Http\Controllers\CollectionController::COLLECTIONS) as $slug) {
                     $out[self::BASE.'/homes/'.$slug] = $asOf;
                 }
+                $out[self::BASE.'/compare'] = $asOf;
+                foreach (\App\Http\Controllers\CompareController::FEATURED as [$a, $b]) {
+                    $out[self::BASE.'/compare/'.$a.'-vs-'.$b] = $asOf;
+                }
                 $out[self::BASE.'/market'] = $asOf;
                 foreach (Listing::displayable()->where('is_demo', false)
                     ->selectRaw('city, COUNT(*) c')->groupBy('city')->having('c', '>=', 20)
