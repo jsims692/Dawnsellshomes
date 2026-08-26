@@ -19,3 +19,7 @@ Schedule::command('mls:sync')->hourly()->withoutOverlapping();
 Schedule::command('mls:geocode')->hourlyAt(12)->withoutOverlapping();
 Schedule::command('mls:media', ['--limit' => 500])->hourlyAt(20)->withoutOverlapping();
 Schedule::command('mls:alerts')->hourlyAt(30)->withoutOverlapping();
+
+// Freshness ping: tell IndexNow-connected engines (Bing, Yandex, ...) which
+// URLs the last sync actually changed. Google gets lastmod via sitemap.xml.
+Schedule::command('sitemap:submit', ['--recent' => 2])->hourlyAt(40)->withoutOverlapping();

@@ -4,6 +4,11 @@
 <meta name="description" content="{{ Str::limit(strip_tags((string) $l->remarks), 155) ?: 'Listing in '.$l->city.', IL — courtesy of '.$l->list_office_name.' via MRED / MLS GRID.' }}">
 <meta name="robots" content="{{ config('services.mlsgrid.token') ? 'index,follow' : 'noindex,nofollow' }}">
 <link rel="canonical" href="https://dawnsellshomes.com/listings/{{ $l->listing_id }}">
+<meta property="og:title" content="{{ $l->address_public ? $l->street_address.', '.$l->city.', IL' : 'Home for Sale in '.$l->city.', IL' }}{{ $l->isForSale() && $l->list_price ? ' — $'.number_format($l->list_price) : '' }}">
+<meta property="og:description" content="{{ $l->beds }} bed · {{ $l->baths() }} bath{{ $l->sqft ? ' · '.number_format($l->sqft).' sqft' : '' }} — listing courtesy of {{ $l->list_office_name }} via MRED / MLS GRID.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://dawnsellshomes.com/listings/{{ $l->listing_id }}">
+@if($l->photoUrl())<meta property="og:image" content="{{ url($l->photoUrl()) }}">@endif
 @php
   $ld = [
     '@context' => 'https://schema.org',

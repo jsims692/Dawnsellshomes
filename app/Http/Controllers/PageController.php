@@ -95,7 +95,10 @@ class PageController extends Controller
             'dataAsOf' => $asOf ? Carbon::parse($asOf) : now(),
             'head' => '<title>'.e($title.', IL Homes for Sale & Market Stats | Dawn Simmons Team').'</title>'
                 .'<meta name="description" content="'.e('Homes for sale, recent sales, and market stats for the '.$entry['name'].' subdivision of '.$entry['city'].', Illinois — updated from the MLS. Dawn Simmons Team, RE/MAX Suburban.').'">'
-                .'<link rel="canonical" href="https://dawnsellshomes.com/neighborhoods/'.e($entry['slug']).'">',
+                .'<link rel="canonical" href="https://dawnsellshomes.com/neighborhoods/'.e($entry['slug']).'">'
+                .'<meta property="og:title" content="'.e($title.', IL — Homes & Market Stats').'">'
+                .'<meta property="og:description" content="'.e('Live listings and recent sales in the '.$entry['name'].' subdivision of '.$entry['city'].', IL.').'">'
+                .'<meta property="og:image" content="https://dawnsellshomes.com/images/og-image-2.jpg">',
         ]);
     }
 
@@ -154,7 +157,10 @@ class PageController extends Controller
             'dataAsOf' => $asOf ? Carbon::parse($asOf) : now(),
             'head' => '<title>Neighborhoods & Subdivisions We Serve | Dawn Simmons Team</title>'
                 .'<meta name="description" content="Browse every neighborhood, subdivision, and condo community the Dawn Simmons Team covers across the northwest suburbs of Chicago — with live MLS listings and market stats.">'
-                .'<link rel="canonical" href="https://dawnsellshomes.com/neighborhoods">',
+                .'<link rel="canonical" href="https://dawnsellshomes.com/neighborhoods">'
+                .'<meta property="og:title" content="Neighborhoods & Subdivisions We Serve">'
+                .'<meta property="og:description" content="Every community we cover across Chicago\'s northwest suburbs, with live MLS listings and market stats.">'
+                .'<meta property="og:image" content="https://dawnsellshomes.com/images/og-image-2.jpg">',
         ]);
     }
 

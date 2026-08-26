@@ -2,7 +2,6 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Page;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
 
@@ -19,7 +18,8 @@ class SubmitSitemap extends Command
 {
     protected $signature = 'sitemap:submit
         {--host=dawnsellshomes.com : The host whose URLs are being submitted}
-        {--limit=10000 : Max URLs per IndexNow request}';
+        {--limit=10000 : Max URLs per IndexNow request}
+        {--recent= : Only URLs changed in the last N hours (hourly freshness ping)}';
 
     protected $description = 'Submit the site URLs to IndexNow (Bing/Yandex/etc.) after a deployment';
 
@@ -34,13 +34,19 @@ class SubmitSitemap extends Command
             return self::SUCCESS;
         }
 
-        $urls = Page::where('in_sitemap', true)
-            ->orderBy('id')
-            ->pluck('path')
-            ->map(fn ($path) => 'https://'.$host.'/'.$path)
-            ->take((int) $this->option('limit'))
-            ->values()
-            ->all();
+        // Same inventory the sitemap serves (pages + subdivision pages +
+        // for-sale listings); --recent narrows to what the last syncs touched.
+        $urls = array_slice(
+            ($h = (int) $this->option('recent')) > 0
+                ? \App\Support\SiteUrls::recent($h)
+                : array_keys(\App\Support\SiteUrls::all()),
+            0, (int) $this->option('limit'));
+
+        if ($h > 0 && empty($urls)) {
+            $this->info('Nothing changed in the window — no submission.');
+
+            return self::SUCCESS;
+        }
 
         if (empty($urls)) {
             $this->warn('No sitemap URLs found — skipping submission.');

@@ -10,20 +10,15 @@ class SitemapController extends Controller
 {
     public function __invoke()
     {
-        $base = 'https://dawnsellshomes.com';
-
+        // Pages, subdivision pages, and for-sale listings — one shared
+        // inventory (SiteUrls) with lastmod so recrawls chase real changes.
         $sitemap = Sitemap::create();
-        foreach (Page::where('in_sitemap', true)->orderBy('id')->pluck('path') as $path) {
-            $sitemap->add(Url::create($base.'/'.$path));
-        }
-
-        // Subdivision directory + auto-generated subdivision pages (hand-built
-        // neighborhood pages are already present via the pages table above).
-        if (config('site.listings_enabled')) {
-            $sitemap->add(Url::create($base.'/neighborhoods'));
-            foreach (\App\Support\Subdivisions::dynamicOnly() as $entry) {
-                $sitemap->add(Url::create($base.'/neighborhoods/'.$entry['slug']));
+        foreach (\App\Support\SiteUrls::all() as $url => $lastmod) {
+            $u = Url::create($url);
+            if ($lastmod) {
+                $u->setLastModificationDate(\Illuminate\Support\Carbon::parse($lastmod));
             }
+            $sitemap->add($u);
         }
 
         return $sitemap->toResponse(request());
