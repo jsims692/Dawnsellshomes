@@ -49,6 +49,10 @@ Route::get('/neighborhoods', [PageController::class, 'neighborhoods']);
 // Homepage home-value widget: nearby closed sales for a lat/lng
 Route::get('/home-value/nearby', [HomeValueController::class, 'nearby'])->middleware('throttle:60,1');
 
+// Curated site guide for AI assistants (llmstxt.org). Must precede the
+// {key}.txt IndexNow route, whose pattern would otherwise swallow it.
+Route::get('/llms.txt', App\Http\Controllers\LlmsController::class);
+
 // IndexNow ownership verification: the key must be retrievable as {key}.txt
 // at the site root for search engines to trust our URL submissions.
 Route::get('/{key}.txt', function (string $key) {
