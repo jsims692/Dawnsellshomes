@@ -36,7 +36,11 @@ class MlsMedia extends Command
 
     public function handle(): int
     {
-        ini_set('memory_limit', '512M');
+        try {
+            @ini_set('memory_limit', '512M');
+        } catch (\Throwable) {
+            // capped by max_memory_limit — fine
+        }
 
         $token = config('services.mlsgrid.token');
         if (! $token) {
@@ -84,7 +88,7 @@ class MlsMedia extends Command
                 }
             }
 
-            if (! MlsGridBudget::allow()) {
+            if (! MlsGridBudget::allow(background: true)) {
                 $this->warn('MLS GRID usage budget reached ('.MlsGridBudget::summary().') — stopping; rerun next hour.');
                 break;
             }

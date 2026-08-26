@@ -42,8 +42,14 @@ class MlsSync extends Command
     public function handle(): int
     {
         // A full page carries 1,000 expanded records; the default 128M limit
-        // gets the process OOM-killed silently.
-        ini_set('memory_limit', '1G');
+        // gets the process OOM-killed silently. Best-effort: PHP 8.5's
+        // max_memory_limit (512M on the prod CLI) makes an over-ask THROW —
+        // which killed every scheduled sync at this line on launch night.
+        try {
+            @ini_set('memory_limit', '1G');
+        } catch (\Throwable) {
+            // capped by max_memory_limit — incrementals fit comfortably anyway
+        }
 
         $token = config('services.mlsgrid.token');
         if (! $token) {

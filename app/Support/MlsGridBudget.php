@@ -19,16 +19,27 @@ class MlsGridBudget
 
     private const HOUR_BYTES = 5_000_000_000;      // decompressed
 
-    private const DAY_REQUESTS = 30000;
+    private const DAY_REQUESTS = 38000;
+
+    /**
+     * Background transfers (photo backfill) must never starve the sync:
+     * they see a smaller budget, keeping this many requests in reserve for
+     * the hourly refresh cycle (the 12-hour IDX rule depends on it).
+     */
+    private const BG_RESERVE_HOUR = 800;
+
+    private const BG_RESERVE_DAY = 6000;
 
     private const DAY_BYTES = 30_000_000_000;      // decompressed
 
-    public static function allow(): bool
+    public static function allow(bool $background = false): bool
     {
         [$hour, $day] = self::windows();
+        $hourCap = self::HOUR_REQUESTS - ($background ? self::BG_RESERVE_HOUR : 0);
+        $dayCap = self::DAY_REQUESTS - ($background ? self::BG_RESERVE_DAY : 0);
 
-        return $hour['req'] < self::HOUR_REQUESTS && $hour['bytes'] < self::HOUR_BYTES
-            && $day['req'] < self::DAY_REQUESTS && $day['bytes'] < self::DAY_BYTES;
+        return $hour['req'] < $hourCap && $hour['bytes'] < self::HOUR_BYTES
+            && $day['req'] < $dayCap && $day['bytes'] < self::DAY_BYTES;
     }
 
     public static function record(int $bytes): void
