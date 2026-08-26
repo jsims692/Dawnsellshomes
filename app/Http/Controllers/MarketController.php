@@ -46,7 +46,7 @@ class MarketController extends Controller
 
         $m = cache()->remember('market-report:'.$citySlug, 1800, function () use ($city) {
             $base = fn () => Listing::displayable()->where('is_demo', false)->where('is_auction', false)
-                ->whereRaw('LOWER(city) = ?', [mb_strtolower($city)]);
+                ->where('city', $city);
 
             $median = function ($q, string $col) {
                 $vals = $q->whereNotNull($col)->orderBy($col)->pluck($col);

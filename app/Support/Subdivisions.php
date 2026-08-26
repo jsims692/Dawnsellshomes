@@ -126,8 +126,8 @@ class Subdivisions
     {
         return cache()->remember('subdivision-profile:'.$entry['slug'], 3600, function () use ($entry) {
             $base = fn () => Listing::displayable()->where('is_demo', false)
-                ->whereRaw('LOWER(city) = ?', [mb_strtolower($entry['city'])])
-                ->whereRaw('LOWER(TRIM(subdivision)) = ?', [mb_strtolower($entry['name'])]);
+                ->where('city', $entry['city'])
+                ->where('subdivision', $entry['name']);
 
             $years = $base()->where('year_built', '>', 1800)
                 ->selectRaw('MIN(year_built) lo, MAX(year_built) hi')->first();

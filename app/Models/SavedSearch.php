@@ -57,8 +57,7 @@ class SavedSearch extends Model
 
         return Listing::displayable()->forSale()
             ->where('is_demo', false)->where('is_auction', false)
-            ->when(array_filter((array) ($c['city'] ?? [])), fn ($q, $v) => $q->whereIn(
-                \Illuminate\Support\Facades\DB::raw('LOWER(city)'), array_map('mb_strtolower', $v)))
+            ->when(array_filter((array) ($c['city'] ?? [])), fn ($q, $v) => $q->whereIn('city', $v))
             ->when($c['min'] ?? null, fn ($q, $v) => $q->where('list_price', '>=', (int) $v))
             ->when($c['max'] ?? null, fn ($q, $v) => $q->where('list_price', '<=', (int) $v))
             ->when($c['beds'] ?? null, fn ($q, $v) => $q->where('beds', '>=', (int) $v))

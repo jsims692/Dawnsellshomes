@@ -80,8 +80,8 @@ class PageController extends Controller
         abort_unless($entry && $entry['total'] >= Subdivisions::MIN_LISTINGS, 404);
 
         $base = Listing::displayable()->where('is_demo', false)
-            ->whereRaw('LOWER(city) = ?', [mb_strtolower($entry['city'])])
-            ->whereRaw('LOWER(TRIM(subdivision)) = ?', [mb_strtolower($entry['name'])]);
+            ->where('city', $entry['city'])
+            ->where('subdivision', $entry['name']);
         $title = $entry['name'].', '.$entry['city'];
         $panel = $this->bandPanel($base, 'All homes', $title, $entry['city'],
             '/listings?city='.urlencode($entry['city']));
@@ -355,7 +355,7 @@ class PageController extends Controller
         }
 
         $cityBase = Listing::displayable()->where('is_demo', false)
-            ->whereRaw('LOWER(city) = ?', [$cityName]);
+            ->where('city', $cityName);
         if (! (clone $cityBase)->exists()) {
             return null;
         }
@@ -368,7 +368,7 @@ class PageController extends Controller
         $title = $cityLabel;
         $narrowed = false;
         if ($subdivision) {
-            $sub = (clone $cityBase)->whereRaw('LOWER(subdivision) = ?', [$subdivision]);
+            $sub = (clone $cityBase)->where('subdivision', $subdivision);
             if ((clone $sub)->exists()) {
                 $narrowed = true;
                 $title = ucwords($subdivision).', '.$cityLabel;

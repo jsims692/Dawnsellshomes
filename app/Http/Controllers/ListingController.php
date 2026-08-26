@@ -15,7 +15,7 @@ class ListingController extends Controller
         $cities = array_values(array_filter(array_map(
             fn ($c) => mb_strtolower(trim((string) $c)), (array) $request->query('city'))));
         if ($cities !== []) {
-            $q->whereIn(\Illuminate\Support\Facades\DB::raw('LOWER(city)'), $cities);
+            $q->whereIn('city', $cities);
         }
         if ($min = (int) $request->query('min')) {
             $q->where('list_price', '>=', $min);
@@ -179,7 +179,7 @@ class ListingController extends Controller
                         ->whereBetween('lat', [$listing->lat - 0.05, $listing->lat + 0.05])
                         ->whereBetween('lng', [$listing->lng - 0.07, $listing->lng + 0.07])
                         ->orderByRaw('POW(lat - ?, 2) + POW(lng - ?, 2)', [$listing->lat, $listing->lng]),
-                    fn ($q) => $q->whereRaw('LOWER(city) = ?', [mb_strtolower((string) $listing->city)])
+                    fn ($q) => $q->where('city', $listing->city)
                         ->orderByDesc('mls_modified_at'))
                 ->limit(3)
                 ->get(['id', 'listing_key', 'listing_id', 'status', 'list_price', 'street_address',
