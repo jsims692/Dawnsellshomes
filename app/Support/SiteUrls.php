@@ -28,6 +28,15 @@ class SiteUrls
                 $asOf = $iso(Listing::max('mls_modified_at'));
                 $out[self::BASE.'/listings'] = $asOf;
                 $out[self::BASE.'/neighborhoods'] = $asOf;
+                foreach (array_keys(\App\Http\Controllers\CollectionController::COLLECTIONS) as $slug) {
+                    $out[self::BASE.'/homes/'.$slug] = $asOf;
+                }
+                $out[self::BASE.'/market'] = $asOf;
+                foreach (Listing::displayable()->where('is_demo', false)
+                    ->selectRaw('city, COUNT(*) c')->groupBy('city')->having('c', '>=', 20)
+                    ->pluck('city') as $mc) {
+                    $out[self::BASE.'/market/'.\Illuminate\Support\Str::slug($mc)] = $asOf;
+                }
                 foreach (Subdivisions::dynamicOnly() as $e) {
                     $out[self::BASE.'/neighborhoods/'.$e['slug']] = null;
                 }

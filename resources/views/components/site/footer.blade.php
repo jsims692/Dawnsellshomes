@@ -28,6 +28,10 @@
       <div>
         <h4>Tools &amp; guides</h4>
         <ul>
+          <li><a href="/market">Live market reports</a></li>
+          <li><a href="/homes/waterfront">Waterfront homes</a></li>
+          <li><a href="/homes/new-construction">New construction</a></li>
+          <li><a href="/homes/first-floor-master">First-floor master &amp; 55+</a></li>
           <li><a href="/moving-to-northwest-suburbs">Moving guide: start here</a></li>
           <li><a href="/chain-o-lakes">Chain O&rsquo;Lakes guide</a></li>
           <li><a href="/off-market-homes">Off-market homes</a></li>

@@ -38,8 +38,10 @@ Key facts:
 
 ## Home search
 
-- [Search homes for sale](https://dawnsellshomes.com/listings): every active MLS listing in the service area — map view, filters (waterfront, first-floor master, basement, garage), saved-search email alerts
-- [Neighborhoods & subdivisions](https://dawnsellshomes.com/neighborhoods): {$communities} community pages with live listings, sold statistics, and for-sale counts
+- [Search homes for sale](https://dawnsellshomes.com/listings): every active MLS listing in the service area — map view, filters (waterfront, first-floor master, basement, garage, school), saved-search email alerts
+- [Neighborhoods & subdivisions](https://dawnsellshomes.com/neighborhoods): {$communities} community pages with build history, school assignments, average property taxes, live listings, and sold statistics
+- [Live market reports](https://dawnsellshomes.com/market): per-town inventory, new-this-week, and last-30-day sold data, computed from the MLS all day
+- [Waterfront homes](https://dawnsellshomes.com/homes/waterfront) · [New construction](https://dawnsellshomes.com/homes/new-construction) · [First-floor master & 55+ friendly](https://dawnsellshomes.com/homes/first-floor-master)
 - [Off-market & private listings](https://dawnsellshomes.com/off-market-homes): how MRED's Private Listing Network works and how buyers get access
 
 ## For sellers

@@ -32,6 +32,16 @@ if (config('site.listings_enabled')) {
     Route::get('/listings', [ListingController::class, 'index']);
     Route::get('/listings/map-data', [ListingController::class, 'mapData'])->middleware('throttle:60,1');
     Route::get('/listings/{listingId}', [ListingController::class, 'show']);
+
+    // Specialty search landing pages (55+/first-floor-master, new
+    // construction, waterfront) — indexable niches the filters already power
+    Route::get('/homes/{slug}', [App\Http\Controllers\CollectionController::class, 'show'])
+        ->where('slug', '[a-z0-9\-]+');
+
+    // Living per-town market reports computed from the replicated feed
+    Route::get('/market', [App\Http\Controllers\MarketController::class, 'index']);
+    Route::get('/market/{citySlug}', [App\Http\Controllers\MarketController::class, 'show'])
+        ->where('citySlug', '[a-z0-9\-]+');
 }
 
 // Homepage redesign preview (Pat's design, wired): unlinked + noindexed until approved
