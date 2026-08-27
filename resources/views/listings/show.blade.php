@@ -88,12 +88,74 @@
   @php $photos = $l->photoUrls(); @endphp
   <div class="ld-gallery{{ count($photos) < 4 ? ' ld-few' : '' }}" id="ldGallery">
     @forelse($photos as $i => $p)
-    <a href="{{ $p }}" target="_blank" rel="noopener" style="background-image:url('{{ $p }}')"
+    <a href="{{ $p }}" data-i="{{ $i }}" style="background-image:url('{{ $p }}')"
        aria-label="Photo {{ $i + 1 }} of {{ count($photos) }}" @if($i > 3) hidden @endif></a>
     @empty
     <a style="pointer-events:none"></a><a style="pointer-events:none"></a><a style="pointer-events:none"></a>
     @endforelse
   </div>
+
+  @if(count($photos) > 0)
+  {{-- In-page lightbox: tap a photo to view large, swipe/arrow through the
+       rest, tap X / backdrop / Esc to close. No new tabs. --}}
+  <div class="lbx" id="lbx" hidden role="dialog" aria-label="Photo viewer">
+    <button type="button" class="lbx-x" id="lbxClose" aria-label="Close">&times;</button>
+    <div class="lbx-count" id="lbxCount"></div>
+    <button type="button" class="lbx-nav lbx-prev" id="lbxPrev" aria-label="Previous photo">&#8249;</button>
+    <img id="lbxImg" alt="Listing photo">
+    <button type="button" class="lbx-nav lbx-next" id="lbxNext" aria-label="Next photo">&#8250;</button>
+  </div>
+  <style>
+    .lbx { position:fixed; inset:0; z-index:10000; background:rgba(8,13,20,.96); display:flex; align-items:center; justify-content:center; }
+    .lbx[hidden] { display:none; }
+    .lbx img { max-width:96vw; max-height:88vh; object-fit:contain; border-radius:6px; user-select:none; -webkit-user-drag:none; }
+    .lbx-x { position:absolute; top:10px; right:12px; background:none; border:0; color:#fff; font-size:38px; line-height:1; cursor:pointer; padding:6px 12px; z-index:2; }
+    .lbx-count { position:absolute; top:22px; left:0; right:0; text-align:center; color:rgba(255,255,255,.85); font-size:13.5px; font-weight:700; letter-spacing:.5px; }
+    .lbx-nav { position:absolute; top:50%; transform:translateY(-50%); background:rgba(255,255,255,.12); border:0; color:#fff; font-size:34px; line-height:1; width:46px; height:64px; border-radius:8px; cursor:pointer; z-index:2; }
+    .lbx-nav:hover { background:rgba(255,255,255,.25); }
+    .lbx-prev { left:8px; } .lbx-next { right:8px; }
+    @media (max-width:700px) { .lbx-nav { width:38px; height:54px; font-size:28px; background:rgba(255,255,255,.08); } }
+  </style>
+  <script>
+  (function () {
+    var pics = @json(array_values($photos));
+    var box = document.getElementById('lbx'), img = document.getElementById('lbxImg'),
+        count = document.getElementById('lbxCount'), cur = 0, sx = null;
+    function show(i) {
+      cur = (i + pics.length) % pics.length;
+      img.src = pics[cur];
+      count.textContent = (cur + 1) + ' / ' + pics.length;
+      // warm the neighbors so swiping feels instant
+      [cur + 1, cur - 1].forEach(function (n) { new Image().src = pics[(n + pics.length) % pics.length]; });
+    }
+    function open(i) { show(i); box.hidden = false; document.body.style.overflow = 'hidden'; }
+    function close() { box.hidden = true; document.body.style.overflow = ''; }
+    document.getElementById('ldGallery').addEventListener('click', function (e) {
+      var a = e.target.closest('a[data-i]');
+      if (!a) return;
+      e.preventDefault();
+      open(parseInt(a.dataset.i, 10));
+    });
+    document.getElementById('lbxClose').addEventListener('click', close);
+    document.getElementById('lbxPrev').addEventListener('click', function () { show(cur - 1); });
+    document.getElementById('lbxNext').addEventListener('click', function () { show(cur + 1); });
+    box.addEventListener('click', function (e) { if (e.target === box) close(); });
+    document.addEventListener('keydown', function (e) {
+      if (box.hidden) return;
+      if (e.key === 'Escape') close();
+      if (e.key === 'ArrowLeft') show(cur - 1);
+      if (e.key === 'ArrowRight') show(cur + 1);
+    });
+    box.addEventListener('touchstart', function (e) { sx = e.changedTouches[0].clientX; }, { passive: true });
+    box.addEventListener('touchend', function (e) {
+      if (sx === null) return;
+      var dx = e.changedTouches[0].clientX - sx;
+      sx = null;
+      if (Math.abs(dx) > 40) show(cur + (dx < 0 ? 1 : -1));
+    }, { passive: true });
+  })();
+  </script>
+  @endif
   @if($galleryFetching ?? false)
   <p style="margin:10px 0 0;font-size:13px;color:#48586B;background:#F2F5F9;border-radius:8px;padding:10px 14px;">
     &#128247; Retrieving this home's full photo gallery from the MLS &mdash; the page will refresh in a moment.
