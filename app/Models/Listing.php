@@ -21,6 +21,7 @@ class Listing extends Model
             'mls_modified_at' => 'datetime',
             'close_date' => 'date',
             'listing_contract_date' => 'date',
+            'price_dropped_at' => 'datetime',
             'new_construction' => 'boolean',
             'waterfront' => 'boolean',
         ];
