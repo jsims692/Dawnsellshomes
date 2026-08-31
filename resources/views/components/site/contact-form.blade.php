@@ -16,6 +16,7 @@
     </div>
     <div style="margin-top:1.15rem">
       <p style="position:absolute;left:-9999px" aria-hidden="true"><label>Don't fill this out: <input name="bot-field" x-model="f.bot" tabindex="-1"></label></p>
+      <input type="hidden" name="form_ts" :value="f.ts">
       <button class="btn btn--primary" type="submit" x-text="busy ? 'Sending…' : 'Send message'" :disabled="busy">Send message</button>
     </div>
     <p class="form-note">By submitting this form you agree to be contacted by The Dawn Simmons Team. We never share your information.</p>
@@ -31,10 +32,14 @@
 <script>
 document.addEventListener('alpine:init', () => {
   Alpine.data('contactForm', () => ({
-    f: { name:'', email:'', phone:'', interest:'', message:'', bot:'' }, busy:false, sent:false,
+    // ts: set the instant Alpine builds this component (≈ when the form
+    // rendered) — a real visitor takes seconds to fill this out; a bot that
+    // replays the endpoint directly never sends form_ts at all, and one
+    // that scripts a headless browser still submits within a second or two.
+    f: { name:'', email:'', phone:'', interest:'', message:'', bot:'', ts: Date.now() }, busy:false, sent:false,
     async send() {
       this.busy = true;
-      const d = new URLSearchParams({ 'form-name':'contact', name:this.f.name, email:this.f.email, phone:this.f.phone, interest:this.f.interest, message:this.f.message, 'bot-field':this.f.bot });
+      const d = new URLSearchParams({ 'form-name':'contact', name:this.f.name, email:this.f.email, phone:this.f.phone, interest:this.f.interest, message:this.f.message, 'bot-field':this.f.bot, form_ts:this.f.ts });
       try { await fetch('/', { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded','X-Requested-With':'XMLHttpRequest'}, body:d.toString() }); } catch(e) {}
       this.busy = false; this.sent = true;
     },

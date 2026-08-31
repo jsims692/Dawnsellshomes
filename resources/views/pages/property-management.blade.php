@@ -159,6 +159,7 @@
         </div>
         <div style="margin-top:1.15rem">
           <p style="position:absolute;left:-9999px" aria-hidden="true"><label>Don't fill this out: <input name="bot-field" x-model="f.bot" tabindex="-1"></label></p>
+          <input type="hidden" name="form_ts" :value="f.ts">
           <button class="btn btn--primary" type="submit" x-text="busy ? 'Sending…' : 'Request my free consultation'" :disabled="busy">Request my free consultation</button>
         </div>
         <p class="form-note">By submitting this form you agree to be contacted by The Dawn Simmons Team. We never share your information.</p>
@@ -175,10 +176,10 @@
 <script>
 document.addEventListener('alpine:init', () => {
   Alpine.data('pmForm', () => ({
-    f: { name:'', phone:'', email:'', property_address:'', rental_type:'', message:'', bot:'' }, busy:false, sent:false,
+    f: { name:'', phone:'', email:'', property_address:'', rental_type:'', message:'', bot:'', ts: Date.now() }, busy:false, sent:false,
     async send() {
       this.busy = true;
-      const d = new URLSearchParams({ 'form-name':'property-management', name:this.f.name, phone:this.f.phone, email:this.f.email, property_address:this.f.property_address, rental_type:this.f.rental_type, message:this.f.message, 'bot-field':this.f.bot });
+      const d = new URLSearchParams({ 'form-name':'property-management', name:this.f.name, phone:this.f.phone, email:this.f.email, property_address:this.f.property_address, rental_type:this.f.rental_type, message:this.f.message, 'bot-field':this.f.bot, form_ts:this.f.ts });
       try { await fetch('/', { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded','X-Requested-With':'XMLHttpRequest'}, body:d.toString() }); } catch(e) {}
       this.busy = false; this.sent = true;
     },

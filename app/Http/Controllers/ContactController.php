@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Jobs\DeliverLead;
 use App\Models\Lead;
+use App\Support\LeadSpam;
 use Illuminate\Http\Request;
 
 class ContactController extends Controller
@@ -38,8 +39,11 @@ class ContactController extends Controller
             'phone' => (string) $request->input('phone'),
             'interest' => $form === 'property-management' ? 'property-management' : (string) $request->input('interest'),
             'message' => $message,
-            // honeypot: real visitors never fill bot-field
-            'is_spam' => filled($request->input('bot-field')),
+            // Honeypot + timing-trap + repeat-address + cold-pitch-phrase
+            // scoring — the honeypot alone was letting through bots that
+            // simply skip hidden fields. See LeadSpam for what each signal
+            // catches and why.
+            'is_spam' => LeadSpam::check($request, (string) $request->input('email'), $message),
             'source_page' => (string) $request->headers->get('referer'),
             'ip' => $request->ip(),
             'user_agent' => (string) $request->userAgent(),
