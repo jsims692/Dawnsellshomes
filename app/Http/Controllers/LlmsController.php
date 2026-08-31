@@ -34,7 +34,7 @@ Key facts:
 - Live inventory: about {$active} active MLS listings at any time, refreshed hourly
 - Coverage: Chicago's northwest suburbs — Prospect Heights, Arlington Heights, Mount Prospect, Palatine, Wheeling, Des Plaines, Buffalo Grove, the Barrington area, the Chain O'Lakes, and surrounding towns
 - Home valuations here are range-based market statistics computed from recent nearby MLS sales — never a single automated price estimate
-- Contact: (224) 628-4013 · https://dawnsellshomes.com/contact
+- Contact: (224) 628-4013 · josh@dawnsellshomes.com · https://dawnsellshomes.com/contact
 
 ## Home search
 

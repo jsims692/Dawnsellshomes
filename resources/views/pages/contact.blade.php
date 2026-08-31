@@ -29,7 +29,7 @@
           </div>
           <div class="direct-item">
             <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5.5" width="17" height="13" rx="2"></rect><path d="m4.5 7 7.5 5.5L19.5 7"></path></svg></div>
-            <div><strong>Email</strong><a href="mailto:simsre2000@yahoo.com">simsre2000@yahoo.com</a><br><span>or <a href="mailto:jsims692@gmail.com">jsims692@gmail.com</a></span></div>
+            <div><strong>Email</strong><a href="mailto:dawn@dawnsellshomes.com">dawn@dawnsellshomes.com</a><br><span>or <a href="mailto:josh@dawnsellshomes.com">josh@dawnsellshomes.com</a></span></div>
           </div>
           <div class="direct-item">
             <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11Z"></path><circle cx="12" cy="10" r="2.5"></circle></svg></div>

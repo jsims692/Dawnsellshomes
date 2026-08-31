@@ -571,7 +571,7 @@ html,body{overflow-x:hidden}
           </div>
           <div class="direct-item">
             <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5.5" width="17" height="13" rx="2"></rect><path d="m4.5 7 7.5 5.5L19.5 7"></path></svg></div>
-            <div><strong>Email</strong><a href="mailto:simsre2000@yahoo.com">simsre2000@yahoo.com</a></div>
+            <div><strong>Email</strong><a href="mailto:dawn@dawnsellshomes.com">dawn@dawnsellshomes.com</a></div>
           </div>
         </div>
         <p class="direct-note">Those are our personal cells — call or text any day, 7 days a week.</p>

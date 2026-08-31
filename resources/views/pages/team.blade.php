@@ -23,7 +23,7 @@
           <h3>Dawn Simmons</h3>
           <div class="role">REALTOR&reg; &middot; Broker &middot; RE/MAX Hall of Fame</div>
           <p>Dawn grew up in Chicago and moved to Prospect Heights in 1988 &mdash; drawn by the large lots, great schools, and the kind of neighborhood where you actually know your neighbors. She raised three boys here, served as the local Cub Scout master, and watched her family grow roots in the same community she now helps others find. She got her real estate license in 2001 and has been selling homes in the northwest suburbs ever since. {{ \App\Support\TeamStats::soldTotal() }} transactions. RE/MAX Hall of Fame. But what she&rsquo;s most proud of is that all three of her sons still call Prospect Heights home.</p>
-          <p><a class="link-arrow" href="tel:8477381884">(847) 738-1884</a><br><a href="mailto:simsre2000@yahoo.com">simsre2000@yahoo.com</a></p>
+          <p><a class="link-arrow" href="tel:8477381884">(847) 738-1884</a><br><a href="mailto:dawn@dawnsellshomes.com">dawn@dawnsellshomes.com</a></p>
         </div>
       </div>
       <div class="member" id="josh">
@@ -32,7 +32,7 @@
           <h3>Josh Simmons</h3>
           <div class="role">REALTOR&reg; &middot; Broker Associate</div>
           <p>Josh is the middle of Dawn&rsquo;s three boys &mdash; all of whom still live in Prospect Heights. He grew up here, went to school here, and watched his mom build her business from the inside. During college he started helping with rentals, and by the time he had his Business Management degree from DePaul University, he knew exactly what he wanted to do. He skipped grad school and joined Dawn full time &mdash; and hasn&rsquo;t looked back. He brings the energy, the hustle, and the local knowledge that only comes from literally growing up in the neighborhoods he now helps people buy and sell.</p>
-          <p><a class="link-arrow" href="tel:2246284013">(224) 628-4013</a> &middot; <a href="sms:2246284013">Text Josh</a><br><a href="mailto:jsims692@gmail.com">jsims692@gmail.com</a></p>
+          <p><a class="link-arrow" href="tel:2246284013">(224) 628-4013</a> &middot; <a href="sms:2246284013">Text Josh</a><br><a href="mailto:josh@dawnsellshomes.com">josh@dawnsellshomes.com</a></p>
         </div>
       </div>
     </div>

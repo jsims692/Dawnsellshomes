@@ -23,6 +23,7 @@
     'alternateName' => 'Dawn Simmons Team — RE/MAX Suburban',
     'url' => 'https://dawnsellshomes.com',
     'telephone' => '+12246284013',
+    'email' => 'josh@dawnsellshomes.com',
     'areaServed' => ['@type' => 'Place', 'name' => 'Northwest Suburbs of Chicago, Illinois'],
     'parentOrganization' => ['@type' => 'Organization', 'name' => 'RE/MAX Suburban'],
     'sameAs' => ['https://www.instagram.com/joshsimmonsre/', 'https://www.facebook.com/joshua.simmons'],
