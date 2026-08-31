@@ -27,6 +27,7 @@
   .li-status { position:absolute; top:10px; left:10px; background:#0F1E2E; color:#fff; font-size:11px; font-weight:700; padding:4px 10px; border-radius:4px; }
   .li-body { padding:16px; }
   .li-price { font-size:22px; font-weight:800; color:#0F1E2E; }
+  .li-pay { font-size:13.5px; font-weight:800; color:#C8102E; background:#FDECEF; border-radius:6px; padding:2px 8px; vertical-align:2px; white-space:nowrap; }
   .li-addr { font-size:14px; color:#444; margin:4px 0 8px; }
   .li-meta { font-size:13px; color:#666; }
   .li-office { font-size:11.5px; color:#888; margin-top:8px; border-top:1px dashed #e0e4ed; padding-top:8px; }
@@ -110,10 +111,15 @@
         <label class="fl-check" style="justify-content:space-between !important">Garage spaces
           <select name="garage" style="padding:5px 8px;border:1px solid #c9d2e3;border-radius:6px;font-size:13px;"><option value="">Any</option>@foreach([1,2,3] as $g)<option value="{{ $g }}" @selected(($filters['garage'] ?? '') == $g)>{{ $g }}+</option>@endforeach</select>
         </label>
+        <label class="fl-check" style="justify-content:space-between !important">Rate assumption %
+          <input name="rate" inputmode="decimal" value="{{ $filters['rate'] ?? '' }}" placeholder="{{ number_format($payRate ?? 6.1, 2) }}" style="width:70px;padding:5px 8px;border:1px solid #c9d2e3;border-radius:6px;font-size:13px;min-width:0;">
+        </label>
 
       </div>
     </div>
-    <div><label for="f-sort">Sort</label><select id="f-sort" name="sort" onchange="this.form.submit()"><option value="">Just updated</option><option value="new" @selected(($filters['sort'] ?? '') === 'new')>Newest listed</option><option value="price" @selected(($filters['sort'] ?? '') === 'price')>Price: low to high</option><option value="price-desc" @selected(($filters['sort'] ?? '') === 'price-desc')>Price: high to low</option></select></div>
+    <div><label for="f-down">Down payment</label><input id="f-down" name="down" inputmode="numeric" placeholder="$60,000" value="{{ ($filters['down'] ?? '') !== '' ? number_format((int) $filters['down']) : '' }}" style="width:120px" onchange="this.value=this.value.replace(/[^0-9]/g,'')"></div>
+    <div><label for="f-pay">Max monthly</label><input id="f-pay" name="payment" inputmode="numeric" placeholder="$3,000/mo" value="{{ ($filters['payment'] ?? '') !== '' ? number_format((int) $filters['payment']) : '' }}" style="width:120px" onchange="this.value=this.value.replace(/[^0-9]/g,'')"></div>
+    <div><label for="f-sort">Sort</label><select id="f-sort" name="sort" onchange="this.form.submit()"><option value="">{{ ($filters['payment'] ?? false) ? 'Most house for the budget' : 'Just updated' }}</option><option value="new" @selected(($filters['sort'] ?? '') === 'new')>Newest listed</option><option value="price" @selected(($filters['sort'] ?? '') === 'price')>Price: low to high</option><option value="price-desc" @selected(($filters['sort'] ?? '') === 'price-desc')>Price: high to low</option></select></div>
     <div><button type="submit">Search</button></div>
   </form>
 
@@ -149,7 +155,8 @@
   <div x-data="{ view: 'list' }" :class="{ 'is-map': view === 'map' }"
        x-init="window.matchMedia('(min-width:1000px)').matches && window.initListingsMap && initListingsMap()">
   <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin:0 0 18px;">
-    <p style="font-size:14px;color:#666;margin:0;">{{ number_format($total) }} {{ Str::plural('listing', $total) }} found{{ $cityDisplay ? ' in '.$cityDisplay : '' }}.</p>
+    <p style="font-size:14px;color:#666;margin:0;">{{ number_format($total) }} {{ Str::plural('listing', $total) }} found{{ $cityDisplay ? ' in '.$cityDisplay : '' }}{{ ($payMode ?? false) ? ' within your monthly budget' : '' }}.
+      @if($payMode ?? false)<br><span style="font-size:12px;color:#8A99AA;">Payments assume {{ number_format($payRate, 2) }}% 30-yr fixed{{ (int) ($filters['down'] ?? 0) ? ' with $'.number_format((int) $filters['down']).' down' : '' }} + each home's <strong>actual property tax</strong> and HOA + est. insurance/PMI where applicable. An estimate, not a loan offer &mdash; verify with your lender.</span>@endif</p>
     <div class="lv-toggle" role="tablist" aria-label="Results view">
       <button type="button" :class="{ on: view === 'list' }" class="on" @click="view = 'list'">&#9776; List</button>
       <button type="button" :class="{ on: view === 'map' }" @click="view = 'map'; window.initListingsMap && initListingsMap()">&#128506; Map</button>
@@ -173,7 +180,7 @@
     <a class="li-card" href="/listings/{{ $l->listing_id }}">
       <div class="li-photo" style="background-image:url('{{ $l->photoUrl() ?? '' }}')"><span class="li-status">{{ $l->status }}</span></div>
       <div class="li-body">
-        <div class="li-price">{{ $l->list_price ? '$'.number_format($l->list_price) : ($l->is_auction ? 'Auction — see details' : 'Price on request') }}</div>
+        <div class="li-price">{{ $l->list_price ? '$'.number_format($l->list_price) : ($l->is_auction ? 'Auction — see details' : 'Price on request') }}@if(isset($l->est_monthly)) <span class="li-pay">&asymp; ${{ number_format($l->est_monthly) }}/mo</span>@endif</div>
         <div class="li-addr">{{ $l->displayAddress() }}</div>
         <div class="li-meta">{{ $l->beds }} bd &middot; {{ $l->baths() }} ba &middot; {{ $l->sqft ? number_format($l->sqft).' sqft' : '—' }} &middot; MLS #{{ $l->listing_id }}</div>
         <div class="li-office">Listing courtesy of {{ $l->list_office_name }}</div>

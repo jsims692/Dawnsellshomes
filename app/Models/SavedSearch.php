@@ -20,6 +20,10 @@ class SavedSearch extends Model
         $type = ['detached' => 'Detached homes', 'attached' => 'Condos & townhomes', 'multi' => '2–4 unit buildings', 'multi5' => '5+ unit buildings'][$c['dwelling'] ?? ''] ?? 'Homes';
         $cityTxt = implode(' / ', array_filter((array) ($c['city'] ?? [])));
         $parts = [$type.($cityTxt !== '' ? ' in '.$cityTxt : ' anywhere we serve')];
+        if ((int) ($c['payment'] ?? 0)) {
+            $parts[] = 'under ~$'.number_format((int) $c['payment']).'/mo'
+                .((int) ($c['down'] ?? 0) ? ' with $'.number_format((int) $c['down']).' down' : '');
+        }
         if ($c['min'] ?? null) {
             $parts[] = 'over $'.number_format($c['min']);
         }
@@ -76,6 +80,13 @@ class SavedSearch extends Model
             ->when($c['reduced'] ?? null, fn ($q) => $q->whereNotNull('price_dropped_at'))
             ->when($c['school'] ?? null, fn ($q, $v) => $q->where(fn ($w) => $w
                 ->where('elementary_school', $v)->orWhere('middle_school', $v)->orWhere('high_school', $v)))
+            // Payment budgets re-evaluate at today's configured rate, so a
+            // rate drop can surface homes that were just out of reach.
+            ->when((int) ($c['payment'] ?? 0), fn ($q, $v) => $q->whereRaw(
+                \App\Support\Affordability::sqlMonthly(
+                    max(0, (int) ($c['down'] ?? 0)),
+                    \App\Support\Affordability::rate($c['rate'] ?? null)
+                ).' <= ?', [$v]))
             ->when($c['available'] ?? null, fn ($q) => $q->where('status', 'Active'))
             ->when(($c['basement'] ?? null) === 'finished', fn ($q) => $q->whereHas('features',
                 fn ($f) => $f->where('category', 'basement')->where('value', 'Finished')));

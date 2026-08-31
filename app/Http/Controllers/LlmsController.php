@@ -38,7 +38,7 @@ Key facts:
 
 ## Home search
 
-- [Search homes for sale](https://dawnsellshomes.com/listings): every active MLS listing in the service area — map view, filters (waterfront, first-floor master, basement, garage, school), saved-search email alerts
+- [Search homes for sale](https://dawnsellshomes.com/listings): every active MLS listing in the service area — map view, search by monthly payment (using each home's actual property tax and HOA), filters (waterfront, first-floor master, basement, garage, school), saved-search email alerts
 - [Neighborhoods & subdivisions](https://dawnsellshomes.com/neighborhoods): {$communities} community pages with build history, school assignments, average property taxes, live listings, and sold statistics
 - [Live market reports](https://dawnsellshomes.com/market): per-town inventory, new-this-week, and last-30-day sold data, computed from the MLS all day
 - [Compare towns](https://dawnsellshomes.com/compare): live side-by-side town comparisons — prices, taxes, days on market, inventory

@@ -69,6 +69,15 @@ class ListingController extends Controller
             $q->where(fn ($w) => $w->where('elementary_school', $school)
                 ->orWhere('middle_school', $school)->orWhere('high_school', $school));
         }
+        // Payment-first search: filter on each home's true estimated monthly
+        // (P&I at the working rate + its REAL tax bill + real HOA + disclosed
+        // insurance/PMI assumptions). SQL-computed so it's a real filter.
+        if ($payment = (int) $request->query('payment')) {
+            $q->whereRaw(\App\Support\Affordability::sqlMonthly(
+                max(0, (int) $request->query('down')),
+                \App\Support\Affordability::rate($request->query('rate'))
+            ).' <= ?', [$payment]);
+        }
         if ($request->query('basement') === 'finished') {
             $q->whereHas('features', fn ($f) => $f->where('category', 'basement')->where('value', 'Finished'));
         }
@@ -80,6 +89,13 @@ class ListingController extends Controller
     public function index(Request $request)
     {
         $q = $this->applyFilters($request);
+        // Payment mode context: the working assumptions travel to the view
+        // and est_monthly rides along on each card.
+        $payment = (int) $request->query('payment');
+        $payDown = max(0, (int) $request->query('down'));
+        $payRate = \App\Support\Affordability::rate($request->query('rate'));
+        $payExpr = $payment ? \App\Support\Affordability::sqlMonthly($payDown, $payRate) : null;
+
         // Available homes always lead — under-contract stays visible (deals
         // fall through; backups happen) but never buries what a buyer can get.
         $q->orderByRaw("FIELD(status, 'Active', 'Active Under Contract')");
@@ -87,7 +103,9 @@ class ListingController extends Controller
             'price' => $q->orderBy('list_price'),
             'price-desc' => $q->orderByDesc('list_price'),
             'new' => $q->orderByDesc('listing_contract_date')->orderByDesc('mls_modified_at'),
-            default => $q->orderByDesc('mls_modified_at'),
+            // "Most house for the budget": closest under the cap first.
+            'payment' => $payExpr ? $q->orderByRaw($payExpr.' DESC') : $q->orderByDesc('mls_modified_at'),
+            default => $payExpr ? $q->orderByRaw($payExpr.' DESC') : $q->orderByDesc('mls_modified_at'),
         };
 
         // Rule 26: no artificial caps below min(500, 50%); pagination exposes
@@ -103,6 +121,7 @@ class ListingController extends Controller
                 'city', 'state', 'zip', 'address_public', 'display_public', 'beds', 'baths_full',
                 'baths_half', 'sqft', 'property_type', 'property_subtype', 'year_built', 'subdivision',
                 'list_office_name', 'lat', 'lng', 'mls_modified_at', 'is_demo', 'is_auction'])
+            ->when($payExpr, fn ($qq) => $qq->addSelect(\Illuminate\Support\Facades\DB::raw($payExpr.' AS est_monthly')))
             ->skip($offset)->take(min($perPage, $total - $offset))->get();
 
         return view('listings.index', [
@@ -113,7 +132,9 @@ class ListingController extends Controller
             'cities' => Listing::displayable()->forSale()->distinct()->orderBy('city')->pluck('city'),
             'dataAsOf' => Listing::max('mls_modified_at') ?? now(),
             'demo' => Listing::displayable()->where('is_demo', true)->exists(),
-            'filters' => ['city' => array_values(array_filter((array) $request->query('city')))] + $request->only(['min', 'max', 'beds', 'baths', 'type', 'dwelling', 'waterfront', 'basement', 'garage', 'ffmaster', 'masterbath', 'ranch', 'nohoa', 'built', 'reduced', 'available', 'sort', 'school']),
+            'filters' => ['city' => array_values(array_filter((array) $request->query('city')))] + $request->only(['min', 'max', 'beds', 'baths', 'type', 'dwelling', 'waterfront', 'basement', 'garage', 'ffmaster', 'masterbath', 'ranch', 'nohoa', 'built', 'reduced', 'available', 'sort', 'school', 'down', 'payment', 'rate']),
+            'payRate' => $payRate,
+            'payMode' => (bool) $payment,
         ]);
     }
 

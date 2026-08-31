@@ -74,7 +74,16 @@ html,body{overflow-x:hidden}
         <div x-data="{ heroTab: 'search' }" style="max-width:560px">
           <div class="hero-tabs">
             <button type="button" :class="heroTab==='search' ? 'on' : ''" @click="heroTab='search'">&#128269; Search homes</button>
+            <button type="button" :class="heroTab==='pay' ? 'on' : ''" @click="heroTab='pay'">&#128181; By monthly payment</button>
             <button type="button" :class="heroTab==='value' ? 'on' : ''" @click="heroTab='value'">&#127968; What&rsquo;s my home worth?</button>
+          </div>
+          <div x-show="heroTab==='pay'" x-cloak>
+            <form class="val-card hero-search" action="/listings" method="get" aria-label="Search by monthly payment">
+              <input type="text" name="down" inputmode="numeric" placeholder="Down payment — $60,000" aria-label="Down payment" onchange="this.value=this.value.replace(/[^0-9]/g,'')">
+              <input type="text" name="payment" inputmode="numeric" placeholder="Comfortable monthly — $3,000" aria-label="Comfortable monthly payment" required onchange="this.value=this.value.replace(/[^0-9]/g,'')">
+              <button class="btn btn--primary" type="submit">Show what I can afford</button>
+            </form>
+            <p style="font-size:.82rem;color:var(--slate);margin-top:.5rem">We do the math with each home&rsquo;s <strong>actual property tax</strong> and HOA &mdash; not a portal&rsquo;s guess.</p>
           </div>
           <div x-show="heroTab==='search'">
             <form class="val-card hero-search" action="/listings" method="get" aria-label="Search homes">
