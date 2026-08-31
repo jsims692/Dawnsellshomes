@@ -173,7 +173,7 @@ html,body{overflow-x:hidden}
       <div class="why-card rv in">
         <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 7.5v9M14.4 9.2c-.5-.8-1.4-1.2-2.4-1.2-1.4 0-2.5.8-2.5 2 0 2.6 5 1.5 5 4 0 1.2-1.1 2-2.5 2-1 0-1.9-.4-2.4-1.2"></path></svg></div>
         <h3>We fight for every dollar</h3>
-        <p>Nobody negotiates harder. Bidding wars won for buyers, multiple offers pulled for sellers — {{ \App\Support\TeamStats::soldTotal() }} times and counting.</p>
+        <p>Nobody negotiates harder. Bidding wars won for buyers, multiple offers pulled for sellers — {{ \App\Support\TeamStats::soldTotal() }} closings and counting.</p>
       </div>
       <div class="why-card rv in">
         <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="13.5" height="12" rx="2.5"></rect><path d="M16.5 10.5 21 8v8l-4.5-2.5"></path></svg></div>
@@ -250,7 +250,7 @@ html,body{overflow-x:hidden}
     </div>
     <div class="rv" style="margin-top:2.2rem">
       <x-sales.map height="480px" :compact="true" />
-      <p style="margin-top:1.2rem"><a class="link-arrow" href="/sold">See all 555 homes we've sold — with the full interactive map →</a></p>
+      <p style="margin-top:1.2rem"><a class="link-arrow" href="/sold">See all {{ \App\Support\TeamStats::mappedSales() }} homes we've sold — with the full interactive map →</a></p>
     </div>
   </div>
 </section>
