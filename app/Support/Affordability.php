@@ -47,10 +47,14 @@ class Affordability
         $ins = self::INS_RATE / 12;
         $pmi = self::PMI_RATE / 12;
 
-        return "(GREATEST(list_price - {$down}, 0) * {$k}"
+        // CAST: list_price is unsigned — a down payment larger than a cheap
+        // listing's price would otherwise overflow instead of clamping to 0.
+        $loan = "GREATEST(CAST(list_price AS SIGNED) - {$down}, 0)";
+
+        return "({$loan} * {$k}"
             .' + COALESCE(NULLIF(tax_annual, 0), list_price * '.self::TAX_FALLBACK.') / 12'
             .' + COALESCE(hoa_fee, 0)'
             ." + list_price * {$ins}"
-            ." + CASE WHEN {$down} < list_price * 0.2 THEN GREATEST(list_price - {$down}, 0) * {$pmi} ELSE 0 END)";
+            ." + CASE WHEN {$down} < list_price * 0.2 THEN {$loan} * {$pmi} ELSE 0 END)";
     }
 }
