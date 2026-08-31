@@ -1,6 +1,7 @@
 @props([
     'height' => '560px',
     'compact' => false,   {{-- homepage variant --}}
+    'addressSearch' => false,   {{-- "homes we've sold near you" box (/sold) --}}
 ])
 @php $gkey = config('services.google.maps_key'); @endphp
 @if(!$gkey)
@@ -21,6 +22,20 @@
     style="position:relative; height: {{ $height }}; border-radius:12px; overflow:hidden; box-shadow:0 4px 24px rgba(27,58,107,.12); background:#e9edf3;"
 >
     <div x-ref="map" style="position:absolute; inset:0;"></div>
+
+    @if($addressSearch)
+    <div class="dsm-search">
+        <form @submit.prevent="findHome()">
+            <input type="text" x-model="q" placeholder="Your address &mdash; see what we&rsquo;ve sold near you" aria-label="Your address">
+            <button type="submit" x-text="searching ? '…' : 'Find'" :disabled="searching">Find</button>
+        </form>
+        <p class="dsm-near" x-show="near" x-cloak>
+            &#127968; We&rsquo;ve closed <strong x-text="near?.count"></strong> <span x-text="near?.count === 1 ? 'deal' : 'deals'"></span> within a mile of you.
+            <a href="/sell">What&rsquo;s your home worth? &rarr;</a>
+        </p>
+        <p class="dsm-near dsm-near--err" x-show="searchErr" x-cloak x-text="searchErr"></p>
+    </div>
+    @endif
 
     <div x-show="loading" x-transition.opacity style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(244,246,251,.85); font-family:Arial,sans-serif; color:#0F1E2E; font-weight:700; letter-spacing:.5px; z-index:5;">
         Loading {{ $compact ? '' : \App\Support\TeamStats::mappedSales().' ' }}sales…
@@ -58,6 +73,16 @@
     .dsm-pin:hover { transform:scale(1.5); }
     .dsm-pin.listing { background:#C8102E; }
     .dsm-pin.buyside { background:#E8B93B; }
+    .dsm-search { position:absolute; top:12px; left:12px; z-index:6; background:rgba(255,255,255,.97); border-radius:10px; padding:10px 12px; box-shadow:0 4px 18px rgba(0,0,0,.18); width:min(340px, calc(100% - 24px)); font-family:Arial,sans-serif; }
+    .dsm-search form { display:flex; gap:6px; }
+    .dsm-search input { flex:1; min-width:0; border:1.5px solid #c9d2e3; border-radius:7px; padding:8px 10px; font-size:13.5px; font-family:inherit; }
+    .dsm-search input:focus { outline:none; border-color:#0F1E2E; }
+    .dsm-search button { background:#C8102E; color:#fff; border:0; border-radius:7px; padding:8px 14px; font-weight:700; font-size:13px; cursor:pointer; }
+    .dsm-near { margin:8px 2px 0; font-size:12.5px; color:#333; line-height:1.5; }
+    .dsm-near strong { color:#C8102E; font-size:14px; }
+    .dsm-near a { color:#C8102E; font-weight:700; text-decoration:none; white-space:nowrap; }
+    .dsm-near--err { color:#9a3b3b; }
+    .dsm-you { width:34px; height:34px; border-radius:50%; background:#0F1E2E; border:3px solid #fff; box-shadow:0 3px 12px rgba(0,0,0,.4); display:flex; align-items:center; justify-content:center; font-size:16px; z-index:2000; }
 </style>
 
 <script>
@@ -105,6 +130,8 @@ document.addEventListener('alpine:init', () => {
         map: null, loading: true, mode: 'cities', active: null,
         all: [], markers: [], HtmlMarker: null,
         busy: false, autoHomes: false, drillCity: null,
+        // "near you" address search (only rendered on /sold)
+        q: '', searching: false, near: null, searchErr: '', you: null,
 
         fmt(n) { return '$' + Math.round(n).toLocaleString('en-US'); },
         get filters() { return Alpine.store('salesFilters'); },
@@ -214,6 +241,45 @@ document.addEventListener('alpine:init', () => {
             });
             if (fit) this.fitTo(rows.map(s => ({ lat: s.lat, lng: s.lng })), 15);
             this.settle();
+        },
+
+        /**
+         * "Homes we've sold near you": geocode the visitor's address, center
+         * them among our pins, and count closings within a mile — the seller
+         * hook is seeing our track record ON their own street.
+         */
+        async findHome() {
+            const q = this.q.trim();
+            if (!q || this.searching) return;
+            this.searching = true; this.near = null; this.searchErr = '';
+            try {
+                await google.maps.importLibrary('geocoding');
+                const { results } = await new google.maps.Geocoder().geocode({
+                    address: q, componentRestrictions: { country: 'US' }, bounds: this.map.getBounds(),
+                });
+                const loc = results[0].geometry.location;
+                const pos = { lat: loc.lat(), lng: loc.lng() };
+
+                this.showHomes(null, false, false);
+                this.map.setCenter(pos);
+                this.map.setZoom(14);
+
+                if (this.you) { try { this.you.el.remove(); this.you.setMap(null); } catch (e) {} }
+                const el = document.createElement('div');
+                el.className = 'dsm-you'; el.textContent = '🏠'; el.title = 'Your home';
+                this.you = new this.HtmlMarker(this.map, pos, el, null);
+
+                const R = 3958.8, toR = x => x * Math.PI / 180;
+                const miles = s => {
+                    const h = Math.sin(toR(s.lat - pos.lat) / 2) ** 2
+                        + Math.cos(toR(pos.lat)) * Math.cos(toR(s.lat)) * Math.sin(toR(s.lng - pos.lng) / 2) ** 2;
+                    return 2 * R * Math.asin(Math.sqrt(h));
+                };
+                this.near = { count: this.all.filter(s => miles(s) <= 1).length };
+            } catch (e) {
+                this.searchErr = "Couldn't find that address — try adding the town, e.g. \"12 Oak St, Palatine\".";
+            }
+            this.searching = false;
         },
 
         // Release the transition guard once any programmatic pan/zoom finishes.

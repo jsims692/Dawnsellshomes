@@ -66,6 +66,23 @@
       <div class="c-card"><h3>We actually grew up here</h3><p>Not &ldquo;serving the area&rdquo; &mdash; living in it. We know which blocks flood, which streets are quiet, and what a home is really worth.</p></div>
       <div class="c-card"><h3>A verifiable track record</h3><p><a href="/sold">{{ \App\Support\TeamStats::soldTotal() }} closed sales</a>, mapped, and <a href="/reviews">62+ public Google reviews</a>. Nothing to take on faith.</p></div>
     </div>
+
+    <div class="wdd">
+      <h3 class="wdd-h">And just as important &mdash; what we <em>don&rsquo;t</em> do.</h3>
+      <ul class="wdd-list">
+        <li><span aria-hidden="true">&#10007;</span> We don&rsquo;t overprice your house to win the listing &mdash; that inflated number costs you months.</li>
+        <li><span aria-hidden="true">&#10007;</span> We don&rsquo;t hand you off to an assistant &mdash; you get Dawn and Josh, first walkthrough to wire transfer.</li>
+        <li><span aria-hidden="true">&#10007;</span> We don&rsquo;t disappear once the sign is in the yard.</li>
+        <li><span aria-hidden="true">&#10007;</span> We don&rsquo;t just put it on the MLS and hope &mdash; marketing with real reach is the whole job.</li>
+      </ul>
+    </div>
+    <style>
+      .wdd { max-width: 720px; margin: 2.6rem auto 0; border-top: 1px solid var(--line); padding-top: 1.9rem; }
+      .wdd-h { font-family: 'Fraunces', Georgia, serif; font-weight: 600; font-size: 1.35rem; margin: 0 0 1rem; }
+      .wdd-list { list-style: none; margin: 0; padding: 0; display: grid; gap: .7rem; }
+      .wdd-list li { font-size: .98rem; line-height: 1.65; color: var(--slate); display: flex; gap: .7rem; }
+      .wdd-list li span { color: var(--red); font-weight: 800; flex: none; }
+    </style>
   </div>
 </section>
 

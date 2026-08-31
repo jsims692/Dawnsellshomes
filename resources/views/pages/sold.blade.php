@@ -89,7 +89,7 @@
 </div>
 
 <div class="content">
-  <x-sales.map height="520px" />
+  <x-sales.map height="520px" :address-search="true" />
 
   {{-- Server-rendered so search engines index every sale; Alpine only toggles visibility. --}}
   <div class="grid" id="grid" style="margin-top:40px;">
