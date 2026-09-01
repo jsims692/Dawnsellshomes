@@ -182,8 +182,11 @@ class ListingController extends Controller
                 || ($expected > 0 && $cached < min($expected, \App\Console\Commands\MlsMedia::PHOTOS_MAX));
             if ($incomplete && cache()->add($lockKey, 1, 600)) {
                 // First view (or an abandoned partial fetch): pull the gallery.
+                // PHP_BINARY under php-fpm is the fpm daemon, not the CLI —
+                // exec'ing it with 'artisan' just prints fpm usage text.
+                $php = (new \Symfony\Component\Process\PhpExecutableFinder)->find(false) ?: PHP_BINARY;
                 exec(sprintf('%s %s mls:media --listing=%s --all >> %s 2>&1 &',
-                    escapeshellarg(PHP_BINARY),
+                    escapeshellarg($php),
                     escapeshellarg(base_path('artisan')),
                     escapeshellarg($listing->listing_id),
                     escapeshellarg(storage_path('logs/gallery-fetch.log'))));

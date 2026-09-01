@@ -88,7 +88,9 @@ class MlsMedia extends Command
                 }
             }
 
-            if (! MlsGridBudget::allow(background: true)) {
+            // A visitor is waiting on a single-listing (sold gallery) fetch —
+            // let it use the interactive reserve; bulk runs stay background.
+            if (! MlsGridBudget::allow(background: ! $this->option('listing'))) {
                 $this->warn('MLS GRID usage budget reached ('.MlsGridBudget::summary().') — stopping; rerun next hour.');
                 break;
             }

@@ -9,6 +9,12 @@
 .val-card.hero-search input{flex:1;min-width:0;border:0;outline:none;font:inherit;padding:.55rem .8rem;color:var(--ink)}
 .val-card.hero-search select{border:1px solid var(--line);border-radius:10px;background:#fff;font:inherit;font-size:.88rem;color:var(--slate);padding:.45rem .5rem}
 @media(max-width:560px){.val-card.hero-search{flex-wrap:wrap}.val-card.hero-search input{flex-basis:100%}}
+/* The value form's result panel is a flex child of the .val-card row — it
+   must wrap to its own full-width line, or the button stretches to the
+   panel's height and the card overflows the phone. */
+#valForm{flex-wrap:wrap}
+#valForm .hv-result{flex-basis:100%;min-width:0}
+@media(max-width:560px){#valForm input{flex-basis:100%}}
 /* Homepage-only styles (photo card, wired-widget results, result photos) —
    everything else comes from site-v2.css. */
 .ph .photo-card{position:relative;border-radius:20px;overflow:hidden;box-shadow:0 30px 70px rgba(15,30,46,.25)}
