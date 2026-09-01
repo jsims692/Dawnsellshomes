@@ -34,6 +34,7 @@
       <div class="c-card"><h3>Well service</h3><p><strong>Snelton</strong> &mdash; if you're buying on the Chain or anywhere on well water, save yourself the learning curve and use who we use.</p></div>
       <div class="c-card"><h3>Hauling &amp; cleanouts</h3><p><strong>Torvik Hauling</strong> &mdash; estate cleanouts, pre-listing purges, and moving-day surprises that need to disappear by the weekend.</p></div>
       <div class="c-card"><h3>On the water (the Chain)</h3><p><strong>Allan Lukasz</strong> &mdash; piers, barge work, and whatever else the Chain throws at you. Josh grew up with him, half the Chain tags him by name when something goes sideways, and he's bailed out our own place more times than we can count.</p></div>
+      <div class="c-card"><h3>General contractor</h3><p><strong>Patryk Szady &mdash; GS Construction</strong>. Renovations, pre-listing fix-ups, and the punch lists that come out of inspections &mdash; done right, in our area, by someone we trust with our own projects.</p></div>
     </div>
   </div>
 </section>
