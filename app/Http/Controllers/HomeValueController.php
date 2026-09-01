@@ -73,6 +73,13 @@ class HomeValueController extends Controller
 
         $cities = $comps->groupBy('city')->map->count()->sortDesc();
 
+        // Pre-warm the linked comps' galleries while the visitor reads the
+        // range — by the time they tap one, its photos are on disk. Nearest
+        // comp first; the worker cap quietly skips the rest when saturated.
+        if (! \App\Support\GalleryWarmer::isBot(request()->userAgent())) {
+            $comps->take(5)->each(fn ($l) => \App\Support\GalleryWarmer::warm($l));
+        }
+
         return response()->json([
             'ok' => true,
             'source' => 'mls',
