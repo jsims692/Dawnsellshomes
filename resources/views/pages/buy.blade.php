@@ -57,6 +57,7 @@
       <div class="c-card"><h3>We grew up on these streets</h3><p>Dawn moved here in 1988; Josh was raised here and never left. When we say a block is quiet or a basement is a flood risk, it&rsquo;s from living here &mdash; not from a report.</p></div>
       <div class="c-card"><h3>You see more than Zillow shows</h3><p>Off-market and Private Listing Network homes, plus listings our network surfaces before they go live. <a href="/off-market-homes">Here&rsquo;s how that works</a>.</p></div>
       <div class="c-card"><h3>Two agents on every deal</h3><p>Dawn&rsquo;s 26 years of contract savvy plus Josh&rsquo;s energy and speed. Two sets of eyes on every listing, two networks working for you, one team.</p></div>
+      <div class="c-card"><h3>A ready-made team</h3><p>Lender, attorney, inspector &mdash; the deal moves only as fast as its slowest professional. <a href="/who-we-use">Ours are already assembled</a>, and nobody pays to be on that list.</p></div>
     </div>
   </div>
 </section>

@@ -62,7 +62,7 @@ Key facts:
 
 - [Blog & guides](https://dawnsellshomes.com/blog): neighborhood deep-dives, market updates, and practical guides written by Josh and Dawn
 - [Chain O'Lakes](https://dawnsellshomes.com/chain-o-lakes): waterfront living, boating access, and what waterfront vs. channel-front really means
-- [About the team](https://dawnsellshomes.com/team) · [Client reviews](https://dawnsellshomes.com/reviews)
+- [About the team](https://dawnsellshomes.com/team) · [Client reviews](https://dawnsellshomes.com/reviews) · [Who we use](https://dawnsellshomes.com/who-we-use): the lenders, attorneys, and inspectors the team personally uses
 
 ## Data & attribution
 

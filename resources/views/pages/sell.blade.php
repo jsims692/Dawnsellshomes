@@ -96,6 +96,7 @@
       <div class="c-card"><h3>Seller net sheet</h3><p>The sale price is the headline &mdash; the wire to your bank is the real story. Estimate your true walk-away number, Illinois costs included. <a href="/seller-net-sheet">Open the net sheet &rarr;</a></p></div>
       <div class="c-card"><h3>Homes we&rsquo;ve sold</h3><p>Every pin is a family we helped. Browse {{ \App\Support\TeamStats::mappedSales() }} closed sales on an interactive map and see what we&rsquo;ve done on your street. <a href="/sold">See the map &rarr;</a></p></div>
       <div class="c-card"><h3>Free home valuation</h3><p>Enter your address above for an instant neighborhood snapshot from our own sales &mdash; then we&rsquo;ll follow up with a real number for your specific home, usually within 24 hours.</p></div>
+      <div class="c-card"><h3>Who we use</h3><p>The attorneys, lenders, inspectors, and tradespeople we call ourselves &mdash; earned over {{ \App\Support\TeamStats::soldTotal() }} closings, and nobody pays to be on the list. <a href="/who-we-use">See the list &rarr;</a></p></div>
     </div>
   </div>
 </section>
