@@ -34,6 +34,10 @@ class MlsMedia extends Command
     /** Sanity bound only — buyers get every photo the listing has. */
     public const PHOTOS_MAX = 60;
 
+    /** Never download below this much free disk — the DB, logs, and the
+     *  hourly sync all live on the same volume. */
+    private const DISK_FLOOR_BYTES = 2_500_000_000;
+
     public function handle(): int
     {
         try {
@@ -68,6 +72,11 @@ class MlsMedia extends Command
             ->orderByDesc('mls_modified_at');
 
         foreach ($q->cursor() as $l) {
+            if ((float) disk_free_space(storage_path()) < self::DISK_FLOOR_BYTES) {
+                $this->warn('Disk floor reached — stopping media downloads.');
+                break;
+            }
+
             // For-sale listings get the full gallery (capped); --all rows
             // (closed) just the primary — except a targeted --listing fetch,
             // which is a viewer opening a sold page: they get the gallery.

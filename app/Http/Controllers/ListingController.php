@@ -173,14 +173,20 @@ class ListingController extends Controller
         // Sold pages fetch their full gallery on first view via a detached
         // worker (budget-guarded; photos appear in ~30-60s). Pre-downloading
         // every sold gallery would be ~60GB+ at full scale — demand-driven.
+        // Crawlers walk thousands of sold pages; only human-looking views
+        // may spend MLS budget and disk, and only a few fetches at a time.
         $galleryFetching = false;
-        if (! $listing->isForSale()) {
+        $isBot = preg_match('/bot|crawl|spider|slurp|preview|facebookexternalhit|headless|python|curl|wget/i',
+            (string) request()->userAgent());
+        if (! $listing->isForSale() && ! $isBot) {
             $lockKey = 'gallery-fetch:'.$listing->listing_id;
             $cached = count($listing->photoUrls());
             $expected = (int) @file_get_contents(storage_path('app/public/listings/'.$listing->listing_key.'.count'));
             $incomplete = $cached <= 1
                 || ($expected > 0 && $cached < min($expected, \App\Console\Commands\MlsMedia::PHOTOS_MAX));
-            if ($incomplete && cache()->add($lockKey, 1, 600)) {
+            if ($incomplete && $this->galleryWorkersBusy()) {
+                $galleryFetching = true; // let the page keep refreshing; a later view retries
+            } elseif ($incomplete && cache()->add($lockKey, 1, 600)) {
                 // First view (or an abandoned partial fetch): pull the gallery.
                 // PHP_BINARY under php-fpm is the fpm daemon, not the CLI —
                 // exec'ing it with 'artisan' just prints fpm usage text.
@@ -245,5 +251,15 @@ class ListingController extends Controller
             'galleryFetching' => $galleryFetching,
             'dataAsOf' => Listing::max('mls_modified_at') ?? now(),
         ]);
+    }
+
+    /** Cap concurrent on-demand gallery workers (each is an MLS API call
+     *  plus dozens of photo downloads on a small disk). */
+    private function galleryWorkersBusy(): bool
+    {
+        // [m] so the pattern never matches the shell carrying it.
+        exec('pgrep -fc -- "[m]ls:media --listing" 2>/dev/null', $out);
+
+        return (int) ($out[0] ?? 0) >= 4;
     }
 }
