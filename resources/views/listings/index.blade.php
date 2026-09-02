@@ -24,7 +24,18 @@
   .li-card { display:block; background:#fff; border:1px solid #e0e4ed; border-radius:10px; overflow:hidden; text-decoration:none; color:#222; transition:box-shadow .15s; }
   .li-card:hover { box-shadow:0 8px 28px rgba(15,30,46,.16); }
   .li-photo { aspect-ratio:3/2; background:#e9edf3 center/cover no-repeat; position:relative; }
-  .li-status { position:absolute; top:10px; left:10px; background:#0F1E2E; color:#fff; font-size:11px; font-weight:700; padding:4px 10px; border-radius:4px; }
+  .li-status { position:absolute; top:10px; left:10px; background:#0F1E2E; color:#fff; font-size:11px; font-weight:700; padding:4px 10px; border-radius:4px; z-index:2; }
+  /* Card photo carousel: swipe through cached photos without opening the
+     listing. Only the first image ships a src; the rest hydrate on first
+     touch/scroll so a page of cards doesn't load 200+ images. */
+  .li-strip { position:relative; }
+  .li-track { display:flex; overflow-x:auto; scroll-snap-type:x mandatory; scrollbar-width:none; aspect-ratio:3/2; background:#e9edf3; }
+  .li-track::-webkit-scrollbar { display:none; }
+  .li-track img { flex:0 0 100%; width:100%; height:100%; object-fit:cover; scroll-snap-align:start; scroll-snap-stop:always; }
+  .li-count { position:absolute; right:8px; bottom:8px; background:rgba(8,13,20,.62); color:#fff; font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; pointer-events:none; }
+  .li-arr { position:absolute; top:50%; transform:translateY(-50%); width:30px; height:44px; border:0; border-radius:6px; background:rgba(255,255,255,.88); color:#0F1E2E; font-size:22px; line-height:1; cursor:pointer; display:none; z-index:2; padding:0; }
+  .li-arr-l { left:6px; } .li-arr-r { right:6px; }
+  @media (hover:hover) { .li-strip:hover .li-arr:not([hidden]) { display:block; } }
   .li-body { padding:16px; }
   .li-price { font-size:22px; font-weight:800; color:#0F1E2E; }
   .li-pay { font-size:13.5px; font-weight:800; color:#C8102E; background:#FDECEF; border-radius:6px; padding:2px 8px; vertical-align:2px; white-space:nowrap; }
@@ -178,7 +189,22 @@
     @foreach($listings as $l)
     {{-- Thumbnail: ≤8 objective fields, no site branding, links to the fully compliant detail page (Rules 10, 13, 22 exemptions) --}}
     <a class="li-card" href="/listings/{{ $l->listing_id }}">
+      @php $ph = array_slice($l->photoUrls(), 0, 10); @endphp
+      @if(count($ph) > 1)
+      <div class="li-strip">
+        <div class="li-track" data-n="{{ count($ph) }}">
+          @foreach($ph as $i => $p)
+          <img @if($i === 0) src="{{ $p }}" loading="lazy" @else data-src="{{ $p }}" @endif alt="">
+          @endforeach
+        </div>
+        <button type="button" class="li-arr li-arr-l" aria-label="Previous photo" hidden>&#8249;</button>
+        <button type="button" class="li-arr li-arr-r" aria-label="Next photo">&#8250;</button>
+        <span class="li-count">1/{{ count($ph) }}</span>
+        <span class="li-status">{{ $l->status }}</span>
+      </div>
+      @else
       <div class="li-photo" style="background-image:url('{{ $l->photoUrl() ?? '' }}')"><span class="li-status">{{ $l->status }}</span></div>
+      @endif
       <div class="li-body">
         <div class="li-price">{{ $l->list_price ? '$'.number_format($l->list_price) : ($l->is_auction ? 'Auction — see details' : 'Price on request') }}@if(isset($l->est_monthly)) <span class="li-pay">&asymp; ${{ number_format($l->est_monthly) }}/mo</span>@endif</div>
         <div class="li-addr">{{ $l->displayAddress() }}</div>
@@ -265,6 +291,46 @@ window.initListingsMap = (function () {
         else map.setView([42.15, -88.0], 10);
       });
   }
+})();
+</script>
+
+<script>
+// Card photo carousels: hydrate neighbors of the visible frame on demand,
+// keep the counter honest, and let desktop hover-arrows page the strip
+// without following the card link.
+(function () {
+  function hydrate(track, i) {
+    for (var k = Math.max(0, i - 1); k <= Math.min(track.children.length - 1, i + 2); k++) {
+      var im = track.children[k];
+      if (im.dataset.src) { im.src = im.dataset.src; delete im.dataset.src; }
+    }
+  }
+  document.querySelectorAll('.li-track').forEach(function (track) {
+    var strip = track.parentNode,
+        count = strip.querySelector('.li-count'),
+        prev = strip.querySelector('.li-arr-l'),
+        next = strip.querySelector('.li-arr-r'),
+        n = parseInt(track.dataset.n, 10) || 1;
+    function idx() { return Math.round(track.scrollLeft / track.clientWidth); }
+    ['touchstart', 'mouseenter'].forEach(function (ev) {
+      track.addEventListener(ev, function () { hydrate(track, idx()); }, { passive: true, once: true });
+    });
+    track.addEventListener('scroll', function () {
+      var i = idx();
+      hydrate(track, i);
+      if (count) count.textContent = (i + 1) + '/' + n;
+      if (prev) prev.hidden = i === 0;
+      if (next) next.hidden = i >= n - 1;
+    }, { passive: true });
+    [[prev, -1], [next, 1]].forEach(function (pair) {
+      if (!pair[0]) return;
+      pair[0].addEventListener('click', function (e) {
+        e.preventDefault();
+        hydrate(track, idx() + pair[1]);
+        track.scrollBy({ left: pair[1] * track.clientWidth, behavior: 'smooth' });
+      });
+    });
+  });
 })();
 </script>
 

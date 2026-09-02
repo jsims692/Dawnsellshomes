@@ -96,63 +96,78 @@
   </div>
 
   @if(count($photos) > 0)
-  {{-- In-page lightbox: tap a photo to view large, swipe/arrow through the
-       rest, tap X / backdrop / Esc to close. No new tabs. --}}
+  {{-- Fullscreen photo feed: tap any photo and it opens a vertically
+       scrollable column of every photo, anchored at the one tapped — scroll
+       through them all, no swiping or clicking picture-to-picture. Close
+       with X, Esc, or the phone's back button. --}}
   <div class="lbx" id="lbx" hidden role="dialog" aria-label="Photo viewer">
     <button type="button" class="lbx-x" id="lbxClose" aria-label="Close">&times;</button>
     <div class="lbx-count" id="lbxCount"></div>
-    <button type="button" class="lbx-nav lbx-prev" id="lbxPrev" aria-label="Previous photo">&#8249;</button>
-    <img id="lbxImg" alt="Listing photo">
-    <button type="button" class="lbx-nav lbx-next" id="lbxNext" aria-label="Next photo">&#8250;</button>
+    <div class="lbx-scroll" id="lbxScroll" tabindex="-1"></div>
   </div>
   <style>
-    .lbx { position:fixed; inset:0; z-index:10000; background:rgba(8,13,20,.96); display:flex; align-items:center; justify-content:center; }
+    .lbx { position:fixed; inset:0; z-index:10000; background:rgba(8,13,20,.97); }
     .lbx[hidden] { display:none; }
-    .lbx img { max-width:96vw; max-height:88vh; object-fit:contain; border-radius:6px; user-select:none; -webkit-user-drag:none; }
-    .lbx-x { position:absolute; top:10px; right:12px; background:none; border:0; color:#fff; font-size:38px; line-height:1; cursor:pointer; padding:6px 12px; z-index:2; }
-    .lbx-count { position:absolute; top:22px; left:0; right:0; text-align:center; color:rgba(255,255,255,.85); font-size:13.5px; font-weight:700; letter-spacing:.5px; }
-    .lbx-nav { position:absolute; top:50%; transform:translateY(-50%); background:rgba(255,255,255,.12); border:0; color:#fff; font-size:34px; line-height:1; width:46px; height:64px; border-radius:8px; cursor:pointer; z-index:2; }
-    .lbx-nav:hover { background:rgba(255,255,255,.25); }
-    .lbx-prev { left:8px; } .lbx-next { right:8px; }
-    @media (max-width:700px) { .lbx-nav { width:38px; height:54px; font-size:28px; background:rgba(255,255,255,.08); } }
+    .lbx-scroll { position:absolute; inset:0; overflow-y:auto; overscroll-behavior:contain; -webkit-overflow-scrolling:touch; padding:56px 0 34px; outline:none; }
+    /* auto 3/2: real ratio once loaded, a stable placeholder box before —
+       so anchoring to a tapped photo doesn't jump as neighbors load. */
+    .lbx-scroll img { display:block; width:min(96vw,900px); height:auto; aspect-ratio:auto 3/2; margin:0 auto 10px; border-radius:6px; background:#16202c; }
+    .lbx-x { position:fixed; top:10px; right:12px; background:rgba(8,13,20,.55); border:0; color:#fff; font-size:34px; line-height:1; cursor:pointer; padding:6px 13px; border-radius:10px; z-index:2; }
+    .lbx-count { position:fixed; top:16px; left:50%; transform:translateX(-50%); background:rgba(8,13,20,.55); color:rgba(255,255,255,.92); font-size:13px; font-weight:700; letter-spacing:.5px; padding:6px 13px; border-radius:999px; z-index:2; }
   </style>
   <script>
   (function () {
     var pics = @json(array_values($photos));
-    var box = document.getElementById('lbx'), img = document.getElementById('lbxImg'),
-        count = document.getElementById('lbxCount'), cur = 0, sx = null;
-    function show(i) {
-      cur = (i + pics.length) % pics.length;
-      img.src = pics[cur];
-      count.textContent = (cur + 1) + ' / ' + pics.length;
-      // warm the neighbors so swiping feels instant
-      [cur + 1, cur - 1].forEach(function (n) { new Image().src = pics[(n + pics.length) % pics.length]; });
+    var box = document.getElementById('lbx'), scroller = document.getElementById('lbxScroll'),
+        count = document.getElementById('lbxCount'), built = false, pushed = false;
+    function build() {
+      if (built) return; built = true;
+      pics.forEach(function (p, i) {
+        var im = document.createElement('img');
+        im.dataset.src = p;
+        im.alt = 'Photo ' + (i + 1) + ' of ' + pics.length;
+        scroller.appendChild(im);
+      });
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) {
+          if (!en.isIntersecting) return;
+          if (en.target.dataset.src) { en.target.src = en.target.dataset.src; delete en.target.dataset.src; }
+          io.unobserve(en.target);
+        });
+      }, { root: scroller, rootMargin: '150% 0px' });
+      Array.prototype.forEach.call(scroller.children, function (im) { io.observe(im); });
+      scroller.addEventListener('scroll', onScroll, { passive: true });
     }
-    function open(i) { show(i); box.hidden = false; document.body.style.overflow = 'hidden'; }
-    function close() { box.hidden = true; document.body.style.overflow = ''; }
+    function onScroll() {
+      var kids = scroller.children, mid = scroller.scrollTop + scroller.clientHeight / 2, i = 0;
+      while (i < kids.length - 1 && kids[i].offsetTop + kids[i].offsetHeight < mid) i++;
+      count.textContent = (i + 1) + ' / ' + pics.length;
+    }
+    function open(i) {
+      build();
+      box.hidden = false;
+      document.body.style.overflow = 'hidden';
+      var t = scroller.children[i];
+      if (t.dataset.src) { t.src = t.dataset.src; delete t.dataset.src; }
+      requestAnimationFrame(function () { t.scrollIntoView({ block: 'start' }); onScroll(); scroller.focus(); });
+      try { history.pushState({ lbx: 1 }, ''); pushed = true; } catch (e) { pushed = false; }
+    }
+    function close(fromPop) {
+      box.hidden = true;
+      document.body.style.overflow = '';
+      if (pushed && !fromPop) { pushed = false; history.back(); } else { pushed = false; }
+    }
     document.getElementById('ldGallery').addEventListener('click', function (e) {
       var a = e.target.closest('a[data-i]');
       if (!a) return;
       e.preventDefault();
       open(parseInt(a.dataset.i, 10));
     });
-    document.getElementById('lbxClose').addEventListener('click', close);
-    document.getElementById('lbxPrev').addEventListener('click', function () { show(cur - 1); });
-    document.getElementById('lbxNext').addEventListener('click', function () { show(cur + 1); });
-    box.addEventListener('click', function (e) { if (e.target === box) close(); });
+    document.getElementById('lbxClose').addEventListener('click', function () { close(false); });
+    window.addEventListener('popstate', function () { if (!box.hidden) close(true); });
     document.addEventListener('keydown', function (e) {
-      if (box.hidden) return;
-      if (e.key === 'Escape') close();
-      if (e.key === 'ArrowLeft') show(cur - 1);
-      if (e.key === 'ArrowRight') show(cur + 1);
+      if (!box.hidden && e.key === 'Escape') close(false);
     });
-    box.addEventListener('touchstart', function (e) { sx = e.changedTouches[0].clientX; }, { passive: true });
-    box.addEventListener('touchend', function (e) {
-      if (sx === null) return;
-      var dx = e.changedTouches[0].clientX - sx;
-      sx = null;
-      if (Math.abs(dx) > 40) show(cur + (dx < 0 ? 1 : -1));
-    }, { passive: true });
   })();
   </script>
   @endif
