@@ -91,6 +91,7 @@ class MlsSync extends Command
             }
             // MLS GRID rejects uncompressed requests ("COMPRESSION REQUIRED").
             // Retry only connection errors / 5xx — never hammer a rate limit.
+            MlsGridBudget::pace();
             $resp = Http::withToken($token)->acceptJson()
                 ->withHeaders(['Accept-Encoding' => 'gzip'])
                 ->timeout(60)
@@ -98,7 +99,6 @@ class MlsSync extends Command
                     || $e->response->serverError(), throw: false)
                 ->get($url);
             MlsGridBudget::record(strlen($resp->body()));
-            usleep(300000); // ≤ ~2 pages/second regardless of response time
             if (! $resp->successful()) {
                 $this->error('MLS GRID API '.$resp->status().': '.substr($resp->body(), 0, 300));
 
@@ -171,6 +171,7 @@ class MlsSync extends Command
 
                     return self::FAILURE;
                 }
+                MlsGridBudget::pace();
                 $resp = Http::withToken($token)->acceptJson()
                     ->withHeaders(['Accept-Encoding' => 'gzip'])->timeout(60)->get($url);
                 MlsGridBudget::record(strlen($resp->body()));
@@ -190,7 +191,6 @@ class MlsSync extends Command
             foreach ($resp->json()['value'] ?? [] as $rec) {
                 $written += $this->upsert($rec, $cities) ? 1 : 0;
             }
-            usleep(600000);
         }
         $this->info("Key refresh complete: {$written} of {$keys->count()} listings re-written.");
 

@@ -29,8 +29,6 @@ class MlsMedia extends Command
 
     private const API = 'https://api.mlsgrid.com/v2/Property';
     private const MAX_WIDTH = 800;
-    private const PACE_MICROSECONDS = 450000; // ~2 requests/second
-
     /** Sanity bound only — buyers get every photo the listing has. */
     public const PHOTOS_MAX = 60;
 
@@ -107,7 +105,6 @@ class MlsMedia extends Command
             // One API call per listing needing photos: fresh signed URLs for
             // the whole gallery (stored URLs die within the hour).
             $urls = $this->refreshMedia($l, $token);
-            usleep(self::PACE_MICROSECONDS);
             if ($urls === []) {
                 $skipped++;
 
@@ -125,7 +122,6 @@ class MlsMedia extends Command
                 } else {
                     $failed++;
                 }
-                usleep(self::PACE_MICROSECONDS);
             }
 
             // Targeted (on-demand) fetch: record what was actually achieved
@@ -175,6 +171,7 @@ class MlsMedia extends Command
     private function refreshMedia(Listing $l, string $token): array
     {
         $url = self::API.'?$filter='.rawurlencode("ListingId eq '{$l->listing_id}'").'&$expand=Media&$top=1';
+        MlsGridBudget::pace();
         try {
             $resp = Http::withToken($token)->acceptJson()
                 ->withHeaders(['Accept-Encoding' => 'gzip'])
@@ -213,6 +210,7 @@ class MlsMedia extends Command
     private function download(string $url, string $file): bool
     {
         for ($attempt = 1; $attempt <= 3; $attempt++) {
+            MlsGridBudget::pace();
             try {
                 $resp = Http::timeout(30)->get($url);
             } catch (\Throwable) {

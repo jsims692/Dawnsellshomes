@@ -54,6 +54,38 @@ class MlsGridBudget
         file_put_contents(self::file(), json_encode(['hours' => $hours]));
     }
 
+    /**
+     * Cross-process request spacing. MLS GRID meters RPS per token, not per
+     * process — their Sep 1 warning measured 4.0 RPS against a 2 RPS
+     * enforcement threshold while parallel gallery workers each paced only
+     * themselves. Every MLS-bound request (API or media CDN) now queues on
+     * this file lock, so the aggregate stays under ~1.8 req/s no matter how
+     * many sync/media processes run at once.
+     */
+    public static function pace(): void
+    {
+        $fp = @fopen(storage_path('app/mlsgrid-pace.lock'), 'c+');
+        if (! $fp) {
+            usleep(600000); // pacing degraded, not absent
+
+            return;
+        }
+        try {
+            flock($fp, LOCK_EX);
+            $wait = ((float) stream_get_contents($fp) + 0.55) - microtime(true);
+            if ($wait > 0) {
+                usleep((int) min($wait * 1_000_000, 5_000_000));
+            }
+            rewind($fp);
+            ftruncate($fp, 0);
+            fwrite($fp, sprintf('%.6f', microtime(true)));
+            fflush($fp);
+        } finally {
+            flock($fp, LOCK_UN);
+            fclose($fp);
+        }
+    }
+
     public static function summary(): string
     {
         [$hour, $roll] = self::usage();
