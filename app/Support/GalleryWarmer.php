@@ -15,7 +15,10 @@ use Symfony\Component\Process\PhpExecutableFinder;
  */
 class GalleryWarmer
 {
-    private const MAX_WORKERS = 4;
+    /** Concurrency, not rate: every MLS request is globally paced by
+     *  MlsGridBudget::pace(), so more workers just share the same ~1.8
+     *  req/s lane. The cap only bounds process count on the box. */
+    private const MAX_WORKERS = 8;
 
     private const LOCK_SECONDS = 600;
 
