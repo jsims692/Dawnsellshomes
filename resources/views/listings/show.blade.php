@@ -372,8 +372,20 @@
   @include('listings._calculator')
 
   @if($subUrl && $l->subdivision)
-  @php $hasPlans = \App\Support\FloorPlans::for(basename(parse_url($subUrl, PHP_URL_PATH))) !== []; @endphp
+  @php
+    $subSlug = basename(parse_url($subUrl, PHP_URL_PATH));
+    $hasPlans = \App\Support\FloorPlans::for($subSlug) !== [];
+    $tour = $l->is_team ? \App\Support\FloorPlans::videoFor($subSlug) : null;
+  @endphp
   <p style="margin:22px 0 0;font-size:14.5px;">&#127968; This home is in <a href="{{ $subUrl }}" style="color:#C8102E;font-weight:700;">{{ $l->subdivision }}</a> &mdash; see the community's listings, sold prices, and market stats{{ $hasPlans ? '' : '.' }}@if($hasPlans), including <a href="{{ $subUrl }}" style="color:#C8102E;font-weight:700;">the original builder floor plans</a> from our own files.@endif</p>
+  @if($tour)
+  {{-- Our own marketing on our own listing (team listings only). --}}
+  <h2 class="ld-h2">&#127909; Video tour</h2>
+  <blockquote class="instagram-media" data-instgrm-permalink="{{ $tour['url'] }}" data-instgrm-version="14" style="background:#fff;border:1px solid #DEE6EE;border-radius:12px;margin:0;max-width:540px;min-width:280px;padding:0;width:100%;">
+    <a href="{{ $tour['url'] }}" target="_blank" rel="noopener">Watch the walkthrough on Instagram</a>
+  </blockquote>
+  <script async src="https://www.instagram.com/embed.js"></script>
+  @endif
   @endif
 
   @if(!empty($nearbySolds))

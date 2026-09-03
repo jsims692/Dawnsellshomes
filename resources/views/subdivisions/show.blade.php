@@ -71,6 +71,15 @@
         <p class="fp-fine">All dimensions and specifications are approximate, from the original builder&rsquo;s brochure &mdash; individual homes vary. Tap the plan to view it full size.</p>
       </div>
     </div>
+    @if(!empty($fp['video']))
+    <div class="fp-video">
+      <h3>&#127909; {{ $fp['video_label'] ?? 'Video tour' }}</h3>
+      <blockquote class="instagram-media" data-instgrm-permalink="{{ $fp['video'] }}" data-instgrm-version="14" style="background:#fff;border:1px solid #DEE6EE;border-radius:12px;margin:0;max-width:540px;min-width:280px;padding:0;width:100%;">
+        <a href="{{ $fp['video'] }}" target="_blank" rel="noopener">Watch the {{ $fp['model'] }} walkthrough on Instagram</a>
+      </blockquote>
+    </div>
+    <script async src="https://www.instagram.com/embed.js"></script>
+    @endif
     @endforeach
   </div>
 </section>
@@ -84,6 +93,8 @@
   .fp-card dt { color:#48586B; } .fp-card dd { margin:0; color:#0F1E2E; font-weight:600; }
   .fp-notes { font-size:13.5px; color:#333; line-height:1.6; margin:0 0 10px; }
   .fp-fine { font-size:11.5px; color:#8A99AA; margin:0; }
+  .fp-video { margin-top:22px; max-width:900px; }
+  .fp-video h3 { font-family:'Fraunces',Georgia,serif; font-size:19px; color:#0F1E2E; margin:0 0 12px; }
 </style>
 @endif
 
