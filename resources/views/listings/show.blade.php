@@ -171,7 +171,10 @@
   })();
   </script>
   @endif
-  @if($galleryFetching ?? false)
+  {{-- Only announce the fetch when the page actually looks bare: with 5+
+       photos already cached (hero + grid filled), a visible banner and a
+       reload are worse than letting the tail arrive silently. --}}
+  @if(($galleryFetching ?? false) && count($photos) < 5)
   <p style="margin:10px 0 0;font-size:13px;color:#48586B;background:#F2F5F9;border-radius:8px;padding:10px 14px;">
     &#128247; Retrieving this home's full photo gallery from the MLS &mdash; the page will refresh in a moment.
   </p>
