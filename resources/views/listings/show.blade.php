@@ -372,7 +372,8 @@
   @include('listings._calculator')
 
   @if($subUrl && $l->subdivision)
-  <p style="margin:22px 0 0;font-size:14.5px;">&#127968; This home is in <a href="{{ $subUrl }}" style="color:#C8102E;font-weight:700;">{{ $l->subdivision }}</a> &mdash; see the community's listings, sold prices, and market stats.</p>
+  @php $hasPlans = \App\Support\FloorPlans::for(basename(parse_url($subUrl, PHP_URL_PATH))) !== []; @endphp
+  <p style="margin:22px 0 0;font-size:14.5px;">&#127968; This home is in <a href="{{ $subUrl }}" style="color:#C8102E;font-weight:700;">{{ $l->subdivision }}</a> &mdash; see the community's listings, sold prices, and market stats{{ $hasPlans ? '' : '.' }}@if($hasPlans), including <a href="{{ $subUrl }}" style="color:#C8102E;font-weight:700;">the original builder floor plans</a> from our own files.@endif</p>
   @endif
 
   @if(!empty($nearbySolds))

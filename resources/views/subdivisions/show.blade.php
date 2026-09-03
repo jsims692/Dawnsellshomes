@@ -50,6 +50,43 @@
   .sub-solds a:hover { color:#C8102E; }
 </style>
 
+@php $floorPlans = \App\Support\FloorPlans::for($entry['slug'] ?? null); @endphp
+@if($floorPlans)
+<section class="section section--tight">
+  <div class="wrap">
+    <h2 class="h2" style="font-size:24px;margin-bottom:6px">{{ $entry['name'] }} floor plans</h2>
+    <p style="font-size:14px;color:#48586B;max-width:68ch;margin:0 0 18px">Original builder floor plans from our own files &mdash; after 26 years of selling in these communities, we keep the brochures. If you're looking at a {{ $entry['name'] }} home, this is the layout behind the listing photos.</p>
+    @foreach($floorPlans as $fp)
+    <div class="fp-card">
+      <a href="{{ $fp['image'] }}" target="_blank" rel="noopener" title="Open the {{ $fp['model'] }} floor plan full size">
+        <img src="{{ $fp['image'] }}" alt="{{ $fp['model'] }} model floor plan in {{ $entry['name'] }}, {{ $entry['city'] }}" loading="lazy">
+      </a>
+      <div>
+        <h3>The {{ $fp['model'] }}</h3>
+        <p class="fp-style">{{ $fp['style'] }}</p>
+        <dl>
+          @foreach($fp['facts'] as $k => $v)<dt>{{ $k }}</dt><dd>{{ $v }}</dd>@endforeach
+        </dl>
+        <p class="fp-notes">{{ $fp['notes'] }}</p>
+        <p class="fp-fine">All dimensions and specifications are approximate, from the original builder&rsquo;s brochure &mdash; individual homes vary. Tap the plan to view it full size.</p>
+      </div>
+    </div>
+    @endforeach
+  </div>
+</section>
+<style>
+  .fp-card { display:grid; grid-template-columns:minmax(260px,420px) minmax(280px,1fr); gap:26px; background:#fff; border:1px solid #DEE6EE; border-radius:14px; padding:22px; max-width:900px; }
+  @media (max-width:700px) { .fp-card { grid-template-columns:1fr; } }
+  .fp-card img { width:100%; height:auto; border:1px solid #E9EFF3; border-radius:8px; }
+  .fp-card h3 { font-family:'Fraunces',Georgia,serif; font-size:21px; color:#0F1E2E; margin:0 0 2px; }
+  .fp-style { font-size:13px; color:#C8102E; font-weight:700; margin:0 0 12px; }
+  .fp-card dl { display:grid; grid-template-columns:auto 1fr; gap:4px 16px; font-size:13.5px; margin:0 0 12px; }
+  .fp-card dt { color:#48586B; } .fp-card dd { margin:0; color:#0F1E2E; font-weight:600; }
+  .fp-notes { font-size:13.5px; color:#333; line-height:1.6; margin:0 0 10px; }
+  .fp-fine { font-size:11.5px; color:#8A99AA; margin:0; }
+</style>
+@endif
+
 @include('components.listings.in-city', [
     'embedded' => false,
     'title' => $entry['name'].', '.$entry['city'],
