@@ -59,33 +59,20 @@ class GalleryWarmer
      */
     public static function warm(Listing $l): bool
     {
-        $trace = fn (string $why) => @file_put_contents(
-            storage_path('logs/gallery-warm.log'),
-            date('c')." {$l->listing_id} {$why} (".PHP_SAPI.")\n", FILE_APPEND);
-
         if (! self::incomplete($l)) {
-            $trace('complete');
-
             return false;
         }
 
         $lockKey = 'gallery-fetch:'.$l->listing_id;
         if (cache()->has($lockKey)) {
-            $trace('locked');
-
             return true; // a fetch is in flight
         }
         if (self::busy()) {
-            $trace('busy');
-
             return true; // workers saturated — a later view retries
         }
         if (! cache()->add($lockKey, 1, self::LOCK_SECONDS)) {
-            $trace('add-failed');
-
             return true;
         }
-        $trace('spawn');
 
         // PHP_BINARY under php-fpm is the fpm daemon, not the CLI —
         // exec'ing it with 'artisan' just prints fpm usage text.

@@ -76,8 +76,12 @@ class HomeValueController extends Controller
         // Pre-warm the linked comps' galleries while the visitor reads the
         // range — by the time they tap one, its photos are on disk. Nearest
         // comp first; the worker cap quietly skips the rest when saturated.
+        // (Plain foreach: Collection::each() treats warm()'s false — "gallery
+        // already complete" — as break, which silently starved comps 2-5.)
         if (! \App\Support\GalleryWarmer::isBot(request()->userAgent())) {
-            $comps->take(5)->each(fn ($l) => \App\Support\GalleryWarmer::warm($l));
+            foreach ($comps->take(5) as $comp) {
+                \App\Support\GalleryWarmer::warm($comp);
+            }
         }
 
         return response()->json([
