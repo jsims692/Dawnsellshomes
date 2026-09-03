@@ -29,18 +29,32 @@ class MlsGridBudget
 
     private const ROLL_BYTES = 30_000_000_000;     // rolling 24h; warning: 40 GB
 
-    private const BG_RESERVE_HOUR = 800;
+    /**
+     * Slices of the budget that background work (the photo backfill) may
+     * never touch — kept for the hourly sync AND for visitor-triggered
+     * gallery fetches, which are people actively waiting on photos. A
+     * gallery runs ~61 requests, so 12k/day of reserve is ~195 galleries.
+     * Bytes are reserved too: a photo-heavy backfill hour used to exhaust
+     * the byte caps and starve interactive fetches even with requests left.
+     */
+    private const BG_RESERVE_HOUR = 1200;
 
-    private const BG_RESERVE_ROLL = 6000;
+    private const BG_RESERVE_ROLL = 12000;
+
+    private const BG_RESERVE_HOUR_BYTES = 400_000_000;
+
+    private const BG_RESERVE_ROLL_BYTES = 4_000_000_000;
 
     public static function allow(bool $background = false): bool
     {
         [$hour, $roll] = self::usage();
         $hourCap = self::HOUR_REQUESTS - ($background ? self::BG_RESERVE_HOUR : 0);
         $rollCap = self::ROLL_REQUESTS - ($background ? self::BG_RESERVE_ROLL : 0);
+        $hourByteCap = self::HOUR_BYTES - ($background ? self::BG_RESERVE_HOUR_BYTES : 0);
+        $rollByteCap = self::ROLL_BYTES - ($background ? self::BG_RESERVE_ROLL_BYTES : 0);
 
-        return $hour['req'] < $hourCap && $hour['bytes'] < self::HOUR_BYTES
-            && $roll['req'] < $rollCap && $roll['bytes'] < self::ROLL_BYTES;
+        return $hour['req'] < $hourCap && $hour['bytes'] < $hourByteCap
+            && $roll['req'] < $rollCap && $roll['bytes'] < $rollByteCap;
     }
 
     public static function record(int $bytes): void

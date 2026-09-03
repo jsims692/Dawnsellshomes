@@ -72,6 +72,7 @@ class MlsMedia extends Command
         foreach ($q->cursor() as $l) {
             if ((float) disk_free_space(storage_path()) < self::DISK_FLOOR_BYTES) {
                 $this->warn('Disk floor reached — stopping media downloads.');
+                $this->releaseTargetLock();
                 break;
             }
 
@@ -99,6 +100,7 @@ class MlsMedia extends Command
             // let it use the interactive reserve; bulk runs stay background.
             if (! MlsGridBudget::allow(background: ! $this->option('listing'))) {
                 $this->warn('MLS GRID usage budget reached ('.MlsGridBudget::summary().') — stopping; rerun next hour.');
+                $this->releaseTargetLock();
                 break;
             }
 
@@ -257,6 +259,15 @@ class MlsMedia extends Command
             return ob_get_clean() ?: $bytes;
         } catch (\Throwable) {
             return $bytes;
+        }
+    }
+
+    /** A refused targeted fetch releases its page lock right away, so the
+     *  next view retries the moment budget or disk frees — not in 10 min. */
+    private function releaseTargetLock(): void
+    {
+        if ($this->option('listing')) {
+            cache()->forget('gallery-fetch:'.$this->option('listing'));
         }
     }
 }
