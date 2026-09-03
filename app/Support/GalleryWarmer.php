@@ -26,15 +26,19 @@ class GalleryWarmer
             (string) $ua);
     }
 
-    /** Fewer photos on disk than the listing is known to have. */
+    /** Fewer photos on disk than the listing is known to have. The .count
+     *  sidecar is authoritative once a targeted fetch has written it — some
+     *  closed listings' media is stripped from the feed, and their recorded
+     *  count (however small) means "this is all that exists upstream". */
     public static function incomplete(Listing $l): bool
     {
         $cached = count($l->photoUrls());
-        $expected = (int) @file_get_contents(
-            storage_path('app/public/listings/'.$l->listing_key.'.count'));
+        $countFile = storage_path('app/public/listings/'.$l->listing_key.'.count');
+        if (is_file($countFile)) {
+            return $cached < min((int) file_get_contents($countFile), MlsMedia::PHOTOS_MAX);
+        }
 
-        return $cached <= 1
-            || ($expected > 0 && $cached < min($expected, MlsMedia::PHOTOS_MAX));
+        return $cached <= 1;
     }
 
     private static function busy(): bool

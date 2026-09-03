@@ -70,6 +70,7 @@ class MlsMedia extends Command
             ->orderByDesc('mls_modified_at');
 
         foreach ($q->cursor() as $l) {
+            $matched = true;
             if ((float) disk_free_space(storage_path()) < self::DISK_FLOOR_BYTES) {
                 $this->warn('Disk floor reached — stopping media downloads.');
                 $this->releaseTargetLock();
@@ -107,8 +108,21 @@ class MlsMedia extends Command
             // One API call per listing needing photos: fresh signed URLs for
             // the whole gallery (stored URLs die within the hour).
             $urls = $this->refreshMedia($l, $token);
+            if ($urls === null) {
+                $skipped++;
+                $this->releaseTargetLock(); // transient API failure — retry on a later view
+
+                continue;
+            }
             if ($urls === []) {
                 $skipped++;
+                // MRED strips media from some listings after closing. Record
+                // "what's cached is all there is" so viewer pages stop
+                // spawning futile fetches for a gallery that's gone upstream.
+                if ($this->option('listing')) {
+                    file_put_contents($countFile, $this->cachedCount($dir, $l->listing_key));
+                    cache()->forget('gallery-fetch:'.$l->listing_id);
+                }
 
                 continue;
             }
@@ -130,14 +144,23 @@ class MlsMedia extends Command
             // so a permanently-broken photo can't hold the page in
             // "incomplete" forever, and release the fetch lock immediately.
             if ($this->option('listing')) {
-                $achieved = count(glob("{$dir}/{$l->listing_key}-*.jpg") ?: []) + (int) is_file("{$dir}/{$l->listing_key}.jpg");
-                file_put_contents($countFile, $achieved);
+                file_put_contents($countFile, $this->cachedCount($dir, $l->listing_key));
                 cache()->forget('gallery-fetch:'.$l->listing_id);
             }
 
             if ($limit > 0 && $done >= $limit) {
                 break;
             }
+        }
+
+        // A targeted listing the query excluded entirely (e.g. media emptied
+        // in the feed) must also converge: record the cached state and unlock.
+        if ($this->option('listing') && ! ($matched ?? false)) {
+            $key = Listing::where('listing_id', $this->option('listing'))->value('listing_key');
+            if ($key) {
+                file_put_contents("{$dir}/{$key}.count", $this->cachedCount($dir, $key));
+            }
+            $this->releaseTargetLock();
         }
 
         $pruned = $this->prune($dir);
@@ -169,8 +192,10 @@ class MlsMedia extends Command
         return $pruned;
     }
 
-    /** Re-fetch this listing's Media (fresh signed URLs), ordered. */
-    private function refreshMedia(Listing $l, string $token): array
+    /** Re-fetch this listing's Media (fresh signed URLs), ordered.
+     *  null = transient failure (retry later); [] = the feed genuinely has
+     *  no media for this listing (safe to record as final). */
+    private function refreshMedia(Listing $l, string $token): ?array
     {
         $url = self::API.'?$filter='.rawurlencode("ListingId eq '{$l->listing_id}'").'&$expand=Media&$top=1';
         MlsGridBudget::pace();
@@ -182,11 +207,11 @@ class MlsMedia extends Command
                     || $e->response->serverError(), throw: false)
                 ->get($url);
         } catch (\Throwable) {
-            return [];
+            return null;
         }
         MlsGridBudget::record(strlen($resp->body()));
         if (! $resp->successful()) {
-            return [];
+            return null;
         }
 
         $rec = $resp->json()['value'][0] ?? null;
@@ -260,6 +285,11 @@ class MlsMedia extends Command
         } catch (\Throwable) {
             return $bytes;
         }
+    }
+
+    private function cachedCount(string $dir, string $key): int
+    {
+        return count(glob("{$dir}/{$key}-*.jpg") ?: []) + (int) is_file("{$dir}/{$key}.jpg");
     }
 
     /** A refused targeted fetch releases its page lock right away, so the
