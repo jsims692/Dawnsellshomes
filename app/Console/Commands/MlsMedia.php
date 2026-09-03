@@ -97,9 +97,11 @@ class MlsMedia extends Command
                 }
             }
 
-            // A visitor is waiting on a single-listing (sold gallery) fetch —
-            // let it use the interactive reserve; bulk runs stay background.
-            if (! MlsGridBudget::allow(background: ! $this->option('listing'))) {
+            // Only the --all backfill is background work. The hourly no-flag
+            // run keeps NEW listings' photos current (a relisted home means a
+            // new MLS number with zero cached photos — it must not sit behind
+            // a parked backfill), and --listing means a visitor is waiting.
+            if (! MlsGridBudget::allow(background: $this->option('all') && ! $this->option('listing'))) {
                 $this->warn('MLS GRID usage budget reached ('.MlsGridBudget::summary().') — stopping; rerun next hour.');
                 $this->releaseTargetLock();
                 break;
