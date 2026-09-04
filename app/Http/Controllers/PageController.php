@@ -240,12 +240,24 @@ class PageController extends Controller
             return [];
         }
 
-        return cache()->remember('home-team-listings', 300, fn () => Listing::displayable()
-            ->where('is_demo', false)->where('is_team', true)->where('is_auction', false)
-            ->orderByRaw("FIELD(status, 'Active', 'Active Under Contract', 'Pending', 'Closed')")
-            ->orderByRaw('COALESCE(close_date, mls_modified_at) DESC')
-            ->limit(3)->get()
-            ->map(fn ($l) => [
+        return cache()->remember('home-team-listings', 300, function () {
+            $rows = Listing::displayable()
+                ->where('is_demo', false)->where('is_team', true)->where('is_auction', false)
+                ->orderByRaw("FIELD(status, 'Active', 'Active Under Contract', 'Pending', 'Closed')")
+                ->orderByRaw('COALESCE(close_date, mls_modified_at) DESC')
+                ->limit(3)->get();
+
+            // A just-entered team listing syncs before its photos: warm its
+            // gallery immediately instead of waiting for the hourly run —
+            // these three cards are the face of the site. (foreach, not
+            // each(): warm()'s false return would break a Collection loop.)
+            foreach ($rows as $l) {
+                if (! $l->photoUrl()) {
+                    \App\Support\GalleryWarmer::warm($l);
+                }
+            }
+
+            return $rows->map(fn ($l) => [
                 'url' => $l->url(),
                 'photo' => $l->photoUrl() ?? '',
                 'chip' => $l->status === 'Closed'
@@ -257,7 +269,8 @@ class PageController extends Controller
                 'meta' => trim(($l->beds ? $l->beds.' bd · '.$l->baths().' ba' : '')
                     .($l->sqft ? ' · '.number_format($l->sqft).' sqft' : '')).' · '
                     .($l->teamSide() === 'buyer' ? 'We represented the buyer' : 'Listed by our team'),
-            ])->all());
+            ])->all();
+        });
     }
 
     /**
