@@ -51,7 +51,7 @@
     </div>
     <div class="foot-bottom">
       <span>&copy; {{ date('Y') }} The Dawn Simmons Team · RE/MAX Suburban · 330 E Northwest Hwy, Mount Prospect IL 60056 · (847) 738-1884 · Licensed in Illinois</span>
-      <span>All listing information is deemed reliable but not guaranteed. Equal Housing Opportunity.</span>
+      <span>All listing information is deemed reliable but not guaranteed. Equal Housing Opportunity. <a href="https://db-ip.com" rel="noopener" style="color:inherit;">IP Geolocation by DB-IP</a>.</span>
     </div>
   </div>
 </footer>

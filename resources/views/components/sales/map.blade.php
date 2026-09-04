@@ -15,8 +15,9 @@
   Filter state lives in the shared Alpine store `salesFilters` so page-level
   controls, stat counters, and the card list stay in sync with the map.
 --}}
+@php $geo = \App\Support\GeoIp::cityGuess(); @endphp
 <div
-    x-data="salesMap({ compact: @js($compact), key: @js($gkey) })"
+    x-data="salesMap({ compact: @js($compact), key: @js($gkey), geo: @js($geo) })"
     x-init="init()"
     class="dsm-wrap"
     style="position:relative; height: {{ $height }}; border-radius:12px; overflow:hidden; box-shadow:0 4px 24px rgba(27,58,107,.12); background:#e9edf3;"
@@ -126,7 +127,8 @@ document.addEventListener('alpine:init', () => {
         { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#0F1E2E' }] },
     ];
 
-    Alpine.data('salesMap', ({ compact, key }) => ({
+    Alpine.data('salesMap', ({ compact, key, geo }) => ({
+        geo,
         map: null, loading: true, mode: 'cities', active: null,
         all: [], markers: [], HtmlMarker: null,
         busy: false, autoHomes: false, drillCity: null,
@@ -178,6 +180,7 @@ document.addEventListener('alpine:init', () => {
             this.all = data.sales;
             this.loading = false;
             this.showCities();
+            this.applyGeo();
 
             this.$watch('filters.side', () => this.refresh());
             this.$watch('filters.type', () => this.refresh());
@@ -193,6 +196,22 @@ document.addEventListener('alpine:init', () => {
                 if (this.mode === 'cities' && z >= 13) this.showHomes(this.filters.city || null, false, true);
                 else if (this.mode === 'homes' && this.autoHomes && !this.filters.city && z <= 11) this.showCities(false);
             });
+        },
+
+        // Open on the visitor's own turf when the server's IP-level city
+        // guess lands in a city we've sold in: drill straight into their
+        // city's pins (auto mode — zooming out returns to the bubbles).
+        // A near-miss inside the metro just centers the bubble view there.
+        applyGeo() {
+            const g = this.geo;
+            if (!g || !g.city) return;
+            const name = String(g.city).toLowerCase();
+            const match = this.all.find(s => s.city.toLowerCase() === name);
+            if (match) { this.showHomes(match.city, true, true); return; }
+            if (g.lat > 41.5 && g.lat < 42.7 && g.lng > -88.8 && g.lng < -87.4) {
+                this.map.setCenter({ lat: g.lat, lng: g.lng });
+                this.map.setZoom(11);
+            }
         },
 
         clear() {

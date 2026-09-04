@@ -18,6 +18,7 @@ Schedule::command('mls:sync')->hourly()->withoutOverlapping();
 // GRID media URLs expire and rate-limit hotlinks, so pages use local copies).
 Schedule::command('mls:geocode')->hourlyAt(12)->withoutOverlapping();
 Schedule::command('mls:media', ['--limit' => 500])->hourlyAt(20)->withoutOverlapping();
+Schedule::command('geoip:refresh')->monthlyOn(3, '05:40');
 Schedule::command('mls:alerts')->hourlyAt(30)->withoutOverlapping();
 
 // Freshness ping: tell IndexNow-connected engines (Bing, Yandex, ...) which
