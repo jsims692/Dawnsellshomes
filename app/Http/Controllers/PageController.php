@@ -246,7 +246,7 @@ class PageController extends Controller
             ->orderByRaw('COALESCE(close_date, mls_modified_at) DESC')
             ->limit(3)->get()
             ->map(fn ($l) => [
-                'url' => '/listings/'.$l->listing_id,
+                'url' => $l->url(),
                 'photo' => $l->photoUrl() ?? '',
                 'chip' => $l->status === 'Closed'
                     ? 'Sold '.$l->close_date?->format('M Y')

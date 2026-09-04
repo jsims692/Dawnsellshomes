@@ -152,6 +152,7 @@ class ListingController extends Controller
                 'state', 'zip', 'address_public', 'beds', 'baths_full', 'baths_half', 'lat', 'lng', 'is_auction'])
             ->map(fn ($l) => [
                 'id' => $l->listing_id,
+                'u' => $l->url(),
                 'lat' => (float) $l->lat,
                 'lng' => (float) $l->lng,
                 'p' => $l->is_auction ? null : $l->list_price,
@@ -165,10 +166,18 @@ class ListingController extends Controller
         return response()->json($pins)->header('Cache-Control', 'public, max-age=120');
     }
 
-    public function show(string $listingId)
+    public function show(string $listingId, ?string $slug = null)
     {
         $listing = Listing::displayable()->with(['rooms', 'features'])
             ->where('listing_id', $listingId)->firstOrFail();
+
+        // One canonical URL per listing: /listings/{mls}/{address-slug}.
+        // Bare, stale, or wrong slugs 301 here (old links keep working).
+        if (request()->path() !== ltrim($listing->url(), '/')) {
+            $qs = request()->getQueryString();
+
+            return redirect($listing->url().($qs ? '?'.$qs : ''), 301);
+        }
 
         // Sold pages fetch their full gallery on first view via a detached
         // worker (budget-guarded; photos appear in ~30-60s). Pre-downloading
@@ -210,9 +219,10 @@ class ListingController extends Controller
                 ->whereBetween('lng', [$listing->lng - 0.02, $listing->lng + 0.02])
                 ->orderByRaw('POW(lat - ?, 2) + POW(lng - ?, 2)', [$listing->lat, $listing->lng])
                 ->limit(4)
-                ->get(['listing_id', 'street_address', 'address_public', 'close_price', 'close_date', 'beds', 'baths_full', 'baths_half'])
+                ->get(['listing_id', 'street_address', 'address_public', 'city', 'close_price', 'close_date', 'beds', 'baths_full', 'baths_half'])
                 ->map(fn ($s) => [
                     'id' => $s->listing_id,
+                    'url' => $s->url(),
                     'address' => $s->address_public && $s->street_address ? $s->street_address : null,
                     'beds' => $s->beds, 'baths' => $s->baths(),
                     'when' => $s->close_date?->format('M Y'), 'price' => $s->close_price,

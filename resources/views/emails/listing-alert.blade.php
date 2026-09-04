@@ -9,7 +9,7 @@
   @if($listings->isNotEmpty())<p style="font-size:13px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#C8102E;margin:18px 0 8px;">Just listed</p>@endif
 
   @foreach($listings as $l)
-  <a href="{{ url('/listings/'.$l->listing_id) }}" style="display:block;text-decoration:none;color:#0F1E2E;border:1px solid #DEE6EE;border-radius:10px;margin:0 0 14px;overflow:hidden;">
+  <a href="{{ url($l->url()) }}" style="display:block;text-decoration:none;color:#0F1E2E;border:1px solid #DEE6EE;border-radius:10px;margin:0 0 14px;overflow:hidden;">
     @if($l->photoUrl())<img src="{{ $l->photoUrl() }}" alt="" width="600" style="width:100%;max-height:300px;object-fit:cover;display:block;">@endif
     <div style="padding:14px 16px;">
       <div style="font-size:20px;font-weight:800;">${{ number_format($l->list_price) }}</div>
@@ -24,7 +24,7 @@
   @if($drops->isNotEmpty())
   <p style="font-size:13px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#C8102E;margin:18px 0 8px;">Price drops</p>
   @foreach($drops as $l)
-  <a href="{{ url('/listings/'.$l->listing_id) }}" style="display:block;text-decoration:none;color:#0F1E2E;border:1px solid #DEE6EE;border-radius:10px;margin:0 0 14px;overflow:hidden;">
+  <a href="{{ url($l->url()) }}" style="display:block;text-decoration:none;color:#0F1E2E;border:1px solid #DEE6EE;border-radius:10px;margin:0 0 14px;overflow:hidden;">
     @if($l->photoUrl())<img src="{{ $l->photoUrl() }}" alt="" width="600" style="width:100%;max-height:300px;object-fit:cover;display:block;">@endif
     <div style="padding:14px 16px;">
       <div style="font-size:20px;font-weight:800;">${{ number_format($l->list_price) }}

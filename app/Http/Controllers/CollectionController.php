@@ -53,7 +53,7 @@ class CollectionController extends Controller
                 ->get(['id', 'listing_key', 'listing_id', 'status', 'list_price', 'street_address',
                     'city', 'state', 'zip', 'address_public', 'beds', 'baths_full', 'baths_half', 'sqft'])
                 ->map(fn ($l) => [
-                    'id' => $l->listing_id, 'price' => $l->list_price, 'status' => $l->status,
+                    'id' => $l->listing_id, 'url' => $l->url(), 'price' => $l->list_price, 'status' => $l->status,
                     'addr' => $l->displayAddress(), 'beds' => $l->beds, 'baths' => $l->baths(),
                     'sqft' => $l->sqft, 'photo' => $l->photoUrl(),
                 ])->all();

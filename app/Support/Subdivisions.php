@@ -171,9 +171,10 @@ class Subdivisions
             // (Carbon and Eloquent both bit us; see SiteUrls).
             $solds = $base()->where('status', 'Closed')->whereNotNull('close_price')
                 ->orderByDesc('close_date')->limit(8)
-                ->get(['listing_id', 'street_address', 'address_public', 'close_price', 'close_date', 'beds', 'baths_full', 'baths_half'])
+                ->get(['listing_id', 'street_address', 'address_public', 'city', 'close_price', 'close_date', 'beds', 'baths_full', 'baths_half'])
                 ->map(fn ($s) => [
                     'id' => $s->listing_id,
+                    'url' => $s->url(),
                     'address' => $s->address_public && $s->street_address ? $s->street_address : null,
                     'beds' => $s->beds, 'baths' => $s->baths(),
                     'when' => $s->close_date?->format('M Y'),

@@ -47,8 +47,8 @@ class SiteUrls
                 // For-sale detail pages: freshest content on the site. Sold
                 // pages stay out (they churn; search reaches them via hubs).
                 foreach (Listing::displayable()->forSale()->where('is_demo', false)
-                    ->orderBy('id')->get(['listing_id', 'mls_modified_at']) as $l) {
-                    $out[self::BASE.'/listings/'.$l->listing_id] = $iso($l->mls_modified_at);
+                    ->orderBy('id')->get(['listing_id', 'street_address', 'address_public', 'city', 'mls_modified_at']) as $l) {
+                    $out[self::BASE.$l->url()] = $iso($l->mls_modified_at);
                 }
             }
 

@@ -113,7 +113,7 @@
       <tr><th>Address</th><th>Beds / Baths</th><th>Sold</th><th>Price</th></tr>
       @foreach($profile['solds'] as $s)
       <tr>
-        <td><a href="/listings/{{ $s['id'] }}">{{ $s['address'] ?? 'Address withheld' }}</a></td>
+        <td><a href="{{ $s['url'] ?? '/listings/'.$s['id'] }}">{{ $s['address'] ?? 'Address withheld' }}</a></td>
         <td>{{ $s['beds'] }} bd / {{ $s['baths'] }} ba</td>
         <td>{{ $s['when'] }}</td>
         <td>${{ number_format($s['price']) }}</td>

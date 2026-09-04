@@ -77,7 +77,7 @@
       @if($panel['listings']->isNotEmpty())
       <div class="dshl-grid">
         @foreach($panel['listings'] as $l)
-        <a class="dshl-card" href="/listings/{{ $l->listing_id }}">
+        <a class="dshl-card" href="{{ $l->url() }}">
           <div class="dshl-photo" style="background-image:url('{{ $l->photoUrl() ?? '' }}')"><span class="dshl-status">{{ $l->status }}</span></div>
           <div class="dshl-body">
             <div class="dshl-price">${{ number_format($l->list_price) }}</div>

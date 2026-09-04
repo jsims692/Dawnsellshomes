@@ -6,11 +6,11 @@
      boundary (mass-404 churn) and their on-demand galleries cost MLS budget
      per first view — for humans following comps, not crawler sweeps. --}}
 <meta name="robots" content="{{ config('services.mlsgrid.token') && $l->isForSale() ? 'index,follow' : 'noindex,follow' }}">
-<link rel="canonical" href="https://dawnsellshomes.com/listings/{{ $l->listing_id }}">
+<link rel="canonical" href="https://dawnsellshomes.com{{ $l->url() }}">
 <meta property="og:title" content="{{ $l->address_public ? $l->street_address.', '.$l->city.', IL' : 'Home for Sale in '.$l->city.', IL' }}{{ $l->isForSale() && $l->list_price ? ' — $'.number_format($l->list_price) : '' }}">
 <meta property="og:description" content="{{ $l->beds }} bed · {{ $l->baths() }} bath{{ $l->sqft ? ' · '.number_format($l->sqft).' sqft' : '' }} — listing courtesy of {{ $l->list_office_name }} via MRED / MLS GRID.">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://dawnsellshomes.com/listings/{{ $l->listing_id }}">
+<meta property="og:url" content="https://dawnsellshomes.com{{ $l->url() }}">
 @if($l->photoUrl())
 @php [$ogW, $ogH] = @getimagesize(public_path(ltrim((string) parse_url($l->photoUrl(), PHP_URL_PATH), '/'))) ?: [null, null]; @endphp
 <meta property="og:image" content="{{ url($l->photoUrl()) }}">
@@ -22,7 +22,7 @@
     '@context' => 'https://schema.org',
     '@type' => 'RealEstateListing',
     'name' => $l->address_public && $l->street_address ? $l->street_address.', '.$l->city.', IL' : 'Home in '.$l->city.', IL',
-    'url' => 'https://dawnsellshomes.com/listings/'.$l->listing_id,
+    'url' => 'https://dawnsellshomes.com'.$l->url(),
   ];
   if ($l->photoUrl()) $ld['image'] = url($l->photoUrl());
   if ($l->address_public && $l->street_address) {
@@ -394,7 +394,7 @@
     <tr><th>Address</th><th>Beds / Baths</th><th>Sold</th><th>Price</th></tr>
     @foreach($nearbySolds as $s)
     <tr>
-      <td><a href="/listings/{{ $s['id'] }}" style="color:#0F1E2E;font-weight:600;text-decoration:none;">{{ $s['address'] ?? 'Address withheld' }}</a></td>
+      <td><a href="{{ $s['url'] ?? '/listings/'.$s['id'] }}" style="color:#0F1E2E;font-weight:600;text-decoration:none;">{{ $s['address'] ?? 'Address withheld' }}</a></td>
       <td>{{ $s['beds'] }} bd / {{ $s['baths'] }} ba</td>
       <td>{{ $s['when'] }}</td>
       <td>${{ number_format($s['price']) }}</td>
@@ -408,7 +408,7 @@
   <h2 class="ld-h2">Similar homes nearby</h2>
   <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px;">
     @foreach($similar as $s)
-    <a href="/listings/{{ $s->listing_id }}" style="display:block;background:#fff;border:1px solid #DEE6EE;border-radius:12px;overflow:hidden;text-decoration:none;color:#0F1E2E;">
+    <a href="{{ $s->url() }}" style="display:block;background:#fff;border:1px solid #DEE6EE;border-radius:12px;overflow:hidden;text-decoration:none;color:#0F1E2E;">
       <div style="aspect-ratio:3/2;background:#E9EFF3 center/cover no-repeat;{{ $s->photoUrl() ? 'background-image:url(\''.$s->photoUrl().'\');' : '' }}"></div>
       <div style="padding:13px 15px 15px;">
         <div style="font-size:19px;font-weight:800;">${{ number_format($s->list_price) }}</div>

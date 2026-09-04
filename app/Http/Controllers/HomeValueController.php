@@ -102,7 +102,7 @@ class HomeValueController extends Controller
             'attribution' => "Sold data courtesy of MRED as distributed by MLS GRID, as of {$asOf}. Deemed reliable but not guaranteed.",
             'sample' => $comps->take(5)->map(fn ($l) => [
                 'address' => $l->address_public ? $l->street_address : 'Undisclosed address',
-                'url' => '/listings/'.$l->listing_id,
+                'url' => $l->url(),
                 'city' => $l->city,
                 'price' => $l->close_price,
                 'year' => (int) $l->close_date?->format('Y'),

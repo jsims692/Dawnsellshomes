@@ -188,7 +188,7 @@
   <div class="li-grid">
     @foreach($listings as $l)
     {{-- Thumbnail: ≤8 objective fields, no site branding, links to the fully compliant detail page (Rules 10, 13, 22 exemptions) --}}
-    <a class="li-card" href="/listings/{{ $l->listing_id }}">
+    <a class="li-card" href="{{ $l->url() }}">
       @php $ph = array_slice($l->photoUrls(), 0, 10); @endphp
       @if(count($ph) > 1)
       <div class="li-strip">
@@ -263,7 +263,7 @@ window.initListingsMap = (function () {
             radius: 7, weight: 1.5, color: '#fff',
             fillColor: p.s === 'Active' ? '#C8102E' : '#0F1E2E', fillOpacity: .92
           }).addTo(map);
-          m.bindPopup('<a href="/listings/' + esc(p.id) + '" style="display:block;width:210px;text-decoration:none;color:#0F1E2E;font-family:Archivo,Arial,sans-serif;">'
+          m.bindPopup('<a href="' + esc(p.u || '/listings/' + p.id) + '" style="display:block;width:210px;text-decoration:none;color:#0F1E2E;font-family:Archivo,Arial,sans-serif;">'
             + (p.ph ? '<div style="aspect-ratio:3/2;border-radius:8px;background:#E9EFF3 center/cover no-repeat;background-image:url(\'' + esc(p.ph) + '\');margin-bottom:8px;"></div>' : '')
             + '<b style="font-size:16px;">' + (p.p ? '$' + Number(p.p).toLocaleString() : 'Auction') + '</b>'
             + '<div style="font-size:12.5px;color:#48586B;">' + esc(p.b) + ' bd &middot; ' + esc(p.ba) + ' ba &middot; ' + esc(p.s) + '</div>'

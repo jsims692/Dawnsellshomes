@@ -111,6 +111,28 @@ class Listing extends Model
         return file_exists(storage_path('app/public/'.$rel)) ? asset('storage/'.$rel) : null;
     }
 
+    /** Address slug for the detail URL — null when the seller withheld the
+     *  address from internet display (Rule 7 applies to URLs too). */
+    public function urlSlug(): ?string
+    {
+        if (! $this->address_public || ! $this->street_address) {
+            return null;
+        }
+        $slug = \Illuminate\Support\Str::slug($this->street_address.' '.$this->city);
+
+        return $slug !== '' ? $slug : null;
+    }
+
+    /** Canonical detail-page path: /listings/{mls}/{address-slug}. The MLS
+     *  number does the lookup; the slug is for humans and search engines,
+     *  and any other form 301s to this one. */
+    public function url(): string
+    {
+        $slug = $this->urlSlug();
+
+        return '/listings/'.$this->listing_id.($slug ? '/'.$slug : '');
+    }
+
     public function baths(): string
     {
         $full = (int) $this->baths_full;
