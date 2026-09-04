@@ -56,8 +56,13 @@
   .lv-toggle { display:flex; border:1px solid #c9d2e3; border-radius:999px; overflow:hidden; background:#fff; }
   .li-filters ~ * .lv-toggle button, .lv-toggle button { background:#fff; color:#48586B; border:0; border-radius:0; padding:8px 18px; font-size:13.5px; font-weight:700; cursor:pointer; min-width:0; }
   .lv-toggle button.on { background:#0F1E2E; color:#fff; }
-  #lmap { height:72vh; min-height:420px; border-radius:12px; border:1px solid #DEE6EE; }
+  #lmap { height:72vh; min-height:420px; border-radius:12px; border:1px solid #DEE6EE; background:#eef1f6; }
   .lmap-key { display:inline-block; width:10px; height:10px; border-radius:50%; vertical-align:-1px; }
+  /* Map pins — same dot language as the sales map (.dsm-pin). */
+  .lmk { box-sizing:border-box; width:13px; height:13px; border-radius:50%; background:#0F1E2E; border:2px solid #fff; box-shadow:0 1px 5px rgba(0,0,0,.45); cursor:pointer; transition:transform .12s; }
+  .lmk:hover { transform:scale(1.5); }
+  .lmk--a { background:#C8102E; }
+  #lmap .gm-style-iw-d { overflow:auto !important; }
   /* Mobile default: one view at a time, driven by the List|Map toggle */
   .li-mapcol { display:none; }
   .is-map .li-mapcol { display:block; }
@@ -71,7 +76,6 @@
     #lmap { height:calc(100vh - 165px); }
     .li-results .li-grid { grid-template-columns:repeat(auto-fill,minmax(235px,1fr)); }
   }
-  .leaflet-popup-content { margin:10px 12px; }
 </style>
 
 <div class="li-hero">
@@ -227,69 +231,138 @@
   </div>{{-- /view state --}}
 </div>
 
+@php $gmapsKey = config('services.google.maps_key'); @endphp
 <script>
-// Map view: Leaflet loads on first open; pins come from /listings/map-data
-// with the current search's query string, so map and list always agree.
+// Map view on the same Google basemap as the homepage/sold sales map —
+// one visual language for every map on the site. Pins come from
+// /listings/map-data with the current search's query string, so map and
+// list always agree. Loads on first open.
+window.__gmapsReady ||= new Promise(function (resolve) {
+  if (window.google && window.google.maps && window.google.maps.importLibrary) return resolve();
+  window.__gmapsInit = function () { resolve(); };
+  var s = document.createElement('script');
+  s.src = 'https://maps.googleapis.com/maps/api/js?key={{ $gmapsKey }}&v=weekly&loading=async&callback=__gmapsInit';
+  s.async = true; s.defer = true;
+  document.head.appendChild(s);
+});
+
 window.initListingsMap = (function () {
   var started = false;
   return function () {
     if (started) return; started = true;
-    var css = document.createElement('link');
-    css.rel = 'stylesheet'; css.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-    document.head.appendChild(css);
-    var js = document.createElement('script');
-    js.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-    js.onload = function () { setTimeout(build, 60); };
-    document.head.appendChild(js);
+    build();
   };
+
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
       return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
     });
   }
-  function build() {
-    fetch('/listings/map-data' + window.location.search)
-      .then(function (r) { return r.json(); })
-      .then(function (pins) {
-        var map = L.map('lmap', { preferCanvas: true });
-        // OSM standard tiles: CARTO's free basemaps began watermarking
-        // "API KEY REQUIRED" across keyless usage (Aug 2026).
-        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '&copy; OpenStreetMap contributors', maxZoom: 19
-        }).addTo(map);
-        var pts = [];
-        pins.forEach(function (p) {
-          var m = L.circleMarker([p.lat, p.lng], {
-            radius: 7, weight: 1.5, color: '#fff',
-            fillColor: p.s === 'Active' ? '#C8102E' : '#0F1E2E', fillOpacity: .92
-          }).addTo(map);
-          m.bindPopup('<a href="' + esc(p.u || '/listings/' + p.id) + '" style="display:block;width:210px;text-decoration:none;color:#0F1E2E;font-family:Archivo,Arial,sans-serif;">'
-            + (p.ph ? '<div style="aspect-ratio:3/2;border-radius:8px;background:#E9EFF3 center/cover no-repeat;background-image:url(\'' + esc(p.ph) + '\');margin-bottom:8px;"></div>' : '')
-            + '<b style="font-size:16px;">' + (p.p ? '$' + Number(p.p).toLocaleString() : 'Auction') + '</b>'
-            + '<div style="font-size:12.5px;color:#48586B;">' + esc(p.b) + ' bd &middot; ' + esc(p.ba) + ' ba &middot; ' + esc(p.s) + '</div>'
-            + '<div style="font-size:12.5px;color:#48586B;margin-top:3px;line-height:1.4;">' + esc(p.a) + '</div></a>',
-            { autoPan: false });
-          // Hover opens the card; a short close delay lets the cursor travel
-          // into the popup to click through. Touch devices still tap to open.
-          var closeTimer;
-          m.on('mouseover', function () { clearTimeout(closeTimer); this.openPopup(); });
-          m.on('mouseout', function () {
-            var self = this;
-            closeTimer = setTimeout(function () { self.closePopup(); }, 350);
-          });
-          m.on('popupopen', function (e) {
-            var el = e.popup.getElement();
-            if (!el) return;
-            el.addEventListener('mouseenter', function () { clearTimeout(closeTimer); });
-            el.addEventListener('mouseleave', function () {
-              closeTimer = setTimeout(function () { m.closePopup(); }, 300);
-            });
-          });
-          pts.push([p.lat, p.lng]);
-        });
-        if (pts.length) map.fitBounds(pts, { padding: [30, 30], maxZoom: 15 });
-        else map.setView([42.15, -88.0], 10);
+
+  function card(p) {
+    return '<a href="' + esc(p.u || '/listings/' + p.id) + '" style="display:block;width:210px;text-decoration:none;color:#0F1E2E;font-family:Archivo,Arial,sans-serif;">'
+      + (p.ph ? '<div style="aspect-ratio:3/2;border-radius:8px;background:#E9EFF3 center/cover no-repeat;background-image:url(\'' + esc(p.ph) + '\');margin-bottom:8px;"></div>' : '')
+      + '<b style="font-size:16px;">' + (p.p ? '$' + Number(p.p).toLocaleString() : 'Auction') + '</b>'
+      + '<div style="font-size:12.5px;color:#48586B;">' + esc(p.b) + ' bd &middot; ' + esc(p.ba) + ' ba &middot; ' + esc(p.s) + '</div>'
+      + '<div style="font-size:12.5px;color:#48586B;margin-top:3px;line-height:1.4;">' + esc(p.a) + '</div></a>';
+  }
+
+  async function build() {
+    var pinsReq = fetch('/listings/map-data' + window.location.search).then(function (r) { return r.json(); });
+    await window.__gmapsReady;
+    var lib = await google.maps.importLibrary('maps');
+
+    // Same HTML-overlay marker as components/sales/map.blade.php.
+    function HtmlMarker(map, position, el, onClick) {
+      var o = new lib.OverlayView();
+      el.style.position = 'absolute';
+      if (onClick) el.addEventListener('click', function (e) { e.stopPropagation(); onClick(); });
+      o.onAdd = function () { o.getPanes().overlayMouseTarget.appendChild(el); };
+      o.draw = function () {
+        var p = o.getProjection() && o.getProjection().fromLatLngToDivPixel(new google.maps.LatLng(position));
+        if (!p) return;
+        var w = el.offsetWidth || 13, h = el.offsetHeight || 13;
+        el.style.left = (p.x - w / 2) + 'px'; el.style.top = (p.y - h / 2) + 'px';
+      };
+      o.onRemove = function () { el.remove(); };
+      o.setMap(map);
+      return o;
+    }
+
+    // Keep in sync with STYLE in components/sales/map.blade.php — the one
+    // brand basemap every map on the site shares.
+    var STYLE = [
+      { elementType: 'geometry', stylers: [{ color: '#f4f6fb' }] },
+      { elementType: 'labels.text.fill', stylers: [{ color: '#4a5568' }] },
+      { elementType: 'labels.text.stroke', stylers: [{ color: '#f4f6fb' }] },
+      { elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
+      { featureType: 'administrative', elementType: 'geometry.stroke', stylers: [{ color: '#c9d1e0' }] },
+      { featureType: 'administrative.locality', elementType: 'labels.text.fill', stylers: [{ color: '#0F1E2E' }, { weight: 0.5 }] },
+      { featureType: 'administrative.neighborhood', stylers: [{ visibility: 'off' }] },
+      { featureType: 'landscape.man_made', elementType: 'geometry', stylers: [{ color: '#f8f6f2' }] },
+      { featureType: 'landscape.natural', elementType: 'geometry', stylers: [{ color: '#eef1f6' }] },
+      { featureType: 'poi', stylers: [{ visibility: 'off' }] },
+      { featureType: 'poi.park', elementType: 'geometry', stylers: [{ color: '#e3ebe0' }, { visibility: 'on' }] },
+      { featureType: 'poi.park', elementType: 'labels.text.fill', stylers: [{ color: '#7a8f76' }] },
+      { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#ffffff' }] },
+      { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#e1e6ef' }] },
+      { featureType: 'road', elementType: 'labels.text.fill', stylers: [{ color: '#7b8494' }] },
+      { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#f3ead2' }] },
+      { featureType: 'road.highway', elementType: 'geometry.stroke', stylers: [{ color: '#e6d6ab' }] },
+      { featureType: 'road.highway', elementType: 'labels.text.fill', stylers: [{ color: '#8a7a4a' }] },
+      { featureType: 'road.arterial', elementType: 'geometry', stylers: [{ color: '#ffffff' }] },
+      { featureType: 'road.local', elementType: 'labels', stylers: [{ visibility: 'off' }] },
+      { featureType: 'transit', stylers: [{ visibility: 'off' }] },
+      { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#c5d5ea' }] },
+      { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#0F1E2E' }] },
+    ];
+
+    var map = new lib.Map(document.getElementById('lmap'), {
+      center: { lat: 42.15, lng: -88.0 }, zoom: 10,
+      styles: STYLE,
+      backgroundColor: '#eef1f6',
+      mapTypeControl: false, streetViewControl: false, fullscreenControl: true,
+      zoomControl: true, gestureHandling: 'greedy',
+      minZoom: 8, maxZoom: 17, clickableIcons: false,
+    });
+
+    var iw = new google.maps.InfoWindow({ disableAutoPan: true, pixelOffset: new google.maps.Size(0, -10) });
+    var closeTimer;
+    // Let the cursor travel into the card to click through (same feel as
+    // the old popup): the card holds the window open while hovered.
+    google.maps.event.addListener(iw, 'domready', function () {
+      var box = document.querySelector('.gm-style-iw');
+      if (!box) return;
+      box.addEventListener('mouseenter', function () { clearTimeout(closeTimer); });
+      box.addEventListener('mouseleave', function () {
+        closeTimer = setTimeout(function () { iw.close(); }, 300);
       });
+    });
+
+    var pins = await pinsReq;
+    var bounds = new google.maps.LatLngBounds();
+    pins.forEach(function (p) {
+      var el = document.createElement('div');
+      el.className = 'lmk' + (p.s === 'Active' ? ' lmk--a' : '');
+      var open = function () {
+        clearTimeout(closeTimer);
+        iw.setContent(card(p));
+        iw.setPosition({ lat: p.lat, lng: p.lng });
+        iw.open({ map: map });
+      };
+      el.addEventListener('mouseenter', open);
+      el.addEventListener('mouseleave', function () {
+        closeTimer = setTimeout(function () { iw.close(); }, 350);
+      });
+      HtmlMarker(map, { lat: p.lat, lng: p.lng }, el, open);
+      bounds.extend({ lat: p.lat, lng: p.lng });
+    });
+    if (pins.length) {
+      map.fitBounds(bounds, 30);
+      google.maps.event.addListenerOnce(map, 'idle', function () {
+        if (map.getZoom() > 15) map.setZoom(15);
+      });
+    }
   }
 })();
 </script>
