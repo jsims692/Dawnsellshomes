@@ -31,10 +31,14 @@ class LeadSpam
         'seo service', 'search engine ranker', 'increase your ranking',
         'video to explain what you do', 'bookkeeping services', 'digital marketing',
         'grow your business', 'custom-built ai', 'our pricing starts',
-        'prices start from', 'link building', 'guest post',
+        'prices start from', 'link building', 'guest post', 'wikipedia',
     ];
 
-    public static function check(Request $request, string $email, string $message): bool
+    /**
+     * The two pure bot tells (honeypot + form timing) — usable alone on
+     * forms where repeat emails are legitimate, like saved searches.
+     */
+    public static function botSignals(Request $request): bool
     {
         if (filled($request->input('bot-field'))) {
             return true;
@@ -48,7 +52,12 @@ class LeadSpam
         // Only penalize a small NON-NEGATIVE elapsed time — a negative value
         // means the visitor's clock runs ahead of the server's, which is
         // clock skew, not evidence of a bot, and must not count against them.
-        if ($elapsedMs >= 0 && $elapsedMs < self::MIN_FORM_SECONDS * 1000) {
+        return $elapsedMs >= 0 && $elapsedMs < self::MIN_FORM_SECONDS * 1000;
+    }
+
+    public static function check(Request $request, string $email, string $message): bool
+    {
+        if (self::botSignals($request)) {
             return true;
         }
 

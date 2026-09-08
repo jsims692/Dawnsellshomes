@@ -150,6 +150,9 @@
     <form method="post" action="/listings/alerts" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0;">
       @csrf
       @foreach(array_filter($filters ?? []) as $k => $v)@foreach((array) $v as $vv)<input type="hidden" name="{{ $k }}{{ is_array($v) ? '[]' : '' }}" value="{{ $vv }}">@endforeach @endforeach
+      <input type="text" name="bot-field" value="" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;">
+      <input type="hidden" name="form_ts" value="">
+      <script>document.currentScript.previousElementSibling.value = Date.now();</script>
       <input type="text" name="name" placeholder="First name (optional)" style="padding:9px 12px;border:1px solid #c9d2e3;border-radius:6px;font-size:14px;width:150px;">
       <input type="email" name="email" required placeholder="you@email.com" style="padding:9px 12px;border:1px solid #c9d2e3;border-radius:6px;font-size:14px;width:190px;">
       <button type="submit" style="background:#C8102E;color:#fff;border:0;border-radius:999px;padding:10px 18px;font-weight:700;font-size:13.5px;cursor:pointer;">Save search + get alerts</button>

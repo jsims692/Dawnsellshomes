@@ -13,6 +13,19 @@ class SavedSearchController extends Controller
     /** Save the current /listings filters as an email alert. */
     public function store(Request $request)
     {
+        // Bots found this form within weeks of launch (gibberish names,
+        // no filters, triple-posts). Fail them into a convincing success:
+        // nothing saved, no alert emails to fake addresses, no lead.
+        if (\App\Support\LeadSpam::botSignals($request)) {
+            return back()->with('alert_saved', 'your search');
+        }
+
+        // Absorb double/triple submits (bots and impatient humans alike).
+        if (SavedSearch::where('email', strtolower((string) $request->input('email')))
+            ->where('created_at', '>=', now()->subMinute())->exists()) {
+            return back()->with('alert_saved', 'your search');
+        }
+
         $data = $request->validate([
             'email' => 'required|email:rfc',
             'name' => 'nullable|string|max:80',
