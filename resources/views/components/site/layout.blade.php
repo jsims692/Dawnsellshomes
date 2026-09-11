@@ -38,6 +38,7 @@
 <body>
 <x-site.plat-bg />
 <x-site.nav />
+<x-site.favorites />
 <main>{{ $slot }}</main>
 <x-site.footer />
 <x-site.text-josh />

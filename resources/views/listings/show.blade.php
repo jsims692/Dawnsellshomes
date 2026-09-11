@@ -210,6 +210,7 @@
       <h1 style="font-family:'Fraunces',Georgia,serif;font-size:22px;color:#222;margin:6px 0 0;">{{ $l->displayAddress() }}</h1>
     </div>
     <div style="display:flex;gap:8px;align-items:center;">
+      <button type="button" class="ld-share fav-btn" data-id="{{ $l->listing_id }}" data-url="{{ $l->url() }}" style="margin-right:8px;">&#9829; <i style="font-style:normal;">Save</i></button>
       <button type="button" id="ld-share" class="ld-share">&#8599; Share</button>
       <span class="ld-status">{{ $l->status }}</span>
     </div>

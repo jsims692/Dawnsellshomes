@@ -14,6 +14,7 @@
         <a href="/#neighborhoods">Neighborhoods</a>
         <a href="/blog">Blog</a>
         <a href="/listings">Search Homes</a>
+        <a href="/saved" id="favNav" hidden style="color:#C8102E;font-weight:700;">&#9829; <span>0</span></a>
         <a href="/contact">Contact</a>
         <a class="btn btn--primary" href="/sell">Free Home Valuation</a>
       </div>

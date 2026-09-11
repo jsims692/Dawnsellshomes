@@ -208,9 +208,10 @@
         <button type="button" class="li-arr li-arr-r" aria-label="Next photo">&#8250;</button>
         <span class="li-count">1/{{ count($ph) }}</span>
         <span class="li-status">{{ $l->status }}</span>
+        <button type="button" class="fav-btn fav-heart" data-id="{{ $l->listing_id }}" data-url="{{ $l->url() }}" aria-label="Save this home">&#9829;</button>
       </div>
       @else
-      <div class="li-photo" style="background-image:url('{{ $l->photoUrl() ?? '' }}')"><span class="li-status">{{ $l->status }}</span></div>
+      <div class="li-photo" style="background-image:url('{{ $l->photoUrl() ?? '' }}')"><span class="li-status">{{ $l->status }}</span><button type="button" class="fav-btn fav-heart" data-id="{{ $l->listing_id }}" data-url="{{ $l->url() }}" aria-label="Save this home">&#9829;</button></div>
       @endif
       <div class="li-body">
         <div class="li-price">{{ $l->list_price ? '$'.number_format($l->list_price) : ($l->is_auction ? 'Auction — see details' : 'Price on request') }}@if(isset($l->est_monthly)) <span class="li-pay">&asymp; ${{ number_format($l->est_monthly) }}/mo</span>@endif</div>

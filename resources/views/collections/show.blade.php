@@ -52,7 +52,7 @@
     <div class="col-grid">
       @foreach($cards as $l)
       <a class="col-card" href="{{ $l['url'] ?? '/listings/'.$l['id'] }}">
-        <div class="col-photo" style="background-image:url('{{ $l['photo'] ?? '' }}')"><span class="col-status">{{ $l['status'] }}</span></div>
+        <div class="col-photo" style="background-image:url('{{ $l['photo'] ?? '' }}')"><span class="col-status">{{ $l['status'] }}</span><button type="button" class="fav-btn fav-heart" data-id="{{ $l['id'] }}" data-url="{{ $l['url'] ?? '/listings/'.$l['id'] }}" aria-label="Save this home">&#9829;</button></div>
         <div class="col-body">
           <div class="col-price">${{ number_format($l['price']) }}</div>
           <div class="col-meta">{{ $l['beds'] }} bd &middot; {{ $l['baths'] }} ba @if($l['sqft']) &middot; {{ number_format($l['sqft']) }} sqft @endif</div>

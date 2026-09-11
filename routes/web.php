@@ -31,6 +31,8 @@ Route::get('/sold/map-data', [SoldController::class, 'data']);
 if (config('site.listings_enabled')) {
     Route::get('/listings', [ListingController::class, 'index']);
     Route::get('/listings/map-data', [ListingController::class, 'mapData'])->middleware('throttle:60,1');
+    Route::get('/listings/by-ids', [ListingController::class, 'byIds'])->middleware('throttle:60,1');
+    Route::get('/saved', fn () => view('saved'));
     Route::get('/listings/{listingId}/{slug?}', [ListingController::class, 'show']);
 
     // Specialty search landing pages (55+/first-floor-master, new

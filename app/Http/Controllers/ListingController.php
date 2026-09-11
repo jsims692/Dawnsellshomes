@@ -166,6 +166,27 @@ class ListingController extends Controller
         return response()->json($pins)->header('Cache-Control', 'public, max-age=120');
     }
 
+    /** Card data for the /saved favorites page (ids from localStorage). */
+    public function byIds(Request $request)
+    {
+        $ids = array_slice(array_filter(array_map('trim', explode(',', (string) $request->query('ids')))), 0, 100);
+        $rows = Listing::displayable()->where('is_demo', false)
+            ->whereIn('listing_id', $ids)
+            ->get(['listing_id', 'listing_key', 'status', 'list_price', 'close_price', 'close_date',
+                'street_address', 'city', 'state', 'zip', 'address_public', 'beds', 'baths_full', 'baths_half', 'sqft', 'is_auction'])
+            ->map(fn ($l) => [
+                'id' => $l->listing_id,
+                'url' => $l->url(),
+                'price' => $l->status === 'Closed' ? $l->close_price : ($l->is_auction ? null : $l->list_price),
+                'status' => $l->status === 'Closed' ? 'Sold '.($l->close_date?->format('M Y')) : $l->status,
+                'addr' => $l->displayAddress(),
+                'beds' => (int) $l->beds, 'ba' => $l->baths(), 'sqft' => $l->sqft,
+                'ph' => $l->photoUrl(),
+            ])->values();
+
+        return response()->json($rows)->header('Cache-Control', 'no-store');
+    }
+
     public function show(string $listingId, ?string $slug = null)
     {
         $listing = Listing::displayable()->with(['rooms', 'features'])

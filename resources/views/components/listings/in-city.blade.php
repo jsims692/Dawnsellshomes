@@ -78,7 +78,7 @@
       <div class="dshl-grid">
         @foreach($panel['listings'] as $l)
         <a class="dshl-card" href="{{ $l->url() }}">
-          <div class="dshl-photo" style="background-image:url('{{ $l->photoUrl() ?? '' }}')"><span class="dshl-status">{{ $l->status }}</span></div>
+          <div class="dshl-photo" style="background-image:url('{{ $l->photoUrl() ?? '' }}')"><span class="dshl-status">{{ $l->status }}</span><button type="button" class="fav-btn fav-heart" data-id="{{ $l->listing_id }}" data-url="{{ $l->url() }}" aria-label="Save this home">&#9829;</button></div>
           <div class="dshl-body">
             <div class="dshl-price">${{ number_format($l->list_price) }}</div>
             <div class="dshl-facts">{{ $l->beds }} bd &middot; {{ $l->baths() }} ba @if($l->sqft) &middot; {{ number_format($l->sqft) }} sqft @endif</div>
