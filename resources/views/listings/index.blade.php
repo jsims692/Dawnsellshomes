@@ -273,6 +273,7 @@ window.initListingsMap = (function () {
   }
 
   async function build() {
+    if (window.dsT) dsT('map', { t: 'search' });
     var pinsReq = fetch('/listings/map-data' + window.location.search).then(function (r) { return r.json(); });
     await window.__gmapsReady;
     var lib = await google.maps.importLibrary('maps');
@@ -371,6 +372,7 @@ window.initListingsMap = (function () {
     track.addEventListener('scroll', function () {
       var i = idx();
       hydrate(track, i);
+      if (!window.__carT && i > 0 && window.dsT) { window.__carT = 1; dsT('carousel'); }
       if (count) count.textContent = (i + 1) + '/' + n;
       if (prev) prev.hidden = i === 0;
       if (next) next.hidden = i >= n - 1;

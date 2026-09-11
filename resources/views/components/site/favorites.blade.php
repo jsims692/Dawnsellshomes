@@ -19,7 +19,7 @@ window.dsFav = {
   has: function (id) { return !!this.all()[id]; },
   toggle: function (id, url) {
     var m = this.all();
-    if (m[id]) { delete m[id]; } else { m[id] = { u: url || '', t: Date.now() }; }
+    if (m[id]) { delete m[id]; } else { m[id] = { u: url || '', t: Date.now() }; if (window.dsT) dsT('heart'); }
     this.persist(m);
     return !!m[id];
   },

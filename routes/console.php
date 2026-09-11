@@ -19,6 +19,8 @@ Schedule::command('mls:sync')->hourly()->withoutOverlapping();
 Schedule::command('mls:geocode')->hourlyAt(12)->withoutOverlapping();
 Schedule::command('mls:media', ['--limit' => 500])->hourlyAt(20)->withoutOverlapping();
 Schedule::command('geoip:refresh')->monthlyOn(3, '05:40');
+Schedule::call(fn () => Illuminate\Support\Facades\DB::table('site_events')
+    ->where('created_at', '<', now()->subDays(90))->delete())->weeklyOn(1, '04:15');
 Schedule::command('mls:alerts')->hourlyAt(30)->withoutOverlapping();
 
 // Freshness ping: tell IndexNow-connected engines (Bing, Yandex, ...) which

@@ -29,6 +29,9 @@ return [
     // 30-yr fixed assumption for payment-first search. Update weekly-ish
     // (env MORTGAGE_RATE); shoppers can override per-search within 2-12%.
     'mortgage_rate' => (float) env('MORTGAGE_RATE', 6.1),
+
+    // Access key for the private /pulse usage dashboard.
+    'pulse_key' => env('PULSE_KEY'),
     // Public Google reviews shown on /reviews (verbatim; also embedded as Review schema). Update as new ones come in.
     'reviews' => [
         ['Mark Kegermann', 'First-Time Buyer', 'We had an awesome experience working with Josh throughout our home buying process. He was incredibly responsive, transparent, and always quick to answer questions. His professionalism and communication made the entire experience smooth and stress-free. Made our first home purchase experience 11/10!'],

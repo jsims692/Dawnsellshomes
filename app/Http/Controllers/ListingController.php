@@ -124,6 +124,16 @@ class ListingController extends Controller
             ->when($payExpr, fn ($qq) => $qq->addSelect(\Illuminate\Support\Facades\DB::raw($payExpr.' AS est_monthly')))
             ->skip($offset)->take(min($perPage, $total - $offset))->get();
 
+        \App\Support\Pulse::track('search', [
+            'flt' => array_values(array_intersect(
+                ['city', 'min', 'max', 'beds', 'dwelling', 'waterfront', 'basement', 'garage', 'ffmaster',
+                    'masterbath', 'ranch', 'nohoa', 'built', 'reduced', 'available', 'school', 'down', 'payment'],
+                array_keys(array_filter($request->query())))),
+            'city' => array_slice(array_values(array_filter((array) $request->query('city'))), 0, 3),
+            'pay' => (bool) $payment,
+            'n' => $total,
+        ]);
+
         return view('listings.index', [
             'listings' => $slice,
             'total' => $total,

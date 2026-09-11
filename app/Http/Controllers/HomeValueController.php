@@ -50,6 +50,8 @@ class HomeValueController extends Controller
             }
         }
 
+        \App\Support\Pulse::track('value', ['n' => $comps->count()]);
+
         if ($comps->count() >= 3) {
             return $this->snapshot($comps, $radius, $lat, $lng, $distance);
         }

@@ -33,6 +33,18 @@ if (config('site.listings_enabled')) {
     Route::get('/listings/map-data', [ListingController::class, 'mapData'])->middleware('throttle:60,1');
     Route::get('/listings/by-ids', [ListingController::class, 'byIds'])->middleware('throttle:60,1');
     Route::get('/saved', fn () => view('saved'));
+    Route::post('/t', function (Illuminate\Http\Request $r) {
+        $d = json_decode($r->getContent(), true) ?: [];
+        $meta = is_array($d['m'] ?? null) ? array_slice($d['m'], 0, 6) : [];
+        \App\Support\Pulse::track((string) ($d['e'] ?? ''), $meta, (string) ($d['p'] ?? ''));
+
+        return response()->noContent();
+    })->middleware('throttle:120,1');
+    Route::get('/pulse', function (Illuminate\Http\Request $r) {
+        abort_unless(hash_equals((string) config('site.pulse_key'), (string) $r->query('key')), 404);
+
+        return view('pulse');
+    });
     Route::get('/listings/{listingId}/{slug?}', [ListingController::class, 'show']);
 
     // Specialty search landing pages (55+/first-floor-master, new

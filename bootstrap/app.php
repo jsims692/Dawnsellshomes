@@ -15,7 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // The public contact form posts as plain urlencoded (no Blade, no CSRF
         // token) — same as it did on Netlify. Honeypot + storage-first handling
         // in ContactController compensate.
-        $middleware->validateCsrfTokens(except: ['/']);
+        $middleware->validateCsrfTokens(except: ['/', 't']);
         $middleware->web(prepend: [
             \App\Http\Middleware\RedirectTrailingSlash::class,
         ]);

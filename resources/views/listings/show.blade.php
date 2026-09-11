@@ -145,6 +145,7 @@
     }
     function open(i) {
       build();
+      if (window.dsT) dsT('gallery');
       box.hidden = false;
       document.body.style.overflow = 'hidden';
       var t = scroller.children[i];
@@ -232,6 +233,7 @@
           var old = b.innerHTML;
           b.innerHTML = '&#10003; Link copied';
           b.classList.add('ld-share--done');
+          if (window.dsT) dsT('share');
           setTimeout(function () { b.innerHTML = old; b.classList.remove('ld-share--done'); }, 2200);
         });
       }
@@ -423,6 +425,13 @@
       });
       var dot = document.createElement('div');
       dot.style.cssText = 'width:18px;height:18px;border-radius:50%;background:#C8102E;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.45);';
+      if (window.dsT) dsT('map', { t: 'listing' });
+      map.addListener('maptypeid_changed', function () {
+        if (map.getMapTypeId() !== 'roadmap' && !el.__satT && window.dsT) { el.__satT = 1; dsT('satellite'); }
+      });
+      map.getStreetView().addListener('visible_changed', function () {
+        if (map.getStreetView().getVisible() && !el.__svT && window.dsT) { el.__svT = 1; dsT('streetview'); }
+      });
       var o = new lib.OverlayView();
       o.onAdd = function () { o.getPanes().overlayMouseTarget.appendChild(dot); };
       o.draw = function () {

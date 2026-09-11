@@ -68,6 +68,7 @@ class SavedSearchController extends Controller
                 'user_agent' => (string) $request->userAgent(),
             ]);
             DeliverLead::dispatchAfterResponse($lead);
+            \App\Support\Pulse::track('saved', ['t' => 'search']);
         }
 
         return back()->with('alert_saved', $search->summary());
