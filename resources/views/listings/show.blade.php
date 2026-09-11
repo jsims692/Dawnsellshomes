@@ -388,6 +388,59 @@
   @endif
   @endif
 
+  {{-- Location map: what the home actually backs up to. Withheld
+       addresses get no map (Rule 7 — a pin is an address). Lazy-built on
+       scroll so unviewed maps never cost an API load. --}}
+  @if($l->address_public && $l->lat && $l->lng)
+  <h2 class="ld-h2">Location</h2>
+  <p style="font-size:13.5px;color:#48586B;margin:-6px 0 12px;">Flip to <strong>Satellite</strong> to see exactly what the home backs up to &mdash; and drag the Street View figure onto the road to walk the block.</p>
+  <div id="ldMap" data-lat="{{ $l->lat }}" data-lng="{{ $l->lng }}" style="height:400px;border-radius:14px;border:1px solid #DEE6EE;background:#eef1f6;"></div>
+  @include('components.maps.style')
+  <script>
+  (function () {
+    var el = document.getElementById('ldMap');
+    window.__gmapsReady ||= new Promise(function (resolve) {
+      if (window.google && window.google.maps && window.google.maps.importLibrary) return resolve();
+      window.__gmapsInit = function () { resolve(); };
+      var s = document.createElement('script');
+      s.src = 'https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_key') }}&v=weekly&loading=async&callback=__gmapsInit';
+      s.async = true; s.defer = true;
+      document.head.appendChild(s);
+    });
+    async function build() {
+      await window.__gmapsReady;
+      var lib = await google.maps.importLibrary('maps');
+      var pos = { lat: parseFloat(el.dataset.lat), lng: parseFloat(el.dataset.lng) };
+      var map = new lib.Map(el, {
+        center: pos, zoom: 16,
+        styles: window.dsMapStyle,
+        backgroundColor: '#eef1f6',
+        mapTypeControl: true,      // the Satellite flip is the whole point
+        streetViewControl: true,   // pegman: walk the block
+        fullscreenControl: true, zoomControl: true,
+        gestureHandling: 'cooperative', clickableIcons: false,
+      });
+      var dot = document.createElement('div');
+      dot.style.cssText = 'width:18px;height:18px;border-radius:50%;background:#C8102E;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.45);';
+      var o = new lib.OverlayView();
+      o.onAdd = function () { o.getPanes().overlayMouseTarget.appendChild(dot); };
+      o.draw = function () {
+        var p = o.getProjection() && o.getProjection().fromLatLngToDivPixel(new google.maps.LatLng(pos));
+        if (p) { dot.style.position = 'absolute'; dot.style.left = (p.x - 9) + 'px'; dot.style.top = (p.y - 9) + 'px'; }
+      };
+      o.onRemove = function () { dot.remove(); };
+      o.setMap(map);
+    }
+    if ('IntersectionObserver' in window) {
+      var io = new IntersectionObserver(function (entries) {
+        if (entries.some(function (e) { return e.isIntersecting; })) { io.disconnect(); build(); }
+      }, { rootMargin: '300px 0px' });
+      io.observe(el);
+    } else { build(); }
+  })();
+  </script>
+  @endif
+
   @if(!empty($nearbySolds))
   <h2 class="ld-h2">Recently sold nearby</h2>
   <table class="ld-rooms" style="max-width:760px;">

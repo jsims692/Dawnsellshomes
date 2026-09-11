@@ -86,6 +86,7 @@
     .dsm-you { width:34px; height:34px; border-radius:50%; background:#0F1E2E; border:3px solid #fff; box-shadow:0 3px 12px rgba(0,0,0,.4); display:flex; align-items:center; justify-content:center; font-size:16px; z-index:2000; }
 </style>
 
+@include('components.maps.style')
 <script>
 // Load Google Maps once per page (component may be rendered more than once).
 window.__gmapsReady ||= new Promise((resolve) => {
@@ -100,32 +101,8 @@ window.__gmapsReady ||= new Promise((resolve) => {
 document.addEventListener('alpine:init', () => {
     Alpine.store('salesFilters', { side: '', type: '', city: '', year: '' });
 
-    // Brand-styled basemap: soft greys, muted POIs, navy-tinted water.
-    const STYLE = [
-        { elementType: 'geometry', stylers: [{ color: '#f4f6fb' }] },
-        { elementType: 'labels.text.fill', stylers: [{ color: '#4a5568' }] },
-        { elementType: 'labels.text.stroke', stylers: [{ color: '#f4f6fb' }] },
-        { elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
-        { featureType: 'administrative', elementType: 'geometry.stroke', stylers: [{ color: '#c9d1e0' }] },
-        { featureType: 'administrative.locality', elementType: 'labels.text.fill', stylers: [{ color: '#0F1E2E' }, { weight: 0.5 }] },
-        { featureType: 'administrative.neighborhood', stylers: [{ visibility: 'off' }] },
-        { featureType: 'landscape.man_made', elementType: 'geometry', stylers: [{ color: '#f8f6f2' }] },
-        { featureType: 'landscape.natural', elementType: 'geometry', stylers: [{ color: '#eef1f6' }] },
-        { featureType: 'poi', stylers: [{ visibility: 'off' }] },
-        { featureType: 'poi.park', elementType: 'geometry', stylers: [{ color: '#e3ebe0' }, { visibility: 'on' }] },
-        { featureType: 'poi.park', elementType: 'labels.text.fill', stylers: [{ color: '#7a8f76' }] },
-        { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#ffffff' }] },
-        { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#e1e6ef' }] },
-        { featureType: 'road', elementType: 'labels.text.fill', stylers: [{ color: '#7b8494' }] },
-        { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#f3ead2' }] },
-        { featureType: 'road.highway', elementType: 'geometry.stroke', stylers: [{ color: '#e6d6ab' }] },
-        { featureType: 'road.highway', elementType: 'labels.text.fill', stylers: [{ color: '#8a7a4a' }] },
-        { featureType: 'road.arterial', elementType: 'geometry', stylers: [{ color: '#ffffff' }] },
-        { featureType: 'road.local', elementType: 'labels', stylers: [{ visibility: 'off' }] },
-        { featureType: 'transit', stylers: [{ visibility: 'off' }] },
-        { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#c5d5ea' }] },
-        { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#0F1E2E' }] },
-    ];
+    // Brand basemap: shared with every map on the site (components/maps/style).
+    const STYLE = window.dsMapStyle;
 
     Alpine.data('salesMap', ({ compact, key, geo }) => ({
         geo,
