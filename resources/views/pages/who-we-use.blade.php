@@ -5,7 +5,7 @@
     <p class="crumb"><a href="/">Home</a> &rsaquo; Who We Use</p>
     <p class="eyebrow">Our trusted contacts</p>
     <h1>The people we actually use &mdash; after {{ \App\Support\TeamStats::soldTotal() }} closings.</h1>
-    <p class="lead">Twenty-five years of transactions builds a phone book money can't buy. When clients ask &ldquo;do you know a good&hellip;&rdquo; &mdash; this is who we call. Nobody pays to be on this list, and nobody pays us a dime for being on it. These are simply the people we use ourselves.</p>
+    <p class="lead">Twenty-six years of transactions builds a phone book money can't buy. When clients ask &ldquo;do you know a good&hellip;&rdquo; &mdash; this is who we call. Nobody pays to be on this list, and nobody pays us a dime for being on it. These are simply the people we use ourselves.</p>
   </div>
 </section>
 

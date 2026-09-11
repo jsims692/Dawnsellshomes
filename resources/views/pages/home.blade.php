@@ -256,7 +256,7 @@ html,body{overflow-x:hidden}
     </div>
     <div class="rv" style="margin-top:2.2rem">
       <x-sales.map height="480px" :compact="true" />
-      <p style="margin-top:1.2rem"><a class="link-arrow" href="/sold">See all {{ \App\Support\TeamStats::mappedSales() }} homes we've sold — with the full interactive map →</a></p>
+      <p style="margin-top:1.2rem"><a class="link-arrow" href="/sold">Browse {{ \App\Support\TeamStats::mappedSales() }} of our {{ \App\Support\TeamStats::soldTotal() }} sales on the interactive map — every pin since 2007 →</a></p>
     </div>
   </div>
 </section>
