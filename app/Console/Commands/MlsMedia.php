@@ -291,7 +291,19 @@ class MlsMedia extends Command
 
     private function cachedCount(string $dir, string $key): int
     {
-        return count(glob("{$dir}/{$key}-*.jpg") ?: []) + (int) is_file("{$dir}/{$key}.jpg");
+        // Sequential stats, never glob — the directory holds 300k+ files.
+        $n = (int) is_file("{$dir}/{$key}.jpg");
+        $misses = 0;
+        for ($i = 1; $i <= self::PHOTOS_MAX && $misses < 3; $i++) {
+            if (is_file("{$dir}/{$key}-{$i}.jpg")) {
+                $n++;
+                $misses = 0;
+            } else {
+                $misses++;
+            }
+        }
+
+        return $n;
     }
 
     /** A refused targeted fetch releases its page lock right away, so the

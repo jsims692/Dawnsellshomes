@@ -86,22 +86,28 @@ class Listing extends Model
         return in_array($this->status, ['Active', 'Active Under Contract'], true);
     }
 
-    /** All locally cached photos in gallery order — tolerant of gaps left by
-     *  individual failed downloads ({key}.jpg, {key}-1.jpg, {key}-3.jpg …). */
+    /** All locally cached photos in gallery order — tolerant of small gaps
+     *  left by failed downloads. NEVER glob here: the cache directory holds
+     *  300k+ files and a wildcard forces a full directory scan (~500ms);
+     *  sequential is_file() probes are O(1) each (~5µs). */
     public function photoUrls(): array
     {
         $base = storage_path('app/public/listings/');
-        $files = array_merge(
-            is_file($base.$this->listing_key.'.jpg') ? [$base.$this->listing_key.'.jpg'] : [],
-            glob($base.$this->listing_key.'-*.jpg') ?: [],
-        );
-        usort($files, function ($a, $b) {
-            $n = fn ($f) => (int) (preg_match('/-(\d+)\.jpg$/', $f, $m) ? $m[1] : 0);
+        $urls = [];
+        if (is_file($base.$this->listing_key.'.jpg')) {
+            $urls[] = asset('storage/listings/'.$this->listing_key.'.jpg');
+        }
+        $misses = 0;
+        for ($i = 1; $i <= \App\Console\Commands\MlsMedia::PHOTOS_MAX && $misses < 3; $i++) {
+            if (is_file($base.$this->listing_key.'-'.$i.'.jpg')) {
+                $urls[] = asset('storage/listings/'.$this->listing_key.'-'.$i.'.jpg');
+                $misses = 0;
+            } else {
+                $misses++;
+            }
+        }
 
-            return $n($a) <=> $n($b);
-        });
-
-        return array_map(fn ($f) => asset('storage/listings/'.basename($f)), $files);
+        return $urls;
     }
 
     public function photoUrl(): ?string
