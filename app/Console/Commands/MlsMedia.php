@@ -191,6 +191,33 @@ class MlsMedia extends Command
             }
         }
 
+        // Gallery aging: a home that closed 60+ days ago collapses back to
+        // its cover photo. Without this every sale parks ~40 files for the
+        // 12 months it stays in the table (548k files / 89% disk by Sep 14).
+        // The .count sidecar goes too, so a future human view re-triggers
+        // the on-demand fetch — nothing is lost, just released.
+        Listing::where('status', 'Closed')
+            ->where('close_date', '<', now()->subDays(60))
+            ->chunk(1000, function ($rows) use ($dir, &$pruned) {
+                foreach ($rows as $l) {
+                    if (! is_file("{$dir}/{$l->listing_key}-1.jpg")) {
+                        continue; // primary-only already
+                    }
+                    $misses = 0;
+                    for ($i = 1; $i <= self::PHOTOS_MAX && $misses < 3; $i++) {
+                        $f = "{$dir}/{$l->listing_key}-{$i}.jpg";
+                        if (is_file($f)) {
+                            @unlink($f);
+                            $pruned++;
+                            $misses = 0;
+                        } else {
+                            $misses++;
+                        }
+                    }
+                    @unlink("{$dir}/{$l->listing_key}.count");
+                }
+            });
+
         return $pruned;
     }
 
