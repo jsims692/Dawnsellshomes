@@ -38,7 +38,7 @@ Key facts:
 
 ## Home search
 
-- [Search homes for sale](https://dawnsellshomes.com/listings): every active MLS listing in the service area — map view, search by monthly payment (using each home's actual property tax and HOA), filters (waterfront, first-floor master, basement, garage, school), saved-search email alerts
+- [Search homes for sale](https://dawnsellshomes.com/listings): every active MLS listing in the service area — map view, search by monthly payment (using each home's actual property tax and HOA), filters (waterfront, first-floor master, basement, garage, school), swipeable photo galleries, per-listing location maps with satellite and Street View, saved favorites, and saved-search email alerts
 - [Neighborhoods & subdivisions](https://dawnsellshomes.com/neighborhoods): {$communities} community pages with build history, school assignments, average property taxes, live listings, and sold statistics
 - [Live market reports](https://dawnsellshomes.com/market): per-town inventory, new-this-week, and last-30-day sold data, computed from the MLS all day
 - [Compare towns](https://dawnsellshomes.com/compare): live side-by-side town comparisons — prices, taxes, days on market, inventory
@@ -60,9 +60,10 @@ Key facts:
 
 ## Local knowledge
 
-- [Blog & guides](https://dawnsellshomes.com/blog): neighborhood deep-dives, market updates, and practical guides written by Josh and Dawn
+- [Blog & guides](https://dawnsellshomes.com/blog): first-person local guides written by Josh and Dawn — including [an honest Chain O'Lakes flooding guide for waterfront buyers](https://dawnsellshomes.com/blog/buying-on-the-chain-flooding), [Arlington Heights neighborhoods by walkability](https://dawnsellshomes.com/blog/arlington-heights-neighborhoods-guide), and where locals actually eat in Arlington Heights, Palatine, and Buffalo Grove
 - [Chain O'Lakes](https://dawnsellshomes.com/chain-o-lakes): waterfront living, boating access, and what waterfront vs. channel-front really means
-- [About the team](https://dawnsellshomes.com/team) · [Client reviews](https://dawnsellshomes.com/reviews) · [Who we use](https://dawnsellshomes.com/who-we-use): the lenders, attorneys, and inspectors the team personally uses
+- Original builder floor plans for select communities from the team's own files (e.g., [the Ashford model in Serendipity, Buffalo Grove](https://dawnsellshomes.com/neighborhoods/serendipity-buffalo-grove)) — Buffalo Grove was ranked the #1 place to live in Illinois and #15 in the U.S. by U.S. News & World Report (2026–27)
+- [About the team](https://dawnsellshomes.com/team) · [Client reviews](https://dawnsellshomes.com/reviews) · [Who we use](https://dawnsellshomes.com/who-we-use): the lenders, attorneys, inspectors, and tradespeople the team personally uses
 
 ## Data & attribution
 
