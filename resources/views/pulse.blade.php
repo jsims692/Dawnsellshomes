@@ -9,19 +9,29 @@ $since = fn (int $d) => now()->subDays($d);
 $uniq = fn ($q) => (clone $q)->distinct()->count('vhash');
 
 $base = \Illuminate\Support\Facades\DB::table('site_events');
-$days = collect(range(13, 0))->map(function ($d) {
+// "Human searches" = search events whose visitor also fired the JS page
+// beacon that day. Stealth crawlers fake browser user-agents but never
+// run JS, so this quietly filters them out of the headline numbers.
+$humanSearch = fn ($q) => $q->where('event', 'search')->whereExists(function ($s) {
+    $s->from('site_events as p')->whereColumn('p.vhash', 'site_events.vhash')
+        ->where('p.event', 'page');
+});
+$days = collect(range(13, 0))->map(function ($d) use ($humanSearch) {
     $day = now()->subDays($d)->toDateString();
     $q = \Illuminate\Support\Facades\DB::table('site_events')->whereDate('created_at', $day);
     return [
         'day' => now()->subDays($d)->format('D n/j'),
         'visitors' => (clone $q)->where('event', 'page')->distinct()->count('vhash'),
-        'searches' => (clone $q)->where('event', 'search')->count(),
+        'searches' => $humanSearch(clone $q)->count(),
     ];
 });
 $maxV = max(1, $days->max('visitors'));
 
 $feat = \Illuminate\Support\Facades\DB::table('site_events')->where('created_at', '>=', $since(7))
     ->whereNotIn('event', ['page'])
+    ->where(function ($q) use ($humanSearch) {
+        $q->where('event', '!=', 'search')->orWhere(fn ($s) => $humanSearch($s));
+    })
     ->selectRaw('event, COUNT(*) n, COUNT(DISTINCT vhash) u')->groupBy('event')->orderByDesc('n')->get();
 
 $hours = \Illuminate\Support\Facades\DB::table('site_events')->where('event', 'page')->where('created_at', '>=', $since(14))
