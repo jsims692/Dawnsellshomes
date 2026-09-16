@@ -44,12 +44,14 @@ class SiteUrls
                 foreach (Subdivisions::dynamicOnly() as $e) {
                     $out[self::BASE.'/neighborhoods/'.$e['slug']] = null;
                 }
-                // For-sale detail pages: freshest content on the site. Sold
-                // pages stay out (they churn; search reaches them via hubs).
-                foreach (Listing::displayable()->forSale()->where('is_demo', false)
-                    ->orderBy('id')->get(['listing_id', 'street_address', 'address_public', 'city', 'mls_modified_at']) as $l) {
-                    $out[self::BASE.$l->url()] = $iso($l->mls_modified_at);
-                }
+                // Listing detail pages are deliberately NOT in the sitemap
+                // (Sep 17 2026): the Aug 17 cutover demoted the domain and
+                // Google is rationing crawl; 7,500 churning URLs in the map
+                // starved recrawls of the 491 proven content pages. Listings
+                // stay crawlable via search/city/band links — the sitemap now
+                // concentrates on the pages that rank. Reconsider once the
+                // old winners recover (Wolf Crossing & co. back near July
+                // positions) or authority materially grows.
             }
 
             return $out;
