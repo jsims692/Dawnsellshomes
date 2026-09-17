@@ -181,6 +181,23 @@ class Subdivisions
                     'price' => $s->close_price,
                 ])->all();
 
+            // Community centroid (any status with coordinates) for the
+            // location map; 12-month sold aggregates for the range sentence.
+            $geo = $base()->whereNotNull('lat')->whereNotNull('lng')
+                ->selectRaw('AVG(lat) lat, AVG(lng) lng, COUNT(*) n')->first();
+            $range = $base()->where('status', 'Closed')->whereNotNull('close_price')
+                ->where('close_date', '>=', now()->subMonths(12))
+                ->selectRaw('MIN(close_price) lo, MAX(close_price) hi, COUNT(*) n')->first();
+
+            // Nearby: other mapped communities in the same city (stable
+            // alphabetical neighbors, so the links don't churn per request).
+            $peers = array_values(array_filter(array_keys(self::map()),
+                fn ($s) => $s !== $entry['slug'] && (self::map()[$s]['citySlug'] ?? null) === $entry['citySlug']));
+            sort($peers);
+            $i = array_search($entry['slug'], array_merge($peers, [$entry['slug']]));
+            $nearby = array_map(fn ($s) => ['slug' => $s, 'name' => self::map()[$s]['name']],
+                array_slice(array_merge(array_slice($peers, $i), array_slice($peers, 0, $i)), 0, 4));
+
             return [
                 'phrase' => $phrase,
                 'yearLo' => $years?->lo, 'yearHi' => $years?->hi,
@@ -190,6 +207,12 @@ class Subdivisions
                 'middle' => $school('middle_school'),
                 'high' => $school('high_school'),
                 'solds' => $solds,
+                'lat' => ($geo && $geo->n >= 2) ? (float) $geo->lat : null,
+                'lng' => ($geo && $geo->n >= 2) ? (float) $geo->lng : null,
+                'saleN' => (int) ($range->n ?? 0),
+                'saleLo' => $range->lo ? (int) $range->lo : null,
+                'saleHi' => $range->hi ? (int) $range->hi : null,
+                'nearby' => $nearby,
             ];
         });
     }

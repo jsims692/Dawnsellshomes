@@ -13,6 +13,7 @@
     <p class="eyebrow">{{ $entry['city'] }}, Illinois</p>
     <h1>{{ $entry['name'] }}</h1>
     <p class="lead">{{ $entry['name'] }} is a {{ $profile['phrase'] }} in <a href="/cities/{{ $entry['citySlug'] }}" style="color:inherit">{{ $entry['city'] }}</a>, Illinois{{ $built }}.
+      @if(($profile['saleN'] ?? 0) >= 2 && $profile['saleLo'])Over the last 12 months, {{ $profile['saleN'] }} homes sold here between ${{ number_format($profile['saleLo']) }} and ${{ number_format($profile['saleHi']) }}.@endif
       Everything below comes straight from the MLS and updates hourly.</p>
   </div>
 </section>
@@ -49,6 +50,47 @@
   .sub-solds a { color:#0F1E2E; font-weight:600; text-decoration:none; }
   .sub-solds a:hover { color:#C8102E; }
 </style>
+
+@if($profile['lat'] && $profile['lng'])
+<section class="section section--tight">
+  <div class="wrap">
+    <h2 class="h2" style="font-size:24px;margin-bottom:6px">Where {{ $entry['name'] }} sits</h2>
+    <p style="font-size:13.5px;color:#48586B;margin:0 0 12px;">Flip to <strong>Satellite</strong> to see what the community backs up to &mdash; parks, water, tracks, or traffic.</p>
+    <div id="subMap" data-lat="{{ $profile['lat'] }}" data-lng="{{ $profile['lng'] }}" style="height:340px;border-radius:14px;border:1px solid #DEE6EE;background:#eef1f6;max-width:900px;"></div>
+  </div>
+</section>
+@include('components.maps.style')
+<script>
+(function () {
+  var el = document.getElementById('subMap');
+  window.__gmapsReady ||= new Promise(function (resolve) {
+    if (window.google && window.google.maps && window.google.maps.importLibrary) return resolve();
+    window.__gmapsInit = function () { resolve(); };
+    var s = document.createElement('script');
+    s.src = 'https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_key') }}&v=weekly&loading=async&callback=__gmapsInit';
+    s.async = true; s.defer = true;
+    document.head.appendChild(s);
+  });
+  async function build() {
+    await window.__gmapsReady;
+    var lib = await google.maps.importLibrary('maps');
+    new lib.Map(el, {
+      center: { lat: parseFloat(el.dataset.lat), lng: parseFloat(el.dataset.lng) }, zoom: 15,
+      styles: window.dsMapStyle, backgroundColor: '#eef1f6',
+      mapTypeControl: true, streetViewControl: true, fullscreenControl: true, zoomControl: true,
+      gestureHandling: 'cooperative', clickableIcons: false,
+    });
+    if (window.dsT) dsT('map', { t: 'subdivision' });
+  }
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (es) {
+      if (es.some(function (e) { return e.isIntersecting; })) { io.disconnect(); build(); }
+    }, { rootMargin: '300px 0px' });
+    io.observe(el);
+  } else { build(); }
+})();
+</script>
+@endif
 
 @php $floorPlans = \App\Support\FloorPlans::for($entry['slug'] ?? null); @endphp
 @if($floorPlans)
@@ -135,6 +177,11 @@
       &#127968; Thinking about {{ $entry['name'] }}? We&rsquo;ve been selling here for 26 years &mdash; including off-market and Private Listing Network homes that never reach public sites.
       <a class="link-arrow" href="/contact">Talk to Dawn &amp; Josh &rarr;</a>
     </div>
+    @if(!empty($profile['nearby']))
+    <p style="font-size:13.5px;color:#48586B;margin:20px 0 0;">Other {{ $entry['city'] }} communities:
+      @foreach($profile['nearby'] as $nb)<a href="/neighborhoods/{{ $nb['slug'] }}" style="color:#C8102E;font-weight:600;">{{ $nb['name'] }}</a>{{ $loop->last ? '' : ' · ' }}@endforeach
+    </p>
+    @endif
   </div>
 </section>
 </x-site.layout>
