@@ -195,7 +195,7 @@
     </div>
     @if(!empty($profile['nearby']))
     <p style="font-size:13.5px;color:#48586B;margin:20px 0 0;">Other {{ $entry['city'] }} communities:
-      @foreach($profile['nearby'] as $nb)<a href="/neighborhoods/{{ $nb['slug'] }}" style="color:#C8102E;font-weight:600;">{{ $nb['name'] }}{{ $nb['active'] > 0 ? ' ('.$nb['active'].' for sale)' : '' }}</a>{{ $loop->last ? '' : ' · ' }}@endforeach
+      @foreach($profile['nearby'] as $nb)<a href="/neighborhoods/{{ $nb['slug'] }}" style="color:#C8102E;font-weight:600;">{{ $nb['name'] }}{{ ($nb['active'] ?? 0) > 0 ? ' ('.$nb['active'].' for sale)' : '' }}</a>{{ $loop->last ? '' : ' · ' }}@endforeach
     </p>
     @endif
   </div>
