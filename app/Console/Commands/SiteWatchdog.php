@@ -53,11 +53,14 @@ class SiteWatchdog extends Command
             cache()->forget('watchdog-strike');
         }
 
-        // Fresh application errors since the last scan (byte-offset marker).
+        // Fresh application errors since the last scan. The byte-offset
+        // bookmark lives in a FILE, not the cache — a cache:clear used to
+        // erase it, and the next scan re-alerted on already-seen errors.
         $log = storage_path('logs/laravel.log');
+        $posFile = storage_path('app/watchdog.logpos');
         if (is_file($log)) {
             $size = filesize($log);
-            $mark = (int) cache()->get('watchdog-logpos', 0);
+            $mark = (int) @file_get_contents($posFile);
             if ($size < $mark) {
                 $mark = 0; // rotated
             }
@@ -66,7 +69,7 @@ class SiteWatchdog extends Command
                 fseek($fh, $mark);
                 $chunk = stream_get_contents($fh, min($size - $mark, 2_000_000));
                 fclose($fh);
-                cache()->put('watchdog-logpos', $size, 86400 * 7);
+                @file_put_contents($posFile, (string) $size);
                 preg_match_all('/^\[\d{4}-[^\]]+\] production\.ERROR: (.{0,160})/m', $chunk, $m);
                 $errors = array_slice(array_unique($m[1] ?? []), 0, 8);
                 if ($errors !== [] && cache()->add('watchdog-log-alerted', 1, 21600)) {
