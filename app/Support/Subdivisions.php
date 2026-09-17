@@ -191,12 +191,14 @@ class Subdivisions
 
             // Nearby: other mapped communities in the same city (stable
             // alphabetical neighbors, so the links don't churn per request).
-            $peers = array_values(array_filter(array_keys(self::map()),
-                fn ($s) => $s !== $entry['slug'] && (self::map()[$s]['citySlug'] ?? null) === $entry['citySlug']));
+            // Resolve the map ONCE — calling self::map() per element hits
+            // the cache store thousands of times and times the page out.
+            $all = self::map();
+            $peers = array_values(array_filter(array_keys($all),
+                fn ($s) => $s !== $entry['slug'] && ($all[$s]['citySlug'] ?? null) === $entry['citySlug']));
             sort($peers);
-            $i = array_search($entry['slug'], array_merge($peers, [$entry['slug']]));
-            $nearby = array_map(fn ($s) => ['slug' => $s, 'name' => self::map()[$s]['name']],
-                array_slice(array_merge(array_slice($peers, $i), array_slice($peers, 0, $i)), 0, 4));
+            $nearby = array_map(fn ($s) => ['slug' => $s, 'name' => $all[$s]['name']],
+                array_slice($peers, 0, 4));
 
             return [
                 'phrase' => $phrase,
