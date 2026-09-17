@@ -189,16 +189,29 @@ class Subdivisions
                 ->where('close_date', '>=', now()->subMonths(12))
                 ->selectRaw('MIN(close_price) lo, MAX(close_price) hi, COUNT(*) n')->first();
 
-            // Nearby: other mapped communities in the same city (stable
-            // alphabetical neighbors, so the links don't churn per request).
-            // Resolve the map ONCE — calling self::map() per element hits
-            // the cache store thousands of times and times the page out.
+            // Nearby: other mapped communities in the same city, preferring
+            // ones with homes for sale RIGHT NOW (a visitor landing on an
+            // empty community needs somewhere real to go). Resolve the map
+            // ONCE — per-element self::map() calls hit the cache store
+            // thousands of times and time the page out.
             $all = self::map();
+            $activeBySub = Listing::displayable()->forSale()->where('is_demo', false)
+                ->where('city', $entry['city'])->whereNotNull('subdivision')
+                ->selectRaw('subdivision, COUNT(*) c')->groupBy('subdivision')
+                ->pluck('c', 'subdivision')->all();
             $peers = array_values(array_filter(array_keys($all),
                 fn ($s) => $s !== $entry['slug'] && ($all[$s]['citySlug'] ?? null) === $entry['citySlug']));
-            sort($peers);
-            $nearby = array_map(fn ($s) => ['slug' => $s, 'name' => $all[$s]['name']],
-                array_slice($peers, 0, 4));
+            usort($peers, function ($a, $b) use ($all, $activeBySub) {
+                $ca = $activeBySub[$all[$a]['name']] ?? 0;
+                $cb = $activeBySub[$all[$b]['name']] ?? 0;
+
+                return $cb <=> $ca ?: strcmp($a, $b);
+            });
+            $nearby = array_map(fn ($s) => [
+                'slug' => $s,
+                'name' => $all[$s]['name'],
+                'active' => $activeBySub[$all[$s]['name']] ?? 0,
+            ], array_slice($peers, 0, 4));
 
             return [
                 'phrase' => $phrase,
@@ -214,6 +227,7 @@ class Subdivisions
                 'saleN' => (int) ($range->n ?? 0),
                 'saleLo' => $range->lo ? (int) $range->lo : null,
                 'saleHi' => $range->hi ? (int) $range->hi : null,
+                'activeN' => $activeBySub[$entry['name']] ?? 0,
                 'nearby' => $nearby,
             ];
         });

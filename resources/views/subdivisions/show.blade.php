@@ -51,6 +51,22 @@
   .sub-solds a:hover { color:#C8102E; }
 </style>
 
+@if(($profile['activeN'] ?? 0) === 0)
+<section class="section section--tight">
+  <div class="wrap" style="max-width:860px">
+    <div class="callout" style="border-left:4px solid #C8102E;">
+      <strong>Nothing in {{ $entry['name'] }} is publicly for sale right now</strong> &mdash; which tells you something: homes here get held onto{{ ($profile['saleN'] ?? 0) > 0 ? ', and the '.$profile['saleN'].' that sold in the past year went fast' : '' }}. Communities like this often trade by relationship &mdash; an off-market conversation, a Private Listing Network entry, a neighbor who knows a neighbor &mdash; before a sign ever hits the yard. <strong>If you want in, tell us</strong> &mdash; we'll watch the PLN and our own network for {{ $entry['name'] }} and call you first. <a class="link-arrow" href="/contact">Put us on watch &rarr;</a>
+    </div>
+    @if(collect($profile['nearby'] ?? [])->sum('active') > 0)
+    <p style="font-size:14px;color:#48586B;margin:16px 0 0;">Meanwhile, nearby {{ $entry['city'] }} communities with homes for sale today:
+      @foreach(collect($profile['nearby'])->where('active', '>', 0) as $nb)<a href="/neighborhoods/{{ $nb['slug'] }}" style="color:#C8102E;font-weight:700;">{{ $nb['name'] }} ({{ $nb['active'] }})</a>{{ $loop->last ? '' : ' · ' }}@endforeach
+      &nbsp;&middot;&nbsp;<a href="/listings?city={{ urlencode($entry['city']) }}" style="color:#0F1E2E;font-weight:600;">all of {{ $entry['city'] }} &rarr;</a>
+    </p>
+    @endif
+  </div>
+</section>
+@endif
+
 @if($profile['lat'] && $profile['lng'])
 <section class="section section--tight">
   <div class="wrap">
@@ -179,7 +195,7 @@
     </div>
     @if(!empty($profile['nearby']))
     <p style="font-size:13.5px;color:#48586B;margin:20px 0 0;">Other {{ $entry['city'] }} communities:
-      @foreach($profile['nearby'] as $nb)<a href="/neighborhoods/{{ $nb['slug'] }}" style="color:#C8102E;font-weight:600;">{{ $nb['name'] }}</a>{{ $loop->last ? '' : ' · ' }}@endforeach
+      @foreach($profile['nearby'] as $nb)<a href="/neighborhoods/{{ $nb['slug'] }}" style="color:#C8102E;font-weight:600;">{{ $nb['name'] }}{{ $nb['active'] > 0 ? ' ('.$nb['active'].' for sale)' : '' }}</a>{{ $loop->last ? '' : ' · ' }}@endforeach
     </p>
     @endif
   </div>
